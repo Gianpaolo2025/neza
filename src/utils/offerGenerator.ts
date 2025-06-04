@@ -66,7 +66,7 @@ export const generateOffers = (userData: UserData): BankOffer[] => {
   
   // Validaciones más estrictas basadas en parámetros reales
   const incomeRatio = userData.requestedAmount / userData.monthlyIncome;
-  const employmentType = userData.employmentType as keyof typeof banks[0].maxAmount;
+  const employmentType = userData.employmentType as keyof typeof banks[0]['maxAmount'];
   
   // Factor de riesgo más preciso
   let riskMultiplier = 1;
