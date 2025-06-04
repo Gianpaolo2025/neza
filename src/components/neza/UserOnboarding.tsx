@@ -3,8 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, FileText, User, Brain } from "lucide-react";
-import { DocumentUpload } from "./DocumentUpload";
+import { ArrowLeft, Sparkles, Zap, FileText } from "lucide-react";
+import { DynamicOnboarding } from "./DynamicOnboarding";
 import { VerificationStatus } from "./VerificationStatus";
 import { IntelligentSystem } from "./IntelligentSystem";
 import { DocumentAnalyzer, DocumentAnalysis, UserProfile } from "@/services/documentAnalyzer";
@@ -30,6 +30,7 @@ export const UserOnboarding = ({ onBack }: UserOnboardingProps) => {
   });
   const [documents, setDocuments] = useState<{ [key: string]: DocumentAnalysis }>({});
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [onboardingType, setOnboardingType] = useState<'select' | 'dynamic' | 'traditional'>('select');
 
   const steps = [
     { id: 1, title: 'Información Personal', icon: User },
@@ -115,6 +116,125 @@ export const UserOnboarding = ({ onBack }: UserOnboardingProps) => {
     if (stepId === currentStep) return 'current';
     return 'pending';
   };
+
+  if (onboardingType === 'dynamic') {
+    return <DynamicOnboarding onBack={() => setOnboardingType('select')} />;
+  }
+
+  if (onboardingType === 'select') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center mb-6">
+            <Button variant="ghost" onClick={onBack} className="mr-4">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Volver
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-emerald-800">NEZA</h1>
+              <p className="text-emerald-600">Tu neobanco inteligente</p>
+            </div>
+          </div>
+
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-bold text-gray-800 mb-4">
+                ¿Cómo prefieres registrarte?
+              </h2>
+              <p className="text-xl text-gray-600">
+                Elige la experiencia que más te guste
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Opción Dinámica */}
+              <Card 
+                className="cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 border-2 border-emerald-200"
+                onClick={() => setOnboardingType('dynamic')}
+              >
+                <CardHeader className="text-center pb-4">
+                  <div className="w-16 h-16 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Sparkles className="w-8 h-8 text-white" />
+                  </div>
+                  <CardTitle className="text-2xl text-emerald-800 flex items-center justify-center gap-2">
+                    Experiencia Interactiva
+                    <span className="text-sm bg-emerald-100 text-emerald-600 px-2 py-1 rounded-full">NUEVO</span>
+                  </CardTitle>
+                  <CardDescription className="text-lg">
+                    Registro paso a paso, dinámico y conversacional
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3 text-sm text-gray-600 mb-6">
+                    <div className="flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-emerald-500" />
+                      <span>Experiencia tipo Duolingo</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-emerald-500" />
+                      <span>Validación en tiempo real</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-emerald-500" />
+                      <span>Guardado automático</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-emerald-500" />
+                      <span>Animaciones y feedback</span>
+                    </div>
+                  </div>
+                  <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-lg py-6">
+                    ¡Comenzar experiencia! ✨
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Opción Tradicional */}
+              <Card 
+                className="cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 border-2 border-gray-200"
+                onClick={() => setOnboardingType('traditional')}
+              >
+                <CardHeader className="text-center pb-4">
+                  <div className="w-16 h-16 bg-gradient-to-r from-gray-500 to-gray-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <FileText className="w-8 h-8 text-white" />
+                  </div>
+                  <CardTitle className="text-2xl text-gray-800">
+                    Registro Completo
+                  </CardTitle>
+                  <CardDescription className="text-lg">
+                    Formulario tradicional con análisis de documentos
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3 text-sm text-gray-600 mb-6">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-gray-500" />
+                      <span>Subida de documentos</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-gray-500" />
+                      <span>Análisis con OCR</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-gray-500" />
+                      <span>Sistema inteligente SBS</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-gray-500" />
+                      <span>Validación completa</span>
+                    </div>
+                  </div>
+                  <Button variant="outline" className="w-full text-lg py-6">
+                    Registro tradicional
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (currentStep === 3 && userProfile) {
     return <IntelligentSystem userProfile={userProfile} onBack={() => setCurrentStep(2)} />;
