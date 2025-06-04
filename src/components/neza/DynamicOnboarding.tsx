@@ -31,9 +31,12 @@ interface OnboardingData {
   };
   clientProfile: {
     hasPreviousCredit: boolean;
-    riskProfile: string;
-    wantsAdvice: boolean;
+    hasFixedIncome: boolean;
+    workType: string;
+    incomeRange: string;
+    creditPurpose: string;
     financialGoals: string[];
+    financialKnowledge: string;
     preferredContact: string;
   };
   currentStep: number;
@@ -71,9 +74,12 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
     },
     clientProfile: {
       hasPreviousCredit: false,
-      riskProfile: '',
-      wantsAdvice: false,
+      hasFixedIncome: false,
+      workType: '',
+      incomeRange: '',
+      creditPurpose: '',
       financialGoals: [],
+      financialKnowledge: '',
       preferredContact: ''
     },
     currentStep: 1,
@@ -158,9 +164,12 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
       },
       clientProfile: {
         hasPreviousCredit: false,
-        riskProfile: '',
-        wantsAdvice: false,
+        hasFixedIncome: false,
+        workType: '',
+        incomeRange: '',
+        creditPurpose: '',
         financialGoals: [],
+        financialKnowledge: '',
         preferredContact: ''
       },
       currentStep: 1,
