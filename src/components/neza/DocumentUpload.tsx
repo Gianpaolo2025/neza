@@ -2,31 +2,46 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, CheckCircle, AlertCircle, FileText, Loader2 } from "lucide-react";
+import { Upload, CheckCircle, AlertCircle, FileText, Loader2, Eye } from "lucide-react";
+import { DocumentAnalyzer, DocumentAnalysis } from "@/services/documentAnalyzer";
 
 interface DocumentUploadProps {
   title: string;
   description: string;
   required: boolean;
+  documentType: string;
+  onUpload: (file: File, analysis: DocumentAnalysis) => void;
   status: 'pending' | 'uploaded' | 'verified' | 'rejected';
-  onUpload: (file: File) => void;
 }
 
 export const DocumentUpload = ({ 
   title, 
   description, 
   required, 
+  documentType,
   status, 
   onUpload 
 }: DocumentUploadProps) => {
   const [dragOver, setDragOver] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analysis, setAnalysis] = useState<DocumentAnalysis | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = (file: File) => {
+  const handleFileSelect = async (file: File) => {
     if (file && (file.type.includes('pdf') || file.type.includes('image'))) {
       setUploadedFile(file);
-      onUpload(file);
+      setAnalyzing(true);
+      
+      try {
+        const documentAnalysis = await DocumentAnalyzer.analyzeDocument(file, documentType);
+        setAnalysis(documentAnalysis);
+        onUpload(file, documentAnalysis);
+      } catch (error) {
+        console.error('Error analyzing document:', error);
+      } finally {
+        setAnalyzing(false);
+      }
     } else {
       alert('Por favor selecciona un archivo PDF o imagen (JPG, PNG)');
     }
@@ -49,6 +64,10 @@ export const DocumentUpload = ({
   };
 
   const getStatusIcon = () => {
+    if (analyzing) {
+      return <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />;
+    }
+    
     switch (status) {
       case 'pending':
         return <Upload className="w-5 h-5 text-gray-400" />;
@@ -62,13 +81,15 @@ export const DocumentUpload = ({
   };
 
   const getStatusText = () => {
+    if (analyzing) return 'Analizando documento...';
+    
     switch (status) {
       case 'pending':
         return 'Pendiente de subir';
       case 'uploaded':
         return 'Procesando documento...';
       case 'verified':
-        return 'Documento verificado';
+        return `Documento verificado (${Math.round((analysis?.confidence || 0) * 100)}% confiabilidad)`;
       case 'rejected':
         return 'Documento rechazado - Volver a subir';
     }
@@ -105,7 +126,7 @@ export const DocumentUpload = ({
         </div>
       </CardHeader>
       <CardContent>
-        {status === 'pending' || status === 'rejected' ? (
+        {(status === 'pending' || status === 'rejected') && !analyzing ? (
           <div
             className={`
               border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors
@@ -135,25 +156,51 @@ export const DocumentUpload = ({
             />
           </div>
         ) : (
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <div className="flex items-center">
-              <FileText className="w-5 h-5 text-gray-500 mr-3" />
-              <div>
-                <p className="text-sm font-medium">{uploadedFile?.name || 'Documento subido'}</p>
-                <p className="text-xs text-gray-500">
-                  {uploadedFile ? `${(uploadedFile.size / 1024 / 1024).toFixed(2)} MB` : ''}
-                </p>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center">
+                <FileText className="w-5 h-5 text-gray-500 mr-3" />
+                <div>
+                  <p className="text-sm font-medium">{uploadedFile?.name || 'Documento subido'}</p>
+                  <p className="text-xs text-gray-500">
+                    {uploadedFile ? `${(uploadedFile.size / 1024 / 1024).toFixed(2)} MB` : ''}
+                  </p>
+                </div>
               </div>
+              {analysis && (
+                <Button variant="outline" size="sm">
+                  <Eye className="w-4 h-4 mr-1" />
+                  Ver Análisis
+                </Button>
+              )}
             </div>
+            
+            {analysis && analysis.extractedData && (
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <h4 className="text-sm font-medium text-blue-900 mb-2">Datos Extraídos:</h4>
+                <div className="text-xs text-blue-700 space-y-1">
+                  {Object.entries(analysis.extractedData).map(([key, value]) => (
+                    <div key={key} className="flex justify-between">
+                      <span className="capitalize">{key.replace(/([A-Z])/g, ' $1').toLowerCase()}:</span>
+                      <span className="font-medium">{String(value)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
-        {status === 'rejected' && (
+        {status === 'rejected' && analysis && (
           <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-sm text-red-700">
-              <strong>Motivo del rechazo:</strong> El documento no es legible o no cumple con los requisitos. 
-              Por favor, sube una imagen más clara o un archivo con mejor calidad.
+              <strong>Problemas detectados:</strong>
             </p>
+            <ul className="text-sm text-red-600 mt-1 list-disc list-inside">
+              {analysis.issues.map((issue, index) => (
+                <li key={index}>{issue}</li>
+              ))}
+            </ul>
           </div>
         )}
       </CardContent>
