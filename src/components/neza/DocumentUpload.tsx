@@ -145,15 +145,6 @@ export const DocumentUpload = ({
                 </p>
               </div>
             </div>
-            {status === 'rejected' && (
-              <Button 
-                size="sm" 
-                variant="outline"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                Subir nuevo
-              </Button>
-            )}
           </div>
         )}
 
