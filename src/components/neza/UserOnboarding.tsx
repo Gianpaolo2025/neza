@@ -1,12 +1,14 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Sparkles, Zap, FileText } from "lucide-react";
+import { ArrowLeft, Sparkles, Zap, FileText, User, Brain } from "lucide-react";
 import { DynamicOnboarding } from "./DynamicOnboarding";
 import { VerificationStatus } from "./VerificationStatus";
 import { IntelligentSystem } from "./IntelligentSystem";
+import { DocumentUpload } from "./DocumentUpload";
 import { DocumentAnalyzer, DocumentAnalysis, UserProfile } from "@/services/documentAnalyzer";
 
 interface UserOnboardingProps {
