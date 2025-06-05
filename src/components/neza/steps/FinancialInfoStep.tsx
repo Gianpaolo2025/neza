@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Home, Car, Briefcase, GraduationCap, CreditCard, TrendingUp } from "lucide-react";
+import { Home, Car, Briefcase, GraduationCap, CreditCard, TrendingUp, PiggyBank, Clock, Building } from "lucide-react";
 
 interface FinancialInfo {
   creditType: string;
@@ -35,42 +34,53 @@ interface FinancialInfoStepProps {
   onPrev: () => void;
 }
 
-const creditTypes = [
+const productCategories = [
   {
-    id: 'personal',
-    title: 'Préstamo Personal',
-    subtitle: 'Para gastos personales',
+    id: 'deposits',
+    title: 'Productos de Depósito',
+    subtitle: 'Ahorra y haz crecer tu dinero',
+    icon: PiggyBank,
+    color: 'from-green-500 to-emerald-600',
+    products: [
+      { id: 'ahorro', title: 'Cuenta de Ahorros', minAmount: 0, maxAmount: 0 },
+      { id: 'corriente', title: 'Cuenta Corriente', minAmount: 0, maxAmount: 0 },
+      { id: 'plazo-fijo', title: 'Depósito a Plazo', minAmount: 1000, maxAmount: 1000000 },
+      { id: 'cts', title: 'Depósito CTS', minAmount: 0, maxAmount: 0 }
+    ]
+  },
+  {
+    id: 'credits',
+    title: 'Créditos y Préstamos',
+    subtitle: 'Financia tus proyectos',
     icon: CreditCard,
     color: 'from-blue-500 to-blue-600',
-    minAmount: 1000,
-    maxAmount: 50000
+    products: [
+      { id: 'personal', title: 'Crédito Personal', minAmount: 1000, maxAmount: 50000 },
+      { id: 'consumo', title: 'Crédito de Consumo', minAmount: 500, maxAmount: 30000 },
+      { id: 'tarjeta-credito', title: 'Tarjeta de Crédito', minAmount: 500, maxAmount: 20000 }
+    ]
   },
   {
-    id: 'vehicular',
-    title: 'Crédito Vehicular',
-    subtitle: 'Para tu auto o moto',
-    icon: Car,
-    color: 'from-purple-500 to-purple-600',
-    minAmount: 5000,
-    maxAmount: 200000
-  },
-  {
-    id: 'hipotecario',
-    title: 'Crédito Hipotecario',
-    subtitle: 'Para tu casa soñada',
+    id: 'specialized',
+    title: 'Créditos Especializados',
+    subtitle: 'Para necesidades específicas',
     icon: Home,
-    color: 'from-green-500 to-green-600',
-    minAmount: 50000,
-    maxAmount: 800000
+    color: 'from-purple-500 to-purple-600',
+    products: [
+      { id: 'hipotecario', title: 'Crédito Hipotecario', minAmount: 50000, maxAmount: 800000 },
+      { id: 'vehicular', title: 'Crédito Vehicular', minAmount: 5000, maxAmount: 200000 },
+      { id: 'empresarial', title: 'Crédito Empresarial', minAmount: 10000, maxAmount: 500000 }
+    ]
   },
   {
-    id: 'educativo',
+    id: 'education',
     title: 'Crédito Educativo',
     subtitle: 'Invierte en tu futuro',
     icon: GraduationCap,
     color: 'from-orange-500 to-orange-600',
-    minAmount: 2000,
-    maxAmount: 100000
+    products: [
+      { id: 'educativo', title: 'Crédito Educativo', minAmount: 2000, maxAmount: 100000 }
+    ]
   }
 ];
 
@@ -93,9 +103,12 @@ export const FinancialInfoStep = ({
   onPrev 
 }: FinancialInfoStepProps) => {
   const [currentSubStep, setCurrentSubStep] = useState(1);
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [profileLevel, setProfileLevel] = useState(0);
 
-  const selectedCreditType = creditTypes.find(type => type.id === data.creditType);
+  const selectedProduct = productCategories
+    .flatMap(cat => cat.products)
+    .find(product => product.id === data.creditType);
 
   const calculateProfileLevel = () => {
     let level = 0;
@@ -119,14 +132,22 @@ export const FinancialInfoStep = ({
     setProfileLevel(Math.min(level, 100));
   };
 
-  const handleCreditTypeSelect = (typeId: string) => {
-    const type = creditTypes.find(t => t.id === typeId)!;
+  const handleCategorySelect = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    setCurrentSubStep(2);
+  };
+
+  const handleProductSelect = (productId: string) => {
+    const product = productCategories
+      .flatMap(cat => cat.products)
+      .find(p => p.id === productId)!;
+    
     onUpdate({ 
       ...data, 
-      creditType: typeId,
-      requestedAmount: Math.max(data.requestedAmount, type.minAmount)
+      creditType: productId,
+      requestedAmount: Math.max(data.requestedAmount, product.minAmount)
     });
-    setCurrentSubStep(2);
+    setCurrentSubStep(3);
     calculateProfileLevel();
   };
 
@@ -142,7 +163,7 @@ export const FinancialInfoStep = ({
 
   const canProceed = () => {
     return data.creditType && 
-           data.requestedAmount > 0 && 
+           data.requestedAmount >= 0 && 
            data.monthlyIncome > 0 && 
            data.occupation && 
            data.workTime > 0;
@@ -150,9 +171,11 @@ export const FinancialInfoStep = ({
 
   const getMotivationalMessage = () => {
     if (currentSubStep === 1) {
-      return `¡Perfecto, ${personalData.firstName}! ¿Qué tipo de crédito necesitas? 💰`;
+      return `¡Perfecto, ${personalData.firstName}! ¿Qué tipo de producto financiero necesitas? 💰`;
     } else if (currentSubStep === 2) {
-      return `¡Excelente elección! Ahora cuéntame sobre tu situación financiera 📊`;
+      return `¡Excelente elección! Ahora elige el producto específico 🎯`;
+    } else if (currentSubStep === 3) {
+      return `¡Perfecto! Ahora cuéntame sobre tu situación financiera 📊`;
     }
     return `¡Buen trabajo! Ya tienes un perfil financiero sólido 🎯`;
   };
@@ -210,42 +233,40 @@ export const FinancialInfoStep = ({
       )}
 
       <AnimatePresence mode="wait">
-        {/* Paso 1: Selección de tipo de crédito */}
+        {/* Paso 1: Selección de categoría */}
         {currentSubStep === 1 && (
           <motion.div
-            key="creditTypes"
+            key="categories"
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {creditTypes.map((type, index) => {
-                const Icon = type.icon;
+              {productCategories.map((category, index) => {
+                const Icon = category.icon;
                 return (
                   <motion.div
-                    key={type.id}
+                    key={category.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
                   >
                     <Card 
-                      className={`cursor-pointer transition-all duration-300 hover:shadow-lg ${
-                        data.creditType === type.id ? 'ring-2 ring-emerald-500' : ''
-                      }`}
-                      onClick={() => handleCreditTypeSelect(type.id)}
+                      className="cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105"
+                      onClick={() => handleCategorySelect(category.id)}
                     >
                       <CardContent className="p-6">
-                        <div className={`w-12 h-12 bg-gradient-to-r ${type.color} rounded-lg flex items-center justify-center mb-4`}>
+                        <div className={`w-12 h-12 bg-gradient-to-r ${category.color} rounded-lg flex items-center justify-center mb-4`}>
                           <Icon className="w-6 h-6 text-white" />
                         </div>
                         <h3 className="text-lg font-bold text-gray-800 mb-2">
-                          {type.title}
+                          {category.title}
                         </h3>
                         <p className="text-gray-600 text-sm mb-3">
-                          {type.subtitle}
+                          {category.subtitle}
                         </p>
                         <p className="text-xs text-gray-500">
-                          Desde S/ {type.minAmount.toLocaleString()} hasta S/ {type.maxAmount.toLocaleString()}
+                          {category.products.length} productos disponibles
                         </p>
                       </CardContent>
                     </Card>
@@ -256,8 +277,57 @@ export const FinancialInfoStep = ({
           </motion.div>
         )}
 
-        {/* Paso 2: Información detallada */}
-        {currentSubStep === 2 && (
+        {/* Paso 2: Selección de producto específico */}
+        {currentSubStep === 2 && selectedCategory && (
+          <motion.div
+            key="products"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+          >
+            <div className="mb-6">
+              <Button 
+                variant="ghost" 
+                onClick={() => setCurrentSubStep(1)}
+                className="mb-4"
+              >
+                ← Volver a categorías
+              </Button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {productCategories
+                .find(cat => cat.id === selectedCategory)
+                ?.products.map((product, index) => (
+                  <motion.div
+                    key={product.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <Card 
+                      className="cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105"
+                      onClick={() => handleProductSelect(product.id)}
+                    >
+                      <CardContent className="p-6">
+                        <h3 className="text-lg font-bold text-gray-800 mb-2">
+                          {product.title}
+                        </h3>
+                        {product.maxAmount > 0 && (
+                          <p className="text-xs text-gray-500">
+                            Desde S/ {product.minAmount.toLocaleString()} hasta S/ {product.maxAmount.toLocaleString()}
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Paso 3: Información detallada */}
+        {currentSubStep === 3 && (
           <motion.div
             key="details"
             initial={{ opacity: 0, x: 50 }}
@@ -265,39 +335,39 @@ export const FinancialInfoStep = ({
             exit={{ opacity: 0, x: -50 }}
             className="space-y-6"
           >
-            {/* Monto solicitado */}
-            <Card>
-              <CardContent className="p-6">
-                <Label className="text-lg font-medium text-gray-700 mb-4 block">
-                  ¿Cuánto necesitas? 💵
-                </Label>
-                <div className="space-y-4">
-                  <Input
-                    type="number"
-                    value={data.requestedAmount || ''}
-                    onChange={(e) => handleAmountChange(Number(e.target.value))}
-                    placeholder={`Mínimo S/ ${selectedCreditType?.minAmount || 1000}`}
-                    className="text-lg py-6"
-                  />
-                  {selectedCreditType && (
+            {/* Monto solicitado - solo si aplica */}
+            {selectedProduct && selectedProduct.maxAmount > 0 && (
+              <Card>
+                <CardContent className="p-6">
+                  <Label className="text-lg font-medium text-gray-700 mb-4 block">
+                    ¿Cuánto necesitas? 💵
+                  </Label>
+                  <div className="space-y-4">
+                    <Input
+                      type="number"
+                      value={data.requestedAmount || ''}
+                      onChange={(e) => handleAmountChange(Number(e.target.value))}
+                      placeholder={`Mínimo S/ ${selectedProduct.minAmount}`}
+                      className="text-lg py-6"
+                    />
                     <Slider
                       value={[data.requestedAmount]}
                       onValueChange={([value]) => handleAmountChange(value)}
-                      min={selectedCreditType.minAmount}
-                      max={selectedCreditType.maxAmount}
+                      min={selectedProduct.minAmount}
+                      max={selectedProduct.maxAmount}
                       step={1000}
                       className="w-full"
                     />
-                  )}
-                  <div className="flex justify-between text-sm text-gray-500">
-                    <span>S/ {selectedCreditType?.minAmount.toLocaleString()}</span>
-                    <span>S/ {selectedCreditType?.maxAmount.toLocaleString()}</span>
+                    <div className="flex justify-between text-sm text-gray-500">
+                      <span>S/ {selectedProduct.minAmount.toLocaleString()}</span>
+                      <span>S/ {selectedProduct.maxAmount.toLocaleString()}</span>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
 
-            {/* Ingresos mensuales */}
+            {/* Resto de campos - keep existing code */}
             <Card>
               <CardContent className="p-6">
                 <Label className="text-lg font-medium text-gray-700 mb-4 block">
@@ -322,7 +392,6 @@ export const FinancialInfoStep = ({
               </CardContent>
             </Card>
 
-            {/* Ocupación */}
             <Card>
               <CardContent className="p-6">
                 <Label className="text-lg font-medium text-gray-700 mb-4 block">
@@ -343,7 +412,6 @@ export const FinancialInfoStep = ({
               </CardContent>
             </Card>
 
-            {/* Tiempo de trabajo */}
             <Card>
               <CardContent className="p-6">
                 <Label className="text-lg font-medium text-gray-700 mb-4 block">
@@ -382,7 +450,7 @@ export const FinancialInfoStep = ({
           Anterior
         </Button>
         
-        {currentSubStep === 2 ? (
+        {currentSubStep === 3 ? (
           <Button 
             onClick={onNext} 
             disabled={!canProceed()}
@@ -392,8 +460,8 @@ export const FinancialInfoStep = ({
           </Button>
         ) : (
           <Button 
-            onClick={() => setCurrentSubStep(2)} 
-            disabled={!data.creditType}
+            onClick={() => currentSubStep === 1 ? setCurrentSubStep(2) : setCurrentSubStep(3)} 
+            disabled={currentSubStep === 1 ? !selectedCategory : !data.creditType}
             className="flex-1 bg-emerald-600 hover:bg-emerald-700"
           >
             Siguiente

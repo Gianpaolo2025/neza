@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,7 @@ import { ClientProfileStep } from "./steps/ClientProfileStep";
 import { AsesorIA } from "./AsesorIA";
 import { OffersDashboard } from "@/components/OffersDashboard";
 import { IntelligentSystem } from "./IntelligentSystem";
+import { InteractiveOnboarding } from "./InteractiveOnboarding";
 
 interface PersonalData {
   firstName: string;
@@ -62,7 +62,7 @@ interface DynamicOnboardingProps {
 export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [showAsesorIA, setShowAsesorIA] = useState(true);
-  const [currentView, setCurrentView] = useState<'onboarding' | 'offers' | 'intelligent'>('onboarding');
+  const [currentView, setCurrentView] = useState<'onboarding' | 'offers' | 'intelligent' | 'interactive'>('onboarding');
   const [data, setData] = useState<OnboardingData>({
     personalData: {
       firstName: "",
@@ -160,7 +160,6 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
     if (currentStep < 3) {
       setCurrentStep(prev => prev + 1);
     } else {
-      // Al completar el onboarding, mostrar ofertas
       setCurrentView('offers');
     }
   };
@@ -173,6 +172,10 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
 
   const handleViewIntelligentSystem = () => {
     setCurrentView('intelligent');
+  };
+
+  const handleViewInteractive = () => {
+    setCurrentView('interactive');
   };
 
   const handleBackToOnboarding = () => {
@@ -217,7 +220,9 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
       },
       credit: {
         score: data.clientProfile.hasPreviousCredit ? 450 : 350,
-        debtToIncome: data.financialInfo.hasOtherDebts === "no" ? 10 : 35
+        debtToIncome: data.financialInfo.hasOtherDebts === "no" ? 10 : 35,
+        hasNegativeHistory: false,
+        infoCorpStatus: "normal" as const
       },
       documents: {},
       qualityScore: 75
@@ -244,6 +249,19 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
     );
   }
 
+  // Mostrar modo interactivo
+  if (currentView === 'interactive') {
+    return (
+      <InteractiveOnboarding 
+        onBack={handleBackToOnboarding}
+        onComplete={(userData) => {
+          setData(userData);
+          setCurrentView('offers');
+        }}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50">
       <div className="container mx-auto px-4 py-6">
@@ -259,7 +277,16 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
             <p className="text-slate-600">Tu camino hacia la mejor opción financiera</p>
           </div>
           
-          <div className="w-24" />
+          <div className="flex gap-2">
+            <Button
+              onClick={handleViewInteractive}
+              variant="outline"
+              className="bg-purple-50 border-purple-300 text-purple-700 hover:bg-purple-100"
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              Modo Interactivo
+            </Button>
+          </div>
         </div>
 
         {/* Progress Bar */}
