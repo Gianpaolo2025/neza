@@ -1,12 +1,11 @@
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Check, Loader2, Sparkles, Heart, AlertCircle, CheckCircle } from "lucide-react";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { CheckCircle, AlertCircle, Shield, User, Mail, Phone, IdCard } from "lucide-react";
 
 interface PersonalData {
   firstName: string;
@@ -27,492 +26,288 @@ interface PersonalDataStepProps {
 }
 
 export const PersonalDataStep = ({ data, onUpdate, onNext, isReturningUser }: PersonalDataStepProps) => {
-  const [currentField, setCurrentField] = useState(0);
-  const [isValidating, setIsValidating] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
-  const [otp, setOtp] = useState("");
-  const [validationMessages, setValidationMessages] = useState<{ [key: string]: string }>({});
-  const [isDuplicateUser, setIsDuplicateUser] = useState(false);
+  const [validationStatus, setValidationStatus] = useState<{
+    dni: 'pending' | 'validating' | 'valid' | 'invalid';
+    email: 'pending' | 'valid' | 'invalid';
+    phone: 'pending' | 'valid' | 'invalid';
+  }>({
+    dni: 'pending',
+    email: 'pending',
+    phone: 'pending'
+  });
 
-  const fields = [
-    { 
-      key: 'firstName', 
-      label: 'Nombres', 
-      placeholder: 'Juan Carlos', 
-      emoji: '👋',
-      motivationalText: '¡Hola! Me encanta conocerte 😊'
-    },
-    { 
-      key: 'lastName', 
-      label: 'Apellidos', 
-      placeholder: 'García López', 
-      emoji: '✨',
-      motivationalText: '¡Perfecto! Sigamos conociendo más de ti'
-    },
-    { 
-      key: 'dni', 
-      label: 'DNI', 
-      placeholder: '12345678', 
-      emoji: '🆔',
-      motivationalText: 'Ahora necesito validar tu identidad de forma segura 🔒'
-    },
-    { 
-      key: 'birthDate', 
-      label: 'Fecha de nacimiento', 
-      placeholder: '1990-01-15', 
-      emoji: '🎂',
-      motivationalText: '¡Genial! Ya casi te conozco completamente'
-    },
-    { 
-      key: 'email', 
-      label: 'Correo electrónico', 
-      placeholder: 'juan@email.com', 
-      emoji: '📧',
-      motivationalText: 'Tu correo es importante para mantenerte informado 📨'
-    },
-    { 
-      key: 'phone', 
-      label: 'Número de celular', 
-      placeholder: '987654321', 
-      emoji: '📱',
-      motivationalText: '¡Último paso! Confirmemos tu celular para mayor seguridad 🛡️'
-    }
-  ];
+  const [showOTP, setShowOTP] = useState(false);
+  const [otp, setOtp] = useState('');
 
-  const currentFieldData = fields[currentField];
-
-  const checkDuplicateUser = (dni: string): boolean => {
-    const existingUsers = Object.keys(localStorage).filter(key => 
-      key.startsWith('neza-onboarding-') && key !== `neza-onboarding-${dni}`
-    );
-    return existingUsers.length > 0;
-  };
-
-  const validateField = (key: string, value: string): boolean => {
-    switch (key) {
-      case 'dni':
-        if (!/^\d{8}$/.test(value)) {
-          setValidationMessages(prev => ({ ...prev, [key]: 'El DNI debe tener exactamente 8 dígitos' }));
-          return false;
-        }
-        // Verificar duplicados
-        if (checkDuplicateUser(value)) {
-          setIsDuplicateUser(true);
-          setValidationMessages(prev => ({ 
-            ...prev, 
-            [key]: '¡Este DNI ya está registrado! ¿Quieres continuar con tu registro anterior?' 
-          }));
-          return false;
-        }
-        break;
-      case 'email':
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          setValidationMessages(prev => ({ ...prev, [key]: 'Por favor ingresa un correo válido' }));
-          return false;
-        }
-        break;
-      case 'phone':
-        if (!/^9\d{8}$/.test(value)) {
-          setValidationMessages(prev => ({ 
-            ...prev, 
-            [key]: 'El celular debe empezar con 9 y tener 9 dígitos (ej: 987654321)' 
-          }));
-          return false;
-        }
-        break;
-      case 'birthDate':
-        const date = new Date(value);
-        const age = new Date().getFullYear() - date.getFullYear();
-        if (age < 18 || age > 80) {
-          setValidationMessages(prev => ({ 
-            ...prev, 
-            [key]: 'Debes tener entre 18 y 80 años para acceder a productos financieros' 
-          }));
-          return false;
-        }
-        break;
-      case 'firstName':
-      case 'lastName':
-        if (value.trim().length < 2) {
-          setValidationMessages(prev => ({ 
-            ...prev, 
-            [key]: 'Este campo debe tener al menos 2 caracteres' 
-          }));
-          return false;
-        }
-        break;
-    }
+  // Simulate DNI validation
+  const validateDNI = async (dni: string) => {
+    if (dni.length !== 8) return;
     
-    setValidationMessages(prev => ({ ...prev, [key]: '' }));
-    setIsDuplicateUser(false);
-    return true;
-  };
-
-  const simulateReniecValidation = async (dni: string): Promise<boolean> => {
-    setIsValidating(true);
-    setValidationMessages(prev => ({ ...prev, dni: 'Validando con RENIEC...' }));
+    setValidationStatus(prev => ({ ...prev, dni: 'validating' }));
     
-    // Simular consulta a RENIEC
-    await new Promise(resolve => setTimeout(resolve, 2500));
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 2000));
     
-    setIsValidating(false);
-    
-    // Simulación: DNIs que empiecen con 1-7 son válidos
-    const isValid = ['1', '2', '3', '4', '5', '6', '7'].includes(dni[0]);
+    // Mock validation (in real app, call actual API)
+    const isValid = /^[0-9]{8}$/.test(dni);
+    setValidationStatus(prev => ({ ...prev, dni: isValid ? 'valid' : 'invalid' }));
     
     if (isValid) {
-      setValidationMessages(prev => ({ 
-        ...prev, 
-        dni: '¡DNI validado exitosamente con RENIEC! ✅' 
-      }));
-      return true;
-    } else {
-      setValidationMessages(prev => ({ 
-        ...prev, 
-        dni: 'DNI no encontrado en la base de datos de RENIEC. Verifica que sea correcto.' 
-      }));
-      return false;
+      onUpdate({ ...data, isValidated: true });
     }
   };
 
-  const sendOTP = async () => {
-    setOtpSent(true);
-    setValidationMessages(prev => ({ 
-      ...prev, 
-      phone: '¡Código enviado! Revisa tu celular 📱' 
-    }));
-    console.log(`Código OTP enviado al ${data.phone}`);
+  const validateEmail = (email: string) => {
+    const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    setValidationStatus(prev => ({ ...prev, email: isValid ? 'valid' : 'invalid' }));
+  };
+
+  const validatePhone = (phone: string) => {
+    const isValid = /^9[0-9]{8}$/.test(phone);
+    setValidationStatus(prev => ({ ...prev, phone: isValid ? 'valid' : 'invalid' }));
+  };
+
+  const handleFieldChange = (field: keyof PersonalData, value: string) => {
+    const updatedData = { ...data, [field]: value };
+    onUpdate(updatedData);
+
+    // Trigger validations
+    if (field === 'dni' && value.length === 8) {
+      validateDNI(value);
+    }
+    if (field === 'email') {
+      validateEmail(value);
+    }
+    if (field === 'phone') {
+      validatePhone(value);
+    }
+  };
+
+  const sendOTP = () => {
+    if (validationStatus.phone === 'valid') {
+      setShowOTP(true);
+      // Simulate sending OTP
+    }
   };
 
   const verifyOTP = () => {
-    if (otp === "1234" || otp === "0000") { // Códigos de prueba
+    if (otp === '123456') { // Mock OTP
       onUpdate({ ...data, otpVerified: true });
-      setValidationMessages(prev => ({ 
-        ...prev, 
-        otp: '¡Celular verificado correctamente! 🎉' 
-      }));
-      setTimeout(() => {
-        onNext();
-      }, 1500);
-    } else {
-      setValidationMessages(prev => ({ 
-        ...prev, 
-        otp: 'Código incorrecto. El código de prueba es 1234 o 0000' 
-      }));
+      setShowOTP(false);
     }
   };
 
-  const handleFieldUpdate = (value: string) => {
-    const key = currentFieldData.key as keyof PersonalData;
-    onUpdate({ ...data, [key]: value });
-  };
+  const canProceed = data.firstName && data.lastName && validationStatus.dni === 'valid' && 
+                    validationStatus.email === 'valid' && validationStatus.phone === 'valid' && data.otpVerified;
 
-  const handleContinueWithExisting = () => {
-    // Encontrar y cargar datos existentes
-    const existingKey = Object.keys(localStorage).find(key => 
-      key.startsWith('neza-onboarding-') && key.includes(data.dni)
-    );
-    
-    if (existingKey) {
-      const existingData = JSON.parse(localStorage.getItem(existingKey) || '{}');
-      onUpdate(existingData.personalData);
-      onNext();
+  const inputFields = [
+    {
+      key: 'firstName',
+      label: 'Nombres',
+      placeholder: 'Ingresa tus nombres',
+      icon: User,
+      type: 'text'
+    },
+    {
+      key: 'lastName',
+      label: 'Apellidos',
+      placeholder: 'Ingresa tus apellidos',
+      icon: User,
+      type: 'text'
+    },
+    {
+      key: 'dni',
+      label: 'Documento Nacional de Identidad',
+      placeholder: '12345678',
+      icon: IdCard,
+      type: 'text',
+      maxLength: 8
+    },
+    {
+      key: 'email',
+      label: 'Correo Electrónico',
+      placeholder: 'ejemplo@correo.com',
+      icon: Mail,
+      type: 'email'
+    },
+    {
+      key: 'phone',
+      label: 'Número de Celular',
+      placeholder: '987654321',
+      icon: Phone,
+      type: 'tel',
+      maxLength: 9
     }
-  };
-
-  const nextField = async () => {
-    const key = currentFieldData.key as keyof PersonalData;
-    const value = data[key] as string;
-    
-    if (!value.trim()) return;
-    
-    if (!validateField(key, value)) {
-      if (isDuplicateUser) {
-        return; // Se muestra el botón de continuar con existente
-      }
-      return;
-    }
-
-    // Validación especial para DNI
-    if (key === 'dni') {
-      const isValid = await simulateReniecValidation(value);
-      if (isValid) {
-        onUpdate({ ...data, isValidated: true });
-      } else {
-        return;
-      }
-    }
-
-    if (currentField < fields.length - 1) {
-      setCurrentField(prev => prev + 1);
-    } else {
-      // Último campo, enviar OTP
-      await sendOTP();
-    }
-  };
-
-  const canProceed = () => {
-    const key = currentFieldData.key as keyof PersonalData;
-    const value = data[key] as string;
-    return value.trim().length > 0 && !validationMessages[key] && !isDuplicateUser;
-  };
-
-  const getFieldIcon = () => {
-    const key = currentFieldData.key;
-    if (validationMessages[key] && !validationMessages[key].includes('✅') && !validationMessages[key].includes('Validando')) {
-      return <AlertCircle className="w-5 h-5 text-red-500" />;
-    }
-    if (validationMessages[key] && validationMessages[key].includes('✅')) {
-      return <CheckCircle className="w-5 h-5 text-green-500" />;
-    }
-    return null;
-  };
-
-  if (otpSent && !data.otpVerified) {
-    return (
-      <Card className="max-w-md mx-auto">
-        <CardContent className="p-8 text-center">
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="w-20 h-20 bg-gradient-to-r from-emerald-100 to-teal-100 rounded-full flex items-center justify-center mx-auto mb-6"
-          >
-            <span className="text-3xl">📱</span>
-          </motion.div>
-          
-          <h3 className="text-2xl font-bold text-gray-800 mb-2">
-            ¡Ya casi terminamos!
-          </h3>
-          <p className="text-gray-600 mb-6">
-            Ingresa el código de 4 dígitos que enviamos a tu celular <br/>
-            <span className="font-semibold text-emerald-600">{data.phone}</span>
-          </p>
-          
-          <div className="mb-6">
-            <InputOTP value={otp} onChange={setOtp} maxLength={4}>
-              <InputOTPGroup className="justify-center">
-                <InputOTPSlot index={0} className="w-14 h-14 text-xl" />
-                <InputOTPSlot index={1} className="w-14 h-14 text-xl" />
-                <InputOTPSlot index={2} className="w-14 h-14 text-xl" />
-                <InputOTPSlot index={3} className="w-14 h-14 text-xl" />
-              </InputOTPGroup>
-            </InputOTP>
-          </div>
-          
-          {validationMessages.otp && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className={`text-sm mb-4 ${
-                validationMessages.otp.includes('correctamente') ? 'text-green-600' : 'text-red-600'
-              }`}
-            >
-              {validationMessages.otp}
-            </motion.p>
-          )}
-          
-          <Button 
-            onClick={verifyOTP} 
-            className="w-full bg-emerald-600 hover:bg-emerald-700 text-lg py-6"
-            disabled={otp.length !== 4}
-          >
-            {otp.length === 4 ? '¡Verificar! 🚀' : 'Ingresa el código'}
-          </Button>
-          
-          <p className="text-xs text-gray-500 mt-4">
-            💡 Código de prueba: 1234 o 0000
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
+  ];
 
   return (
-    <div className="max-w-lg mx-auto">
-      {/* Mensaje motivacional dinámico */}
+    <div className="max-w-2xl mx-auto">
       <motion.div
-        key={`motivation-${currentField}`}
-        initial={{ opacity: 0, y: -10 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-8"
       >
-        <motion.div
-          animate={{ 
-            rotate: [0, 10, -10, 0],
-            scale: [1, 1.1, 1] 
-          }}
-          transition={{ duration: 1, repeat: Infinity, repeatDelay: 3 }}
-          className="text-4xl mb-3"
-        >
-          {currentFieldData.emoji}
-        </motion.div>
-        <motion.p 
-          className="text-xl text-gray-700 font-medium leading-relaxed"
-          initial={{ scale: 0.9 }}
-          animate={{ scale: 1 }}
-        >
-          {currentFieldData.motivationalText}
-        </motion.p>
-        {data.firstName && currentField > 0 && (
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-emerald-600 font-semibold mt-2"
-          >
-            ¡Vamos muy bien, {data.firstName}! 💪
-          </motion.p>
-        )}
+        <h2 className="text-3xl font-bold text-slate-800 mb-4">
+          {isReturningUser ? "¡Hola de nuevo!" : "¡Empecemos!"}
+        </h2>
+        <p className="text-lg text-slate-600">
+          {isReturningUser ? 
+            "Verifica que tus datos estén actualizados" : 
+            "Ingresa tus datos personales de forma segura"
+          }
+        </p>
+        
+        <div className="flex items-center justify-center gap-2 mt-4 text-sm text-blue-600 bg-blue-50 px-4 py-2 rounded-full inline-flex">
+          <Shield className="w-4 h-4" />
+          <span>Información 100% segura y encriptada</span>
+        </div>
       </motion.div>
 
-      {/* Progreso visual mejorado */}
-      <div className="flex justify-center mb-8">
-        <div className="flex gap-3">
-          {fields.map((_, index) => (
-            <motion.div
-              key={index}
-              initial={{ scale: 0.8 }}
-              animate={{ 
-                scale: index === currentField ? 1.3 : 1,
-                backgroundColor: index <= currentField ? '#10b981' : '#e5e7eb',
-                boxShadow: index === currentField ? '0 0 20px rgba(16, 185, 129, 0.4)' : 'none'
-              }}
-              className="w-4 h-4 rounded-full transition-all duration-300"
-            />
-          ))}
-        </div>
-      </div>
+      <Card className="shadow-xl border-0 bg-gradient-to-b from-white to-gray-50">
+        <CardHeader className="text-center pb-6">
+          <CardTitle className="text-slate-800">Datos Personales</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6 p-8">
+          {inputFields.map((field, index) => {
+            const Icon = field.icon;
+            const fieldKey = field.key as keyof PersonalData;
+            const value = data[fieldKey] as string;
+            
+            let status = 'default';
+            if (field.key === 'dni') status = validationStatus.dni;
+            if (field.key === 'email') status = validationStatus.email;
+            if (field.key === 'phone') status = validationStatus.phone;
 
-      {/* Campo actual mejorado */}
-      <Card className="shadow-xl border-0 bg-gradient-to-br from-white to-gray-50">
-        <CardContent className="p-8">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`field-${currentField}`}
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -30 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="relative">
-                <Label 
-                  htmlFor={currentFieldData.key} 
-                  className="text-lg font-semibold text-gray-700 mb-3 block"
-                >
-                  {currentFieldData.label}
+            return (
+              <motion.div
+                key={field.key}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="space-y-2"
+              >
+                <Label htmlFor={field.key} className="text-slate-700 font-medium flex items-center gap-2">
+                  <Icon className="w-4 h-4 text-blue-600" />
+                  {field.label}
                 </Label>
                 
                 <div className="relative">
                   <Input
-                    id={currentFieldData.key}
-                    type={currentFieldData.key === 'birthDate' ? 'date' : 'text'}
-                    value={data[currentFieldData.key as keyof PersonalData] as string}
-                    onChange={(e) => handleFieldUpdate(e.target.value)}
-                    placeholder={currentFieldData.placeholder}
-                    className="text-lg py-6 pr-12 border-2 border-gray-200 focus:border-emerald-500 transition-all duration-300"
-                    onKeyPress={(e) => e.key === 'Enter' && canProceed() && nextField()}
-                    disabled={isValidating}
+                    id={field.key}
+                    type={field.type}
+                    value={value}
+                    onChange={(e) => handleFieldChange(fieldKey, e.target.value)}
+                    placeholder={field.placeholder}
+                    maxLength={field.maxLength}
+                    className={`
+                      pl-12 pr-12 h-12 text-lg border-2 transition-all duration-300
+                      ${status === 'valid' ? 'border-green-400 bg-green-50' : ''}
+                      ${status === 'invalid' ? 'border-red-400 bg-red-50' : ''}
+                      ${status === 'validating' ? 'border-blue-400 bg-blue-50' : ''}
+                      ${status === 'default' ? 'border-slate-200 focus:border-blue-400' : ''}
+                    `}
                   />
-                  {getFieldIcon() && (
-                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      {getFieldIcon()}
-                    </div>
-                  )}
+                  
+                  {/* Icon */}
+                  <Icon className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  
+                  {/* Status indicator */}
+                  <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                    {status === 'valid' && <CheckCircle className="w-5 h-5 text-green-500" />}
+                    {status === 'invalid' && <AlertCircle className="w-5 h-5 text-red-500" />}
+                    {status === 'validating' && (
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full"
+                      />
+                    )}
+                  </div>
                 </div>
-              </div>
-              
-              {/* Mensajes de validación mejorados */}
-              {validationMessages[currentFieldData.key] && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`mt-3 p-3 rounded-lg text-sm ${
-                    validationMessages[currentFieldData.key].includes('✅') || 
-                    validationMessages[currentFieldData.key].includes('correctamente')
-                      ? 'bg-green-50 text-green-700 border border-green-200' 
-                      : validationMessages[currentFieldData.key].includes('Validando')
-                      ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                      : 'bg-red-50 text-red-700 border border-red-200'
-                  }`}
-                >
-                  {validationMessages[currentFieldData.key]}
-                </motion.div>
-              )}
-              
-              {/* Indicador de validación RENIEC */}
-              {isValidating && currentFieldData.key === 'dni' && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex items-center gap-3 mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200"
-                >
-                  <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
-                  <span className="text-blue-700 font-medium">
-                    Consultando base de datos RENIEC...
-                  </span>
-                </motion.div>
-              )}
-              
-              {/* Botón especial para usuarios duplicados */}
-              {isDuplicateUser && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-4 p-4 bg-amber-50 rounded-lg border border-amber-200"
-                >
-                  <p className="text-amber-800 mb-3">
-                    ¡Parece que ya tienes un registro! ¿Quieres continuar desde donde lo dejaste?
-                  </p>
-                  <Button
-                    onClick={handleContinueWithExisting}
-                    className="w-full bg-amber-600 hover:bg-amber-700"
-                  >
-                    Sí, continuar con mi registro anterior 📋
-                  </Button>
-                </motion.div>
-              )}
-            </motion.div>
-          </AnimatePresence>
-          
-          {/* Botones de navegación mejorados */}
-          <div className="flex gap-4 mt-8">
-            {currentField > 0 && (
-              <Button
-                variant="outline"
-                onClick={() => setCurrentField(prev => prev - 1)}
-                className="flex-1 py-6 text-lg border-2"
-              >
-                ← Anterior
-              </Button>
-            )}
-            
-            <Button
-              onClick={nextField}
-              disabled={!canProceed() || isValidating}
-              className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-lg py-6 shadow-lg"
+
+                {/* Status messages */}
+                {status === 'invalid' && field.key === 'dni' && (
+                  <p className="text-sm text-red-600">DNI inválido. Debe tener 8 dígitos.</p>
+                )}
+                {status === 'invalid' && field.key === 'email' && (
+                  <p className="text-sm text-red-600">Formato de correo inválido.</p>
+                )}
+                {status === 'invalid' && field.key === 'phone' && (
+                  <p className="text-sm text-red-600">Debe empezar con 9 y tener 9 dígitos.</p>
+                )}
+                {status === 'validating' && field.key === 'dni' && (
+                  <p className="text-sm text-blue-600">Validando DNI con RENIEC...</p>
+                )}
+              </motion.div>
+            );
+          })}
+
+          {/* OTP Verification */}
+          {validationStatus.phone === 'valid' && !data.otpVerified && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              className="border-t pt-6 mt-6"
             >
-              {isValidating ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                  Validando...
-                </>
-              ) : currentField === fields.length - 1 ? (
-                '¡Verificar celular! 📱'
-              ) : (
-                'Continuar →'
-              )}
+              <div className="text-center">
+                <h3 className="font-semibold text-slate-800 mb-2">Verificación de Celular</h3>
+                <p className="text-sm text-slate-600 mb-4">
+                  Te enviaremos un código para verificar tu número
+                </p>
+                
+                {!showOTP ? (
+                  <Button 
+                    onClick={sendOTP}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    Enviar código de verificación
+                  </Button>
+                ) : (
+                  <div className="space-y-4">
+                    <Input
+                      type="text"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value)}
+                      placeholder="Ingresa el código (123456)"
+                      className="text-center text-lg tracking-widest"
+                      maxLength={6}
+                    />
+                    <Button 
+                      onClick={verifyOTP}
+                      disabled={otp.length !== 6}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      Verificar código
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Continue button */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="pt-6"
+          >
+            <Button
+              onClick={onNext}
+              disabled={!canProceed}
+              className={`
+                w-full h-14 text-lg font-semibold transition-all duration-300
+                ${canProceed 
+                  ? 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 shadow-lg hover:shadow-xl' 
+                  : 'bg-slate-300 cursor-not-allowed'
+                }
+              `}
+            >
+              {canProceed ? '¡Continuar con información financiera! 💰' : 'Completa todos los campos'}
             </Button>
-          </div>
+          </motion.div>
         </CardContent>
       </Card>
-      
-      {/* Indicador de progreso textual */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="text-center mt-6 text-sm text-gray-500"
-      >
-        Paso {currentField + 1} de {fields.length} • Datos personales
-      </motion.div>
     </div>
   );
 };
