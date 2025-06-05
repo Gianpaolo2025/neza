@@ -211,8 +211,8 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
         phone: data.personalData.phone
       },
       employment: {
+        type: data.financialInfo.employmentType as "dependiente" | "independiente" | "empresario",
         monthlyIncome: data.financialInfo.monthlyIncome,
-        employmentType: data.financialInfo.employmentType,
         workTime: data.financialInfo.workTime
       },
       credit: {
@@ -344,8 +344,10 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
           {currentStep === 2 && (
             <FinancialInfoStep
               data={data.financialInfo}
+              personalData={data.personalData}
               onUpdate={handleFinancialInfoUpdate}
               onNext={handleNext}
+              onPrev={handlePrevious}
             />
           )}
           
