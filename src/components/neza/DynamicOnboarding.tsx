@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,6 @@ import { ClientProfileStep } from "./steps/ClientProfileStep";
 import { AsesorIA } from "./AsesorIA";
 import { OffersDashboard } from "@/components/OffersDashboard";
 import { IntelligentSystem } from "./IntelligentSystem";
-import { DocumentAnalyzer } from "@/services/documentAnalyzer";
 
 interface PersonalData {
   firstName: string;
@@ -33,6 +33,8 @@ interface FinancialInfo {
   hasOtherDebts: string;
   bankingRelationship: string;
   urgencyLevel: string;
+  creditType: string;
+  occupation: string;
 }
 
 interface ClientProfile {
@@ -81,7 +83,9 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
       workTime: 0,
       hasOtherDebts: "",
       bankingRelationship: "",
-      urgencyLevel: ""
+      urgencyLevel: "",
+      creditType: "",
+      occupation: ""
     },
     clientProfile: {
       hasPreviousCredit: false,
@@ -196,14 +200,27 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
   };
 
   const convertToUserProfile = () => {
-    return DocumentAnalyzer.createMockProfile({
-      firstName: data.personalData.firstName,
-      lastName: data.personalData.lastName,
-      age: new Date().getFullYear() - new Date(data.personalData.birthDate).getFullYear(),
-      monthlyIncome: data.financialInfo.monthlyIncome,
-      employmentType: data.financialInfo.employmentType,
-      hasPreviousCredit: data.clientProfile.hasPreviousCredit
-    });
+    return {
+      personalInfo: {
+        firstName: data.personalData.firstName,
+        lastName: data.personalData.lastName,
+        age: new Date().getFullYear() - new Date(data.personalData.birthDate).getFullYear(),
+        dni: data.personalData.dni,
+        email: data.personalData.email,
+        phone: data.personalData.phone
+      },
+      employment: {
+        monthlyIncome: data.financialInfo.monthlyIncome,
+        employmentType: data.financialInfo.employmentType,
+        workTime: data.financialInfo.workTime
+      },
+      credit: {
+        score: data.clientProfile.hasPreviousCredit ? 450 : 350,
+        debtToIncome: data.financialInfo.hasOtherDebts === "no" ? 10 : 35
+      },
+      documents: {},
+      qualityScore: 75
+    };
   };
 
   // Mostrar sistema de ofertas
@@ -337,7 +354,6 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
               data={data.clientProfile}
               onUpdate={handleClientProfileUpdate}
               onNext={handleNext}
-              onPrevious={handlePrevious}
             />
           )}
         </motion.div>
