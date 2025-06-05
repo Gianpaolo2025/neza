@@ -202,6 +202,7 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
   const convertToUserProfile = () => {
     return {
       personalInfo: {
+        name: `${data.personalData.firstName} ${data.personalData.lastName}`,
         firstName: data.personalData.firstName,
         lastName: data.personalData.lastName,
         age: new Date().getFullYear() - new Date(data.personalData.birthDate).getFullYear(),
@@ -345,7 +346,6 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
               data={data.financialInfo}
               onUpdate={handleFinancialInfoUpdate}
               onNext={handleNext}
-              onPrevious={handlePrevious}
             />
           )}
           
@@ -354,6 +354,7 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
               data={data.clientProfile}
               onUpdate={handleClientProfileUpdate}
               onNext={handleNext}
+              onPrev={handlePrevious}
             />
           )}
         </motion.div>

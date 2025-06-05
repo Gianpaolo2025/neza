@@ -58,6 +58,55 @@ const banks = [
     riskAdjustment: { excelente: -6, bueno: -4, regular: -2, nuevo: 0 },
     maxAmount: { dependiente: 50000, independiente: 40000, empresario: 80000, pensionista: 30000 },
     minIncome: { dependiente: 600, independiente: 900, empresario: 1200, pensionista: 500 }
+  },
+  {
+    name: "Banco Falabella",
+    baseRate: 21,
+    riskAdjustment: { excelente: -3, bueno: -1, regular: 1, nuevo: 2 },
+    maxAmount: { dependiente: 70000, independiente: 50000, empresario: 100000, pensionista: 35000 },
+    minIncome: { dependiente: 1000, independiente: 1400, empresario: 2000, pensionista: 750 }
+  },
+  {
+    name: "Banco Ripley",
+    baseRate: 23,
+    riskAdjustment: { excelente: -4, bueno: -2, regular: 0, nuevo: 2 },
+    maxAmount: { dependiente: 60000, independiente: 45000, empresario: 90000, pensionista: 30000 },
+    minIncome: { dependiente: 950, independiente: 1350, empresario: 1900, pensionista: 700 }
+  },
+  {
+    name: "Santander Perú",
+    baseRate: 19,
+    riskAdjustment: { excelente: -3, bueno: -1, regular: 1, nuevo: 2 },
+    maxAmount: { dependiente: 110000, independiente: 75000, empresario: 160000, pensionista: 55000 },
+    minIncome: { dependiente: 1150, independiente: 1700, empresario: 2300, pensionista: 850 }
+  },
+  {
+    name: "Compartamos Banco",
+    baseRate: 28,
+    riskAdjustment: { excelente: -7, bueno: -5, regular: -3, nuevo: -1 },
+    maxAmount: { dependiente: 40000, independiente: 30000, empresario: 60000, pensionista: 25000 },
+    minIncome: { dependiente: 500, independiente: 700, empresario: 1000, pensionista: 400 }
+  },
+  {
+    name: "CMAC Cusco",
+    baseRate: 24,
+    riskAdjustment: { excelente: -5, bueno: -3, regular: -1, nuevo: 1 },
+    maxAmount: { dependiente: 35000, independiente: 25000, empresario: 50000, pensionista: 20000 },
+    minIncome: { dependiente: 700, independiente: 1000, empresario: 1500, pensionista: 600 }
+  },
+  {
+    name: "CMAC Arequipa",
+    baseRate: 23,
+    riskAdjustment: { excelente: -4, bueno: -2, regular: 0, nuevo: 1 },
+    maxAmount: { dependiente: 40000, independiente: 30000, empresario: 55000, pensionista: 22000 },
+    minIncome: { dependiente: 750, independiente: 1100, empresario: 1600, pensionista: 650 }
+  },
+  {
+    name: "Financiera Confianza",
+    baseRate: 26,
+    riskAdjustment: { excelente: -6, bueno: -4, regular: -2, nuevo: 0 },
+    maxAmount: { dependiente: 30000, independiente: 22000, empresario: 45000, pensionista: 18000 },
+    minIncome: { dependiente: 600, independiente: 900, empresario: 1300, pensionista: 500 }
   }
 ];
 
