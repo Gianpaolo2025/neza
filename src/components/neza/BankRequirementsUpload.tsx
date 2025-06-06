@@ -216,7 +216,7 @@ export const BankRequirementsUpload = ({ onBack, bankOffers }: BankRequirementsU
                             <div className="text-right">
                               <div className="flex items-center gap-2 mb-2">
                                 {getStatusIcon(currentStatus)}
-                                <Badge className={getStatusColor(currentStatus)} size="lg">
+                                <Badge className={getStatusColor(currentStatus)}>
                                   {currentStatus === "pending" ? "Pendiente" :
                                    currentStatus === "submitted" ? "Enviado" :
                                    currentStatus === "approved" ? "Aprobado" : "Rechazado"}
