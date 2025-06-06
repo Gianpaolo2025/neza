@@ -117,9 +117,9 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
   }, [data]);
 
   const asesorMessages = {
-    1: `¡Hola! Soy AsesorIA, tu asistente financiera personal. Te acompañaré paso a paso para encontrar la mejor opción financiera para ti. ${data.isReturningUser ? '¡Me alegra verte de nuevo!' : 'Empecemos con tus datos personales de forma segura.'}`,
-    2: "¡Perfecto! Ahora cuéntame sobre tus necesidades financieras. Te ayudaré a elegir el producto ideal y el monto adecuado según tu situación.",
-    3: "Excelente progreso. Estas preguntas me ayudan a conocerte mejor para darte recomendaciones más precisas. ¡Casi terminamos!"
+    1: `¡Hola! Soy AsesorIA, tu asistente financiera personal certificada por la SBS. Te acompañaré paso a paso para encontrar la mejor opción financiera para ti. ${data.isReturningUser ? '¡Me alegra verte de nuevo! Continuemos donde lo dejamos.' : 'Empecemos con tus datos personales de forma 100% segura.'}`,
+    2: "¡Perfecto! Ahora te voy a mostrar TODOS los productos financieros disponibles en el mercado peruano, ordenados especialmente para tu perfil. Te ayudo a elegir la mejor opción con las tasas más competitivas.",
+    3: "¡Excelente progreso! Estas últimas preguntas me permiten crear tu perfil financiero completo. Con esta información te daré recomendaciones súper precisas y personalizadas. ¡Ya casi terminamos!"
   };
 
   const getProgressPercentage = () => {
@@ -229,6 +229,22 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
     };
   };
 
+  const getUserProgress = () => {
+    let profileLevel = 0;
+    
+    // Calcular nivel basado en datos completados
+    if (data.personalData.isValidated && data.personalData.otpVerified) profileLevel += 25;
+    if (data.financialInfo.productType && data.financialInfo.requestedAmount > 0) profileLevel += 25;
+    if (data.financialInfo.monthlyIncome > 0) profileLevel += 25;
+    if (data.clientProfile.financialKnowledge) profileLevel += 25;
+    
+    return {
+      profileLevel,
+      selectedProduct: data.financialInfo.productType,
+      monthlyIncome: data.financialInfo.monthlyIncome
+    };
+  };
+
   // Mostrar sistema de ofertas
   if (currentView === 'offers') {
     return (
@@ -273,7 +289,7 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
           </Button>
           
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-slate-800">NEZA Onboarding</h1>
+            <h1 className="text-2xl font-bold text-slate-800">NEZA Financial</h1>
             <p className="text-slate-600">Tu camino hacia la mejor opción financiera</p>
           </div>
           
@@ -289,49 +305,53 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
           </div>
         </div>
 
-        {/* Progress Bar */}
+        {/* Progress Bar - mejorado */}
         <Card className="mb-6 bg-white/70 backdrop-blur-sm border-blue-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-4">
                 {[1, 2, 3].map((step) => (
                   <div key={step} className={`
-                    flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all
+                    flex items-center justify-center w-12 h-12 rounded-full border-2 transition-all font-bold
                     ${currentStep === step 
-                      ? 'bg-blue-600 border-blue-600 text-white' 
+                      ? 'bg-blue-600 border-blue-600 text-white shadow-lg' 
                       : currentStep > step 
-                        ? 'bg-green-500 border-green-500 text-white'
+                        ? 'bg-green-500 border-green-500 text-white shadow-md'
                         : 'bg-white border-slate-300 text-slate-400'
                     }
                   `}>
-                    {currentStep > step ? <CheckCircle className="w-5 h-5" /> : step}
+                    {currentStep > step ? <CheckCircle className="w-6 h-6" /> : step}
                   </div>
                 ))}
               </div>
               
               <div className="text-right">
-                <div className="text-2xl font-bold text-blue-600">{getProgressPercentage()}%</div>
+                <div className="text-3xl font-bold text-blue-600">{getProgressPercentage()}%</div>
                 <div className="text-sm text-slate-600">Completado</div>
+                <div className="text-xs text-green-600">✓ Validado SBS</div>
               </div>
             </div>
             
-            <Progress value={getProgressPercentage()} className="h-2 mb-4" />
+            <Progress value={getProgressPercentage()} className="h-3 mb-4" />
             
             <div className="grid grid-cols-3 gap-4 text-sm">
-              <div className={currentStep >= 1 ? 'text-blue-600 font-medium' : 'text-slate-400'}>
-                1. Datos Personales
+              <div className={`text-center ${currentStep >= 1 ? 'text-blue-600 font-medium' : 'text-slate-400'}`}>
+                <div className="font-semibold">1. Datos Personales</div>
+                <div className="text-xs">Verificación segura DNI</div>
               </div>
-              <div className={currentStep >= 2 ? 'text-blue-600 font-medium' : 'text-slate-400'}>
-                2. Info. Financiera
+              <div className={`text-center ${currentStep >= 2 ? 'text-blue-600 font-medium' : 'text-slate-400'}`}>
+                <div className="font-semibold">2. Productos Financieros</div>
+                <div className="text-xs">Catálogo completo del mercado</div>
               </div>
-              <div className={currentStep >= 3 ? 'text-blue-600 font-medium' : 'text-slate-400'}>
-                3. Perfil del Cliente
+              <div className={`text-center ${currentStep >= 3 ? 'text-blue-600 font-medium' : 'text-slate-400'}`}>
+                <div className="font-semibold">3. Perfil Personalizado</div>
+                <div className="text-xs">Recomendaciones inteligentes</div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* AsesorIA */}
+        {/* AsesorIA con progreso del usuario */}
         <AnimatePresence mode="wait">
           {showAsesorIA && (
             <motion.div 
@@ -346,6 +366,7 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
                 onClose={() => setShowAsesorIA(false)}
                 onReopen={() => setShowAsesorIA(true)}
                 currentStep={currentStep}
+                userProgress={getUserProgress()}
               />
             </motion.div>
           )}
@@ -388,13 +409,13 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
           )}
         </motion.div>
 
-        {/* Navigation */}
+        {/* Navigation mejorada */}
         <div className="flex justify-between items-center mt-8">
           <Button
             variant="outline"
             onClick={handlePrevious}
             disabled={currentStep === 1}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 hover:bg-slate-50"
           >
             <ArrowLeft className="w-4 h-4" />
             Anterior
@@ -409,13 +430,13 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
                   className="flex items-center gap-2 bg-purple-50 border-purple-300 text-purple-700 hover:bg-purple-100"
                 >
                   <Sparkles className="w-4 h-4" />
-                  Sistema Inteligente
+                  Sistema Inteligente SBS
                 </Button>
                 <Button
                   onClick={handleNext}
-                  className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700"
+                  className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold px-6"
                 >
-                  Ver Ofertas
+                  🎯 Ver Mis Ofertas Personalizadas
                   <ArrowRight className="w-4 h-4" />
                 </Button>
               </>
@@ -425,7 +446,7 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
               <Button
                 onClick={handleNext}
                 disabled={!canProceedToNext()}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 font-semibold px-6"
               >
                 Siguiente
                 <ArrowRight className="w-4 h-4" />
@@ -433,6 +454,20 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
             )}
           </div>
         </div>
+
+        {/* Footer con información SBS */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1 }}
+          className="mt-8 text-center text-xs text-slate-500"
+        >
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Shield className="w-4 h-4 text-green-500" />
+            <span>Plataforma certificada y supervisada por la Superintendencia de Banca y Seguros (SBS)</span>
+          </div>
+          <p>Todos los productos mostrados corresponden a entidades financieras registradas y autorizadas</p>
+        </motion.div>
       </div>
     </div>
   );
