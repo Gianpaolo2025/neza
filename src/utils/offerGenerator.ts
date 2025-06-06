@@ -5,8 +5,11 @@ export interface BankOffer {
   id: string;
   bankName: string;
   interestRate: number;
+  rate: number; // TEA rate for display
   monthlyPayment: number;
   term: number; // en meses
+  maxTerm: number; // máximo plazo disponible
+  maxAmount: number; // monto máximo disponible
   totalCost: number;
   savings: number;
   status: "aprobado" | "pre-aprobado" | "pendiente";
@@ -14,6 +17,10 @@ export interface BankOffer {
   riskLevel: "Bajo" | "Medio" | "Alto";
   recommended: boolean;
   requirements: string[];
+  score: number; // score de 0-100 para ranking
+  productType: string; // tipo de producto
+  features: string[]; // características principales
+  description: string; // descripción del producto
 }
 
 const banks = [
@@ -183,10 +190,20 @@ export const generateOffers = (userData: UserData): BankOffer[] => {
     
     // Calcular plazo basado en monto y tipo de producto
     let term = 24;
-    if (userData.productType === "credito-vehicular") term = 60;
-    else if (userData.productType === "credito-hipotecario") term = 240;
-    else if (userData.requestedAmount > 50000) term = 36;
-    else if (userData.requestedAmount > 20000) term = 30;
+    let maxTerm = 60;
+    if (userData.productType === "credito-vehicular") {
+      term = 60;
+      maxTerm = 96;
+    } else if (userData.productType === "credito-hipotecario") {
+      term = 240;
+      maxTerm = 360;
+    } else if (userData.requestedAmount > 50000) {
+      term = 36;
+      maxTerm = 72;
+    } else if (userData.requestedAmount > 20000) {
+      term = 30;
+      maxTerm = 48;
+    }
     
     // Ajustar monto si excede límites del banco
     const offerAmount = Math.min(userData.requestedAmount, maxAmount);
@@ -249,19 +266,38 @@ export const generateOffers = (userData: UserData): BankOffer[] => {
       baseRequirements.push("Condiciones especiales aplicarán");
     }
 
+    // Generar características y descripción específicas por banco
+    const features = generateFeatures(bank.name, userData.productType || "credito-personal");
+    const description = generateDescription(bank.name, userData.productType || "credito-personal");
+    
+    // Calcular score basado en múltiples factores
+    const score = Math.min(100, Math.round(
+      approvalScore + 
+      (interestRate < 20 ? 20 : interestRate < 25 ? 15 : 10) +
+      (status === "aprobado" ? 20 : status === "pre-aprobado" ? 10 : 5) +
+      (Math.random() * 10) // Factor de variabilidad
+    ));
+
     offers.push({
       id: `${bank.name.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}-${index}`,
       bankName: bank.name,
       interestRate: Math.round(interestRate * 100) / 100,
+      rate: Math.round(interestRate * 100) / 100,
       monthlyPayment: Math.round(monthlyPayment),
       term,
+      maxTerm,
+      maxAmount,
       totalCost: Math.round(totalCost),
       savings: Math.round(savings),
       status,
       approvalTime,
       riskLevel,
       recommended: false,
-      requirements: baseRequirements
+      requirements: baseRequirements,
+      score,
+      productType: userData.productType || "credito-personal",
+      features,
+      description
     });
   });
   
@@ -287,4 +323,44 @@ export const generateOffers = (userData: UserData): BankOffer[] => {
     if (statusA !== statusB) return statusA - statusB;
     return a.interestRate - b.interestRate;
   });
+};
+
+// Función auxiliar para generar características por banco
+const generateFeatures = (bankName: string, productType: string): string[] => {
+  const baseFeatures = {
+    "credito-personal": ["Sin garantía", "Tasa fija", "Desembolso rápido"],
+    "credito-vehicular": ["Financiamiento hasta 90%", "Seguro incluido", "Tramitación ágil"],
+    "credito-hipotecario": ["Financiamiento hasta 90%", "Tasa competitiva", "Plazos extensos"],
+    "tarjeta-credito": ["Sin cuota de manejo", "Cashback", "Compras internacionales"],
+    "credito-empresarial": ["Capital de trabajo", "Tasa preferencial", "Asesoría especializada"]
+  };
+
+  const bankSpecific = {
+    "Banco de Crédito BCP": ["Red nacional más amplia", "Banca digital 24/7"],
+    "BBVA Continental": ["Tecnología europea", "Procesos 100% digitales"],
+    "Scotiabank Perú": ["Atención personalizada", "Beneficios exclusivos"],
+    "Interbank": ["Innovación constante", "Respuesta inmediata"],
+    "Banco Pichincha": ["Tarifas competitivas", "Flexibilidad en pagos"]
+  };
+
+  const features = [...(baseFeatures[productType as keyof typeof baseFeatures] || baseFeatures["credito-personal"])];
+  const specific = bankSpecific[bankName as keyof typeof bankSpecific];
+  if (specific) features.push(...specific);
+  
+  return features.slice(0, 5);
+};
+
+// Función auxiliar para generar descripción por banco
+const generateDescription = (bankName: string, productType: string): string => {
+  const productNames = {
+    "credito-personal": "Crédito Personal",
+    "credito-vehicular": "Crédito Vehicular",
+    "credito-hipotecario": "Crédito Hipotecario",
+    "tarjeta-credito": "Tarjeta de Crédito",
+    "credito-empresarial": "Crédito Empresarial"
+  };
+
+  const productName = productNames[productType as keyof typeof productNames] || "Producto Financiero";
+  
+  return `${productName} de ${bankName} diseñado para satisfacer tus necesidades financieras con las mejores condiciones del mercado.`;
 };
