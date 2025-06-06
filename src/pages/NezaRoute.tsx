@@ -4,16 +4,29 @@ import { ProductCatalog } from "@/components/neza/ProductCatalog";
 import { UserOnboarding } from "@/components/neza/UserOnboarding";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AsesorIAChat } from "@/components/AsesorIAChat";
+import { useAsesorIA } from "@/hooks/useAsesorIA";
 
 const NezaRoute = () => {
   const [currentView, setCurrentView] = useState<'home' | 'catalog' | 'onboarding'>('home');
+  const { isChatOpen, toggleChat } = useAsesorIA();
 
   if (currentView === 'catalog') {
-    return <ProductCatalog onBack={() => setCurrentView('home')} />;
+    return (
+      <>
+        <ProductCatalog onBack={() => setCurrentView('home')} />
+        <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
+      </>
+    );
   }
 
   if (currentView === 'onboarding') {
-    return <UserOnboarding onBack={() => setCurrentView('home')} />;
+    return (
+      <>
+        <UserOnboarding onBack={() => setCurrentView('home')} />
+        <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
+      </>
+    );
   }
 
   return (
@@ -87,6 +100,9 @@ const NezaRoute = () => {
           </div>
         </div>
       </div>
+
+      {/* AsesorIA Chat Global */}
+      <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
     </div>
   );
 };

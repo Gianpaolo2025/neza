@@ -3,6 +3,8 @@ import { useState } from "react";
 import { UserRegistration } from "@/components/UserRegistration";
 import { OffersDashboard } from "@/components/OffersDashboard";
 import { Header } from "@/components/Header";
+import { AsesorIAChat } from "@/components/AsesorIAChat";
+import { useAsesorIA } from "@/hooks/useAsesorIA";
 
 export interface UserData {
   dni: string;
@@ -24,6 +26,7 @@ export interface UserData {
 const Index = () => {
   const [user, setUser] = useState<UserData | null>(null);
   const [isRegistered, setIsRegistered] = useState(false);
+  const { isChatOpen, toggleChat } = useAsesorIA();
 
   const handleUserRegistration = (userData: UserData) => {
     setUser(userData);
@@ -44,6 +47,9 @@ const Index = () => {
       ) : (
         <OffersDashboard user={user!} onBack={handleBackToForm} />
       )}
+
+      {/* AsesorIA Chat Global */}
+      <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
     </div>
   );
 };
