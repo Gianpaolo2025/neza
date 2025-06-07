@@ -1,15 +1,15 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Sparkles, Zap, FileText, User, Brain } from "lucide-react";
+import { ArrowLeft, Sparkles, Zap, FileText, User, Brain, AlertTriangle } from "lucide-react";
 import { DynamicOnboarding } from "./DynamicOnboarding";
 import { VerificationStatus } from "./VerificationStatus";
 import { IntelligentSystem } from "./IntelligentSystem";
 import { DocumentUpload } from "./DocumentUpload";
 import { DocumentAnalyzer, DocumentAnalysis, UserProfile } from "@/services/documentAnalyzer";
+import { userTrackingService } from "@/services/userTracking";
 
 interface UserOnboardingProps {
   onBack: () => void;
@@ -33,6 +33,19 @@ export const UserOnboarding = ({ onBack }: UserOnboardingProps) => {
   const [documents, setDocuments] = useState<{ [key: string]: DocumentAnalysis }>({});
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [onboardingType, setOnboardingType] = useState<'select' | 'dynamic' | 'traditional'>('select');
+  const [sessionStarted, setSessionStarted] = useState(false);
+
+  useEffect(() => {
+    // Trackear visita a onboarding
+    userTrackingService.trackActivity('page_visit', { page: 'onboarding' });
+  }, []);
+
+  const startSession = () => {
+    if (userData.email && !sessionStarted) {
+      userTrackingService.startSession(userData.email);
+      setSessionStarted(true);
+    }
+  };
 
   const steps = [
     { id: 1, title: 'Información Personal', icon: User },
@@ -69,10 +82,22 @@ export const UserOnboarding = ({ onBack }: UserOnboardingProps) => {
 
   const handleUserDataChange = (field: keyof UserData, value: string) => {
     setUserData(prev => ({ ...prev, [field]: value }));
+    
+    // Iniciar sesión cuando se ingrese el email
+    if (field === 'email' && value && !sessionStarted) {
+      setTimeout(startSession, 500);
+    }
   };
 
-  const handleDocumentUpload = (documentKey: string, file: File, analysis: DocumentAnalysis) => {
+  const handleDocumentUpload = (documentKey: string, file: File, analysis: DocumentAnalysis, fileId: string) => {
     setDocuments(prev => ({ ...prev, [documentKey]: analysis }));
+    
+    // Trackear subida de documento
+    userTrackingService.trackActivity('file_upload', { 
+      documentType: documentKey, 
+      fileName: file.name,
+      fileId 
+    });
   };
 
   const processToIntelligentSystem = () => {
@@ -104,8 +129,20 @@ export const UserOnboarding = ({ onBack }: UserOnboardingProps) => {
       qualityScore: extractedProfile.qualityScore || 0
     };
 
+    // Actualizar perfil en tracking
+    userTrackingService.updateUserProfile(userData.email, {
+      firstName: extractedProfile.personalInfo?.name?.split(' ')[0],
+      lastName: extractedProfile.personalInfo?.name?.split(' ').slice(1).join(' '),
+      dni: userData.dni,
+      phone: userData.phone,
+      monthlyIncome: Number(userData.monthlyIncome)
+    });
+
     setUserProfile(completeProfile);
     setCurrentStep(3);
+    
+    // Trackear progreso
+    userTrackingService.trackActivity('form_submit', { step: 'documents_complete' });
   };
 
   const canProceedToStep2 = userData.dni && userData.email && userData.phone && userData.monthlyIncome;
@@ -125,25 +162,35 @@ export const UserOnboarding = ({ onBack }: UserOnboardingProps) => {
 
   if (onboardingType === 'select') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100">
+      <div className="min-h-screen bg-gradient-to-br from-neza-blue-50 to-neza-cyan-100">
+        {/* Mensaje obligatorio */}
+        <div className="bg-neza-blue-600 text-white py-3 px-4">
+          <div className="container mx-auto flex items-center justify-center">
+            <AlertTriangle className="w-5 h-5 mr-2 text-neza-cyan-200" />
+            <p className="text-center font-medium">
+              Por favor, no nos mientas. Esta información es clave para brindarte los mejores productos.
+            </p>
+          </div>
+        </div>
+
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center mb-6">
-            <Button variant="ghost" onClick={onBack} className="mr-4">
+            <Button variant="ghost" onClick={onBack} className="mr-4 text-neza-blue-600 hover:bg-neza-blue-100">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Volver
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-emerald-800">NEZA</h1>
-              <p className="text-emerald-600">Tu neobanco inteligente</p>
+              <h1 className="text-3xl font-bold text-neza-blue-800">NEZA</h1>
+              <p className="text-neza-blue-600">Tu neobanco inteligente</p>
             </div>
           </div>
 
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold text-gray-800 mb-4">
+              <h2 className="text-4xl font-bold text-neza-blue-800 mb-4">
                 ¿Cómo prefieres registrarte?
               </h2>
-              <p className="text-xl text-gray-600">
+              <p className="text-xl text-neza-silver-600">
                 Elige la experiencia que más te guste
               </p>
             </div>
@@ -151,41 +198,44 @@ export const UserOnboarding = ({ onBack }: UserOnboardingProps) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Opción Dinámica */}
               <Card 
-                className="cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 border-2 border-emerald-200"
-                onClick={() => setOnboardingType('dynamic')}
+                className="cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 border-2 border-neza-blue-200"
+                onClick={() => {
+                  userTrackingService.trackActivity('button_click', { button: 'dynamic_onboarding' });
+                  setOnboardingType('dynamic');
+                }}
               >
                 <CardHeader className="text-center pb-4">
-                  <div className="w-16 h-16 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="w-16 h-16 bg-gradient-to-r from-neza-blue-500 to-neza-cyan-500 rounded-full flex items-center justify-center mx-auto mb-4">
                     <Sparkles className="w-8 h-8 text-white" />
                   </div>
-                  <CardTitle className="text-2xl text-emerald-800 flex items-center justify-center gap-2">
+                  <CardTitle className="text-2xl text-neza-blue-800 flex items-center justify-center gap-2">
                     Experiencia Interactiva
-                    <span className="text-sm bg-emerald-100 text-emerald-600 px-2 py-1 rounded-full">NUEVO</span>
+                    <span className="text-sm bg-neza-blue-100 text-neza-blue-600 px-2 py-1 rounded-full">NUEVO</span>
                   </CardTitle>
-                  <CardDescription className="text-lg">
+                  <CardDescription className="text-lg text-neza-silver-600">
                     Registro paso a paso, dinámico y conversacional
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3 text-sm text-gray-600 mb-6">
+                  <div className="space-y-3 text-sm text-neza-silver-600 mb-6">
                     <div className="flex items-center gap-2">
-                      <Zap className="w-4 h-4 text-emerald-500" />
+                      <Zap className="w-4 h-4 text-neza-blue-500" />
                       <span>Experiencia tipo Duolingo</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Zap className="w-4 h-4 text-emerald-500" />
+                      <Zap className="w-4 h-4 text-neza-blue-500" />
                       <span>Validación en tiempo real</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Zap className="w-4 h-4 text-emerald-500" />
+                      <Zap className="w-4 h-4 text-neza-blue-500" />
                       <span>Guardado automático</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Zap className="w-4 h-4 text-emerald-500" />
+                      <Zap className="w-4 h-4 text-neza-blue-500" />
                       <span>Animaciones y feedback</span>
                     </div>
                   </div>
-                  <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-lg py-6">
+                  <Button className="w-full bg-neza-blue-600 hover:bg-neza-blue-700 text-lg py-6">
                     ¡Comenzar experiencia! ✨
                   </Button>
                 </CardContent>
@@ -193,40 +243,43 @@ export const UserOnboarding = ({ onBack }: UserOnboardingProps) => {
 
               {/* Opción Tradicional */}
               <Card 
-                className="cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 border-2 border-gray-200"
-                onClick={() => setOnboardingType('traditional')}
+                className="cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 border-2 border-neza-silver-200"
+                onClick={() => {
+                  userTrackingService.trackActivity('button_click', { button: 'traditional_onboarding' });
+                  setOnboardingType('traditional');
+                }}
               >
                 <CardHeader className="text-center pb-4">
-                  <div className="w-16 h-16 bg-gradient-to-r from-gray-500 to-gray-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <div className="w-16 h-16 bg-gradient-to-r from-neza-silver-500 to-neza-silver-600 rounded-full flex items-center justify-center mx-auto mb-4">
                     <FileText className="w-8 h-8 text-white" />
                   </div>
-                  <CardTitle className="text-2xl text-gray-800">
+                  <CardTitle className="text-2xl text-neza-blue-800">
                     Registro Completo
                   </CardTitle>
-                  <CardDescription className="text-lg">
+                  <CardDescription className="text-lg text-neza-silver-600">
                     Formulario tradicional con análisis de documentos
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3 text-sm text-gray-600 mb-6">
+                  <div className="space-y-3 text-sm text-neza-silver-600 mb-6">
                     <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-gray-500" />
+                      <FileText className="w-4 h-4 text-neza-silver-500" />
                       <span>Subida de documentos</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-gray-500" />
+                      <FileText className="w-4 h-4 text-neza-silver-500" />
                       <span>Análisis con OCR</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-gray-500" />
+                      <FileText className="w-4 h-4 text-neza-silver-500" />
                       <span>Sistema inteligente SBS</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-gray-500" />
+                      <FileText className="w-4 h-4 text-neza-silver-500" />
                       <span>Validación completa</span>
                     </div>
                   </div>
-                  <Button variant="outline" className="w-full text-lg py-6">
+                  <Button variant="outline" className="w-full text-lg py-6 border-neza-blue-300 text-neza-blue-600 hover:bg-neza-blue-50">
                     Registro tradicional
                   </Button>
                 </CardContent>
@@ -243,17 +296,27 @@ export const UserOnboarding = ({ onBack }: UserOnboardingProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100">
+    <div className="min-h-screen bg-gradient-to-br from-neza-blue-50 to-neza-cyan-100">
+      {/* Mensaje obligatorio */}
+      <div className="bg-neza-blue-600 text-white py-3 px-4">
+        <div className="container mx-auto flex items-center justify-center">
+          <AlertTriangle className="w-5 h-5 mr-2 text-neza-cyan-200" />
+          <p className="text-center font-medium">
+            Por favor, no nos mientas. Esta información es clave para brindarte los mejores productos.
+          </p>
+        </div>
+      </div>
+
       <div className="container mx-auto px-4 py-6">
         {/* Header */}
         <div className="flex items-center mb-6">
-          <Button variant="ghost" onClick={onBack} className="mr-4">
+          <Button variant="ghost" onClick={onBack} className="mr-4 text-neza-blue-600 hover:bg-neza-blue-100">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Volver
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-emerald-800">Onboarding Financiero Inteligente</h1>
-            <p className="text-emerald-600">Sistema validado con entidades supervisadas por la SBS</p>
+            <h1 className="text-2xl font-bold text-neza-blue-800">Onboarding Financiero Inteligente</h1>
+            <p className="text-neza-blue-600">Sistema validado con entidades supervisadas por la SBS</p>
           </div>
         </div>
 
@@ -268,20 +331,20 @@ export const UserOnboarding = ({ onBack }: UserOnboardingProps) => {
                 <div key={step.id} className="flex items-center">
                   <div className={`
                     flex items-center justify-center w-10 h-10 rounded-full border-2 transition-colors
-                    ${status === 'completed' ? 'bg-emerald-500 border-emerald-500 text-white' : ''}
-                    ${status === 'current' ? 'border-emerald-500 text-emerald-500' : ''}
-                    ${status === 'pending' ? 'border-gray-300 text-gray-400' : ''}
+                    ${status === 'completed' ? 'bg-neza-blue-500 border-neza-blue-500 text-white' : ''}
+                    ${status === 'current' ? 'border-neza-blue-500 text-neza-blue-500' : ''}
+                    ${status === 'pending' ? 'border-neza-silver-300 text-neza-silver-400' : ''}
                   `}>
                     <Icon className="w-5 h-5" />
                   </div>
                   <span className={`ml-2 text-sm font-medium ${
-                    status === 'current' ? 'text-emerald-600' : 'text-gray-500'
+                    status === 'current' ? 'text-neza-blue-600' : 'text-neza-silver-500'
                   }`}>
                     {step.title}
                   </span>
                   {index < steps.length - 1 && (
                     <div className={`w-8 h-0.5 mx-4 ${
-                      status === 'completed' ? 'bg-emerald-500' : 'bg-gray-300'
+                      status === 'completed' ? 'bg-neza-blue-500' : 'bg-neza-silver-300'
                     }`} />
                   )}
                 </div>
@@ -293,10 +356,10 @@ export const UserOnboarding = ({ onBack }: UserOnboardingProps) => {
         {/* Step Content */}
         <div className="max-w-2xl mx-auto">
           {currentStep === 1 && (
-            <Card>
+            <Card className="border-neza-blue-200">
               <CardHeader>
-                <CardTitle className="text-emerald-800">Información Personal</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-neza-blue-800">Información Personal</CardTitle>
+                <CardDescription className="text-neza-silver-600">
                   Ingresa tus datos básicos para el análisis financiero
                 </CardDescription>
               </CardHeader>
@@ -346,8 +409,11 @@ export const UserOnboarding = ({ onBack }: UserOnboardingProps) => {
                 </div>
 
                 <Button 
-                  className="w-full bg-emerald-600 hover:bg-emerald-700" 
-                  onClick={() => setCurrentStep(2)}
+                  className="w-full bg-neza-blue-600 hover:bg-neza-blue-700" 
+                  onClick={() => {
+                    userTrackingService.trackActivity('form_submit', { step: 'personal_info' });
+                    setCurrentStep(2);
+                  }}
                   disabled={!canProceedToStep2}
                 >
                   Continuar con Documentos
@@ -358,10 +424,10 @@ export const UserOnboarding = ({ onBack }: UserOnboardingProps) => {
 
           {currentStep === 2 && (
             <div className="space-y-6">
-              <Card>
+              <Card className="border-neza-blue-200">
                 <CardHeader>
-                  <CardTitle className="text-emerald-800">Análisis Inteligente de Documentos</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="text-neza-blue-800">Análisis Inteligente de Documentos</CardTitle>
+                  <CardDescription className="text-neza-silver-600">
                     Sube tus documentos para análisis automático con OCR y validación SBS
                   </CardDescription>
                 </CardHeader>
@@ -378,7 +444,7 @@ export const UserOnboarding = ({ onBack }: UserOnboardingProps) => {
                     documents[document.key]?.isValid ? 'verified' :
                     documents[document.key] ? 'rejected' : 'pending'
                   }
-                  onUpload={(file, analysis) => handleDocumentUpload(document.key, file, analysis)}
+                  onUpload={(file, analysis, fileId) => handleDocumentUpload(document.key, file, analysis, fileId)}
                 />
               ))}
 
@@ -386,12 +452,12 @@ export const UserOnboarding = ({ onBack }: UserOnboardingProps) => {
                 <Button 
                   variant="outline" 
                   onClick={() => setCurrentStep(1)}
-                  className="flex-1"
+                  className="flex-1 border-neza-blue-300 text-neza-blue-600 hover:bg-neza-blue-50"
                 >
                   Volver
                 </Button>
                 <Button 
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-700" 
+                  className="flex-1 bg-neza-blue-600 hover:bg-neza-blue-700" 
                   onClick={processToIntelligentSystem}
                   disabled={!canProceedToStep3}
                 >
