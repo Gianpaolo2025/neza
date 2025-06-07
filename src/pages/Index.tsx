@@ -18,7 +18,7 @@ export interface UserData {
   requestedAmount: number;
   employmentType: string;
   creditHistory: string;
-  productType?: string;
+  productType: string; // Made required to match User interface
   hasOtherDebts?: string;
   bankingRelationship?: string;
   urgencyLevel?: string;
