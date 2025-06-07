@@ -1,4 +1,3 @@
-
 import { faker } from '@faker-js/faker';
 
 export interface UserData {
@@ -232,16 +231,27 @@ export const generateBankOffers = (user: UserData): BankOffer[] => {
   return offers.sort((a, b) => b.score - a.score);
 };
 
-export const generateOffers = (user: UserData): Offer[] => {
-  return generateBankOffers(user).map(offer => ({
-    bankName: offer.bankName,
-    productName: offer.category,
-    interestRate: offer.interestRate,
-    monthlyPayment: offer.monthlyPayment,
-    loanAmount: offer.maxAmount,
-    termInMonths: offer.term,
-    requirements: offer.requirements,
-    score: offer.score,
-    features: offer.features
+export const generateOffers = (user: UserData) => {
+  const bankOffers = generateBankOffers(user);
+  
+  // Convert BankOffer to the Offer format expected by OffersDashboard
+  return bankOffers.map((bankOffer, index) => ({
+    id: bankOffer.id || `offer-${index}`,
+    bankName: bankOffer.bankName,
+    bankLogo: bankOffer.icon || "💰",
+    productName: bankOffer.category || "Producto Financiero",
+    productType: bankOffer.productType,
+    amount: bankOffer.maxAmount,
+    interestRate: bankOffer.interestRate,
+    monthlyPayment: bankOffer.monthlyPayment,
+    term: bankOffer.term,
+    status: bankOffer.auctionStatus === 'approved' ? 'approved' : 
+            bankOffer.auctionStatus === 'preapproved' ? 'pre-approved' : 'auction',
+    score: bankOffer.score,
+    features: bankOffer.features,
+    requirements: bankOffer.requirements,
+    bankUrl: bankOffer.bankUrl,
+    originalRate: undefined,
+    timeLeft: undefined
   }));
 };
