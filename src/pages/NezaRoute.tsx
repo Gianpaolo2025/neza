@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { ProductCatalog } from "@/components/neza/ProductCatalog";
 import { UserOnboarding } from "@/components/neza/UserOnboarding";
 import { SBSEntitiesCarousel } from "@/components/neza/SBSEntitiesCarousel";
-import { ValuesCarousel } from "@/components/neza/ValuesCarousel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AsesorIAChat } from "@/components/AsesorIAChat";
@@ -86,24 +85,11 @@ const NezaRoute = () => {
           </motion.div>
         </motion.div>
 
-        {/* Valores institucionales en carrusel */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="mb-16"
-        >
-          <h3 className="text-2xl font-bold text-center text-neza-blue-800 mb-8">
-            Nuestros Valores
-          </h3>
-          <ValuesCarousel />
-        </motion.div>
-
         {/* Main Actions */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
+          transition={{ delay: 0.6 }}
           className="grid gap-6 md:grid-cols-2 max-w-5xl mx-auto mb-16"
         >
           <Card 
@@ -192,17 +178,43 @@ const NezaRoute = () => {
           </Card>
         </motion.div>
 
-        {/* Features Section */}
+        {/* Features Section combinada con Valores */}
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
+          transition={{ delay: 0.8 }}
           className="mb-16"
         >
           <h3 className="text-2xl font-bold text-center text-neza-blue-800 mb-8">
             ¿Por qué elegir NEZA?
           </h3>
-          <div className="grid gap-6 md:grid-cols-3 max-w-4xl mx-auto">
+          <div className="grid gap-6 md:grid-cols-5 max-w-6xl mx-auto">
+            <motion.div 
+              whileHover={{ scale: 1.05 }}
+              className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-lg border border-neza-blue-200"
+            >
+              <div className="w-16 h-16 bg-neza-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Shield className="w-8 h-8 text-neza-blue-600" />
+              </div>
+              <h4 className="font-semibold text-neza-blue-800 text-lg mb-2">Transparencia</h4>
+              <p className="text-sm text-neza-silver-600">
+                Información clara y honesta en todos nuestros procesos
+              </p>
+            </motion.div>
+            
+            <motion.div 
+              whileHover={{ scale: 1.05 }}
+              className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-lg border border-neza-cyan-200"
+            >
+              <div className="w-16 h-16 bg-neza-cyan-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users className="w-8 h-8 text-neza-cyan-600" />
+              </div>
+              <h4 className="font-semibold text-neza-cyan-800 text-lg mb-2">Empoderamiento al Usuario</h4>
+              <p className="text-sm text-neza-silver-600">
+                Ponemos el control en tus manos para tomar las mejores decisiones
+              </p>
+            </motion.div>
+            
             <motion.div 
               whileHover={{ scale: 1.05 }}
               className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-lg border border-neza-blue-200"
@@ -249,7 +261,7 @@ const NezaRoute = () => {
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.2 }}
+        transition={{ delay: 1 }}
       >
         <SBSEntitiesCarousel />
       </motion.div>
@@ -258,7 +270,7 @@ const NezaRoute = () => {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 1.4 }}
+        transition={{ delay: 1.2 }}
         className="bg-neza-blue-800 text-white py-8 mt-12"
       >
         <div className="container mx-auto px-4 text-center">
