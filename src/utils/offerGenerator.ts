@@ -1,3 +1,4 @@
+
 import { faker } from '@faker-js/faker';
 
 export interface UserData {
@@ -245,8 +246,8 @@ export const generateOffers = (user: UserData) => {
     interestRate: bankOffer.interestRate,
     monthlyPayment: bankOffer.monthlyPayment,
     term: bankOffer.term,
-    status: bankOffer.auctionStatus === 'approved' ? 'approved' : 
-            bankOffer.auctionStatus === 'preapproved' ? 'pre-approved' : 'auction',
+    status: (bankOffer.auctionStatus === 'approved' ? 'approved' : 
+            bankOffer.auctionStatus === 'preapproved' ? 'pre-approved' : 'auction') as 'approved' | 'pre-approved' | 'auction',
     score: bankOffer.score,
     features: bankOffer.features,
     requirements: bankOffer.requirements,
