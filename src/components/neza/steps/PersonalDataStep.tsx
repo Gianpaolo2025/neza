@@ -24,9 +24,10 @@ interface PersonalDataStepProps {
   onUpdate: (data: PersonalData) => void;
   onNext: () => void;
   onPrev?: () => void;
+  isReturningUser?: boolean;
 }
 
-export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev }: PersonalDataStepProps) => {
+export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUser }: PersonalDataStepProps) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validateForm = () => {
@@ -46,7 +47,7 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev }: PersonalDat
 
   const handleNext = () => {
     if (validateForm()) {
-      onUpdate({ ...data, isValidated: true });
+      onUpdate({ ...data, isValidated: true, otpVerified: true });
       onNext();
     }
   };
@@ -69,7 +70,7 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev }: PersonalDat
           Datos Personales
         </h2>
         <p className="text-lg text-slate-700">
-          Necesitamos conocerte mejor para encontrar las mejores opciones financieras
+          {isReturningUser ? "Actualiza tus datos si es necesario" : "Necesitamos conocerte mejor para encontrar las mejores opciones financieras"}
         </p>
       </motion.div>
 

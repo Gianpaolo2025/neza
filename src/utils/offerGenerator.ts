@@ -389,7 +389,7 @@ const generateAlternativeOffers = (userData: UserData): BankOffer[] => {
 
 // Función auxiliar para generar características por banco
 const generateFeatures = (bankName: string, productType: string): string[] => {
-  const baseFeatures = {
+  const baseFeatures: Record<string, string[]> = {
     "credito-personal": ["Sin garantía", "Tasa fija", "Desembolso rápido"],
     "credito-vehicular": ["Financiamiento hasta 90%", "Seguro incluido", "Tramitación ágil"],
     "credito-hipotecario": ["Financiamiento hasta 90%", "Tasa competitiva", "Plazos extensos"],
@@ -405,7 +405,7 @@ const generateFeatures = (bankName: string, productType: string): string[] => {
     "Banco Pichincha": ["Tarifas competitivas", "Flexibilidad en pagos"]
   };
 
-  const features = [...(baseFeatures[productType as keyof typeof baseFeatures] || baseFeatures["credito-personal"])];
+  const features = [...(baseFeatures[productType] || baseFeatures["credito-personal"])];
   const specific = bankSpecific[bankName];
   if (specific) features.push(...specific);
   
