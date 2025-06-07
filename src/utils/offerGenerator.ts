@@ -117,7 +117,7 @@ export const generateOffers = (user: UserData): Offer[] => {
     const bankName = bankNames[i % bankNames.length];
     const productType = user.productType;
     const productName = productNames[productType][i % productNames[productType].length];
-    const interestRate = faker.number.float({ min: 5, max: 25, precision: 0.1 });
+    const interestRate = faker.number.float({ min: 5, max: 25, fractionDigits: 1 });
     const loanAmount = user.requestedAmount;
     const termInMonths = faker.number.int({ min: 12, max: 60 });
     const monthlyPayment = (loanAmount * (interestRate / 100)) / (1 - Math.pow(1 + (interestRate / 100), -termInMonths));
@@ -155,7 +155,7 @@ export const generateBankOffers = (user: UserData): BankOffer[] => {
   for (let i = 0; i < 15; i++) {
     const bankName = bankNames[i % bankNames.length];
     const productType = user.productType;
-    const interestRate = faker.number.float({ min: 5, max: 25, precision: 0.1 });
+    const interestRate = faker.number.float({ min: 5, max: 25, fractionDigits: 1 });
     const loanAmount = user.requestedAmount;
     const termInMonths = faker.number.int({ min: 12, max: 60 });
     const monthlyPayment = (loanAmount * (interestRate / 100)) / (1 - Math.pow(1 + (interestRate / 100), -termInMonths));
