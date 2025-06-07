@@ -1,3 +1,4 @@
+
 import { faker } from '@faker-js/faker';
 
 export interface UserData {
@@ -15,6 +16,7 @@ export interface UserData {
   bankingRelationship: string;
   urgencyLevel: string;
   preferredBank: string;
+  preferredCurrency?: string;
 }
 
 export interface Offer {
@@ -49,15 +51,74 @@ export interface BankOffer {
   features: string[];
   description: string;
   score: number;
+  bankUrl: string;
+  category: string;
+  icon: string;
+  auctionStatus: 'preapproved' | 'approved';
+  currency: string;
 }
 
-const bankNames = ["BCP", "BBVA", "Scotiabank", "Interbank", "Banco Pichincha"];
-const productNames = {
-  "credito-personal": ["Crédito Personal"],
-  "credito-vehicular": ["Crédito Vehicular"],
-  "credito-hipotecario": ["Crédito Hipotecario"],
-  "tarjeta-credito": ["Tarjeta de Crédito Clásica", "Tarjeta de Crédito Gold", "Tarjeta de Crédito Platinum"],
-  "cuenta-ahorros": ["Cuenta de Ahorros"]
+const bankNames = ["BCP", "BBVA", "Scotiabank", "Interbank", "Banco Pichincha", "Banco de Crédito", "Banco Continental", "Mibanco", "Banco Falabella", "Banco Ripley", "Caja Municipal Arequipa", "Caja Municipal Cusco", "Caja Municipal Trujillo", "Crediscotia", "Compartamos Financiera"];
+
+const productCategories = {
+  "credito-personal": {
+    name: "Créditos de Consumo",
+    icon: "💰",
+    products: ["Crédito Personal", "Crédito de Libre Disponibilidad", "Préstamo Personal"]
+  },
+  "credito-vehicular": {
+    name: "Créditos Vehiculares", 
+    icon: "🚗",
+    products: ["Crédito Vehicular", "Financiamiento Automotriz"]
+  },
+  "credito-hipotecario": {
+    name: "Créditos Hipotecarios",
+    icon: "🏠", 
+    products: ["Crédito Hipotecario", "Mi Vivienda"]
+  },
+  "tarjeta-credito": {
+    name: "Tarjetas de Crédito",
+    icon: "💳",
+    products: ["Tarjeta de Crédito Clásica", "Tarjeta de Crédito Gold", "Tarjeta de Crédito Platinum"]
+  },
+  "cuenta-ahorros": {
+    name: "Cuentas de Ahorro",
+    icon: "🏦",
+    products: ["Cuenta de Ahorros", "Cuenta Sueldo"]
+  }
+};
+
+// Requisitos específicos por banco
+const bankRequirements: Record<string, Record<string, string[]>> = {
+  "BCP": {
+    "credito-personal": ["DNI vigente", "Boletas de pago últimos 3 meses", "Constancia de trabajo", "Ingresos mínimos S/ 1,500"],
+    "tarjeta-credito": ["DNI vigente", "Ingresos demostrables S/ 1,000", "No estar en centrales de riesgo"],
+    "credito-vehicular": ["DNI vigente", "Licencia de conducir", "Ingresos mínimos S/ 2,500", "Inicial mínima 30%"],
+    "credito-hipotecario": ["DNI vigente", "Ingresos familiares S/ 3,500", "Inicial mínima 10%", "Certificado registral"],
+    "cuenta-ahorros": ["DNI vigente", "Depósito inicial S/ 50"]
+  },
+  "BBVA": {
+    "credito-personal": ["DNI vigente", "Boletas de pago últimos 2 meses", "Récord crediticio positivo", "Ingresos mínimos S/ 1,200"],
+    "tarjeta-credito": ["DNI vigente", "Ingresos demostrables S/ 800", "Sin deudas en mora"],
+    "credito-vehicular": ["DNI vigente", "Licencia de conducir", "Ingresos mínimos S/ 2,000", "Inicial mínima 25%"],
+    "credito-hipotecario": ["DNI vigente", "Ingresos familiares S/ 3,000", "Inicial mínima 15%", "Tasación del inmueble"],
+    "cuenta-ahorros": ["DNI vigente", "Depósito inicial S/ 25"]
+  },
+  "Scotiabank": {
+    "credito-personal": ["DNI vigente", "Boletas de pago últimos 3 meses", "Constancia laboral", "Ingresos mínimos S/ 1,800"],
+    "tarjeta-credito": ["DNI vigente", "Ingresos demostrables S/ 1,200", "Historial crediticio"],
+    "credito-vehicular": ["DNI vigente", "Licencia de conducir", "Ingresos mínimos S/ 3,000", "Inicial mínima 35%"],
+    "credito-hipotecario": ["DNI vigente", "Ingresos familiares S/ 4,000", "Inicial mínima 20%", "Seguro de desgravamen"],
+    "cuenta-ahorros": ["DNI vigente", "Depósito inicial S/ 100"]
+  }
+};
+
+const bankUrls: Record<string, string> = {
+  "BCP": "https://www.viabcp.com",
+  "BBVA": "https://www.bbva.pe",
+  "Scotiabank": "https://www.scotiabank.com.pe",
+  "Interbank": "https://www.interbank.pe",
+  "Banco Pichincha": "https://www.pichincha.pe"
 };
 
 // Función auxiliar para generar características por banco
@@ -85,7 +146,6 @@ const generateFeatures = (bankName: string, productType: string): string[] => {
   return features.slice(0, 3);
 };
 
-// Corregir la función que causaba el error TypeScript
 const calculateScore = (user: UserData, product: any): number => {
   let score = 0;
   
@@ -110,89 +170,78 @@ const calculateScore = (user: UserData, product: any): number => {
   return Math.min(score, 100);
 };
 
-export const generateOffers = (user: UserData): Offer[] => {
-  const offers: Offer[] = [];
+export const generateBankOffers = (user: UserData): BankOffer[] => {
+  const offers: BankOffer[] = [];
+  const selectedCurrency = user.preferredCurrency || "PEN";
+  const currencySymbol = selectedCurrency === "PEN" ? "S/." : "$";
 
-  for (let i = 0; i < 15; i++) {
-    const bankName = bankNames[i % bankNames.length];
-    const productType = user.productType;
-    const productName = productNames[productType][i % productNames[productType].length];
-    const interestRate = faker.number.float({ min: 5, max: 25, fractionDigits: 1 });
-    const loanAmount = user.requestedAmount;
-    const termInMonths = faker.number.int({ min: 12, max: 60 });
-    const monthlyPayment = (loanAmount * (interestRate / 100)) / (1 - Math.pow(1 + (interestRate / 100), -termInMonths));
+  // Generar ofertas de TODAS las entidades disponibles
+  for (let i = 0; i < bankNames.length; i++) {
+    for (let j = 0; j < 3; j++) { // 3 ofertas por banco
+      const bankName = bankNames[i];
+      const productType = user.productType;
+      const category = productCategories[productType as keyof typeof productCategories];
+      const interestRate = faker.number.float({ min: 5, max: 25, fractionDigits: 1 });
+      const loanAmount = user.requestedAmount;
+      const termInMonths = faker.number.int({ min: 12, max: 60 });
+      const monthlyPayment = (loanAmount * (interestRate / 100)) / (1 - Math.pow(1 + (interestRate / 100), -termInMonths));
 
-    const product = {
-      minIncome: faker.number.int({ min: 1000, max: user.monthlyIncome }),
-      maxAmount: faker.number.int({ min: user.requestedAmount, max: 100000 })
-    };
+      const product = {
+        minIncome: faker.number.int({ min: 1000, max: user.monthlyIncome }),
+        maxAmount: faker.number.int({ min: user.requestedAmount, max: 100000 })
+      };
 
-    const score = calculateScore(user, product);
+      const score = calculateScore(user, product);
+      const auctionStatus = faker.helpers.arrayElement(['preapproved', 'approved'] as const);
 
-    offers.push({
-      bankName,
-      productName,
-      interestRate,
-      monthlyPayment,
-      loanAmount,
-      termInMonths,
-      requirements: [
-        "DNI",
-        "Justificante de ingresos",
-        "Historial crediticio positivo"
-      ],
-      score,
-      features: generateFeatures(bankName, productType)
-    });
+      const bankRequirement = bankRequirements[bankName]?.[productType] || [
+        "DNI vigente",
+        "Constancia de ingresos",
+        "Historial crediticio"
+      ];
+
+      offers.push({
+        id: `offer-${i}-${j}`,
+        bankName,
+        productType,
+        category: category?.name || "Producto Financiero",
+        icon: category?.icon || "💰",
+        interestRate,
+        rate: interestRate,
+        monthlyPayment,
+        maxAmount: loanAmount,
+        maxTerm: termInMonths,
+        term: termInMonths,
+        totalCost: monthlyPayment * termInMonths,
+        savings: faker.number.int({ min: 500, max: 5000 }),
+        approvalTime: faker.helpers.arrayElement(["24 horas", "48 horas", "72 horas"]),
+        riskLevel: faker.helpers.arrayElement(["Bajo", "Medio", "Alto"]),
+        status: faker.helpers.arrayElement(["aprobado", "pre-aprobado", "pendiente"]),
+        recommended: i === 0 && j === 0,
+        requirements: bankRequirement,
+        features: generateFeatures(bankName, productType),
+        description: `${category?.name || "Producto financiero"} con condiciones preferenciales`,
+        score,
+        bankUrl: bankUrls[bankName] || "#",
+        auctionStatus,
+        currency: currencySymbol
+      });
+    }
   }
 
   return offers.sort((a, b) => b.score - a.score);
 };
 
-export const generateBankOffers = (user: UserData): BankOffer[] => {
-  const offers: BankOffer[] = [];
-
-  for (let i = 0; i < 15; i++) {
-    const bankName = bankNames[i % bankNames.length];
-    const productType = user.productType;
-    const interestRate = faker.number.float({ min: 5, max: 25, fractionDigits: 1 });
-    const loanAmount = user.requestedAmount;
-    const termInMonths = faker.number.int({ min: 12, max: 60 });
-    const monthlyPayment = (loanAmount * (interestRate / 100)) / (1 - Math.pow(1 + (interestRate / 100), -termInMonths));
-
-    const product = {
-      minIncome: faker.number.int({ min: 1000, max: user.monthlyIncome }),
-      maxAmount: faker.number.int({ min: user.requestedAmount, max: 100000 })
-    };
-
-    const score = calculateScore(user, product);
-
-    offers.push({
-      id: `offer-${i}`,
-      bankName,
-      productType,
-      interestRate,
-      rate: interestRate,
-      monthlyPayment,
-      maxAmount: loanAmount,
-      maxTerm: termInMonths,
-      term: termInMonths,
-      totalCost: monthlyPayment * termInMonths,
-      savings: faker.number.int({ min: 500, max: 5000 }),
-      approvalTime: faker.helpers.arrayElement(["24 horas", "48 horas", "72 horas"]),
-      riskLevel: faker.helpers.arrayElement(["Bajo", "Medio", "Alto"]),
-      status: faker.helpers.arrayElement(["aprobado", "pre-aprobado", "pendiente"]),
-      recommended: i === 0,
-      requirements: [
-        "DNI",
-        "Justificante de ingresos",
-        "Historial crediticio positivo"
-      ],
-      features: generateFeatures(bankName, productType),
-      description: `Crédito ${productType} con condiciones preferenciales`,
-      score
-    });
-  }
-
-  return offers.sort((a, b) => b.score - a.score);
+export const generateOffers = (user: UserData): Offer[] => {
+  return generateBankOffers(user).map(offer => ({
+    bankName: offer.bankName,
+    productName: offer.category,
+    interestRate: offer.interestRate,
+    monthlyPayment: offer.monthlyPayment,
+    loanAmount: offer.maxAmount,
+    termInMonths: offer.term,
+    requirements: offer.requirements,
+    score: offer.score,
+    features: offer.features
+  }));
 };
