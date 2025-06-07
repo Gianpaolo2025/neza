@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -58,10 +57,7 @@ export const DocumentUpload = ({
         // Actualizar análisis en el almacenamiento
         const storedFile = fileStorageService.getFile(storedFileId);
         if (storedFile) {
-          storedFile.metadata = {
-            ...storedFile.metadata,
-            analysisResult: documentAnalysis
-          };
+          storedFile.metadata.analysisResult = documentAnalysis;
         }
         
         onUpload(file, documentAnalysis, storedFileId);

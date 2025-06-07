@@ -10,6 +10,7 @@ export interface StoredFile {
     lastModified: number;
     uploadTime: Date;
     documentType: string;
+    analysisResult?: any;
   };
 }
 
