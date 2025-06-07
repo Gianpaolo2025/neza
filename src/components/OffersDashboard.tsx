@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -128,7 +129,7 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
   };
 
   const handleBankRedirect = (bankUrl: string, bankName: string) => {
-    userTrackingService.trackActivity('bank_redirect', { 
+    userTrackingService.trackActivity('button_click', { 
       bankName,
       productType: selectedProductType,
       amount: requestedAmount

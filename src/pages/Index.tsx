@@ -42,7 +42,7 @@ const Index = () => {
       requestedAmount: userData.financialInfo?.requestedAmount || 0,
       employmentType: userData.financialInfo?.employmentType || '',
       creditHistory: userData.clientProfile?.hasPreviousCredit ? "bueno" : "nuevo",
-      productType: userData.financialInfo?.productType || '',
+      productType: userData.financialInfo?.productType || 'credito-personal', // Ensure productType is always set
       hasOtherDebts: userData.financialInfo?.hasOtherDebts || '',
       bankingRelationship: userData.financialInfo?.bankingRelationship || '',
       urgencyLevel: userData.financialInfo?.urgencyLevel || '',
