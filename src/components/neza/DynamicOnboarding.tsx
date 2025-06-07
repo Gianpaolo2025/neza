@@ -19,6 +19,7 @@ interface PersonalData {
   birthDate: string;
   email: string;
   phone: string;
+  address: string;
   isValidated: boolean;
   otpVerified: boolean;
 }
@@ -71,6 +72,7 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
       birthDate: "",
       email: "",
       phone: "",
+      address: "",
       isValidated: false,
       otpVerified: false
     },

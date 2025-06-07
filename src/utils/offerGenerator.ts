@@ -254,7 +254,7 @@ const generateBankOffer = (userData: UserData, bank: any, index: number, maxAmou
     maxTerm,
     maxAmount,
     totalCost: Math.round(totalCost),
-    savings: Math.round(Math.random() * 5000), // Simplificado
+    savings: Math.round(Math.random() * 5000),
     status,
     approvalTime: getApprovalTime(status, userData.urgencyLevel),
     riskLevel,
@@ -397,7 +397,7 @@ const generateFeatures = (bankName: string, productType: string): string[] => {
     "credito-empresarial": ["Capital de trabajo", "Tasa preferencial", "Asesoría especializada"]
   };
 
-  const bankSpecific = {
+  const bankSpecific: Record<string, string[]> = {
     "Banco de Crédito BCP": ["Red nacional más amplia", "Banca digital 24/7"],
     "BBVA Continental": ["Tecnología europea", "Procesos 100% digitales"],
     "Scotiabank Perú": ["Atención personalizada", "Beneficios exclusivos"],
@@ -406,7 +406,7 @@ const generateFeatures = (bankName: string, productType: string): string[] => {
   };
 
   const features = [...(baseFeatures[productType as keyof typeof baseFeatures] || baseFeatures["credito-personal"])];
-  const specific = bankSpecific[bankName as keyof typeof bankSpecific];
+  const specific = bankSpecific[bankName];
   if (specific) features.push(...specific);
   
   return features.slice(0, 5);
@@ -414,7 +414,7 @@ const generateFeatures = (bankName: string, productType: string): string[] => {
 
 // Función auxiliar para generar descripción por banco
 const generateDescription = (bankName: string, productType: string): string => {
-  const productNames = {
+  const productNames: Record<string, string> = {
     "credito-personal": "Crédito Personal",
     "credito-vehicular": "Crédito Vehicular",
     "credito-hipotecario": "Crédito Hipotecario",
@@ -422,7 +422,7 @@ const generateDescription = (bankName: string, productType: string): string => {
     "credito-empresarial": "Crédito Empresarial"
   };
 
-  const productName = productNames[productType as keyof typeof productNames] || "Producto Financiero";
+  const productName = productNames[productType] || "Producto Financiero";
   
   return `${productName} de ${bankName} diseñado para satisfacer tus necesidades financieras con las mejores condiciones del mercado.`;
 };
