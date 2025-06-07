@@ -1,15 +1,14 @@
-
 import { UserData } from "@/pages/Index";
 
 export interface BankOffer {
   id: string;
   bankName: string;
   interestRate: number;
-  rate: number; // TEA rate for display
+  rate: number;
   monthlyPayment: number;
-  term: number; // en meses
-  maxTerm: number; // máximo plazo disponible
-  maxAmount: number; // monto máximo disponible
+  term: number;
+  maxTerm: number;
+  maxAmount: number;
   totalCost: number;
   savings: number;
   status: "aprobado" | "pre-aprobado" | "pendiente";
@@ -17,10 +16,10 @@ export interface BankOffer {
   riskLevel: "Bajo" | "Medio" | "Alto";
   recommended: boolean;
   requirements: string[];
-  score: number; // score de 0-100 para ranking
-  productType: string; // tipo de producto
-  features: string[]; // características principales
-  description: string; // descripción del producto
+  score: number;
+  productType: string;
+  features: string[];
+  description: string;
 }
 
 const banks = [
@@ -29,160 +28,145 @@ const banks = [
     baseRate: 18,
     riskAdjustment: { excelente: -4, bueno: -2, regular: 0, nuevo: 2 },
     maxAmount: { dependiente: 150000, independiente: 100000, empresario: 200000, pensionista: 80000 },
-    minIncome: { dependiente: 1000, independiente: 1500, empresario: 2000, pensionista: 800 }
+    minIncome: { dependiente: 1000, independiente: 1500, empresario: 2000, pensionista: 800 },
+    productTypes: ["credito-personal", "credito-vehicular", "credito-hipotecario", "tarjeta-credito"]
   },
   {
     name: "BBVA Continental", 
     baseRate: 19,
     riskAdjustment: { excelente: -3, bueno: -1, regular: 1, nuevo: 3 },
     maxAmount: { dependiente: 120000, independiente: 80000, empresario: 180000, pensionista: 60000 },
-    minIncome: { dependiente: 1200, independiente: 1800, empresario: 2500, pensionista: 900 }
+    minIncome: { dependiente: 1200, independiente: 1800, empresario: 2500, pensionista: 900 },
+    productTypes: ["credito-personal", "credito-vehicular", "tarjeta-credito"]
   },
   {
     name: "Scotiabank Perú",
     baseRate: 17,
     riskAdjustment: { excelente: -3, bueno: -2, regular: 0, nuevo: 2 },
     maxAmount: { dependiente: 140000, independiente: 90000, empresario: 190000, pensionista: 70000 },
-    minIncome: { dependiente: 1100, independiente: 1600, empresario: 2200, pensionista: 850 }
+    minIncome: { dependiente: 1100, independiente: 1600, empresario: 2200, pensionista: 850 },
+    productTypes: ["credito-personal", "credito-vehicular", "credito-hipotecario", "tarjeta-credito"]
   },
   {
     name: "Interbank",
     baseRate: 20,
     riskAdjustment: { excelente: -5, bueno: -3, regular: -1, nuevo: 1 },
     maxAmount: { dependiente: 100000, independiente: 70000, empresario: 150000, pensionista: 50000 },
-    minIncome: { dependiente: 1400, independiente: 2000, empresario: 3000, pensionista: 1000 }
+    minIncome: { dependiente: 1400, independiente: 2000, empresario: 3000, pensionista: 1000 },
+    productTypes: ["credito-personal", "tarjeta-credito"]
   },
   {
     name: "Banco Pichincha",
     baseRate: 22,
     riskAdjustment: { excelente: -4, bueno: -2, regular: 1, nuevo: 3 },
     maxAmount: { dependiente: 80000, independiente: 60000, empresario: 120000, pensionista: 40000 },
-    minIncome: { dependiente: 900, independiente: 1300, empresario: 1800, pensionista: 700 }
+    minIncome: { dependiente: 900, independiente: 1300, empresario: 1800, pensionista: 700 },
+    productTypes: ["credito-personal", "tarjeta-credito"]
   },
   {
     name: "Mi Banco",
     baseRate: 25,
     riskAdjustment: { excelente: -6, bueno: -4, regular: -2, nuevo: 0 },
     maxAmount: { dependiente: 50000, independiente: 40000, empresario: 80000, pensionista: 30000 },
-    minIncome: { dependiente: 600, independiente: 900, empresario: 1200, pensionista: 500 }
+    minIncome: { dependiente: 600, independiente: 900, empresario: 1200, pensionista: 500 },
+    productTypes: ["credito-personal"]
   },
   {
     name: "Banco Falabella",
     baseRate: 21,
     riskAdjustment: { excelente: -3, bueno: -1, regular: 1, nuevo: 2 },
     maxAmount: { dependiente: 70000, independiente: 50000, empresario: 100000, pensionista: 35000 },
-    minIncome: { dependiente: 1000, independiente: 1400, empresario: 2000, pensionista: 750 }
+    minIncome: { dependiente: 1000, independiente: 1400, empresario: 2000, pensionista: 750 },
+    productTypes: ["credito-personal", "tarjeta-credito"]
   },
   {
     name: "Banco Ripley",
     baseRate: 23,
     riskAdjustment: { excelente: -4, bueno: -2, regular: 0, nuevo: 2 },
     maxAmount: { dependiente: 60000, independiente: 45000, empresario: 90000, pensionista: 30000 },
-    minIncome: { dependiente: 950, independiente: 1350, empresario: 1900, pensionista: 700 }
+    minIncome: { dependiente: 950, independiente: 1350, empresario: 1900, pensionista: 700 },
+    productTypes: ["credito-personal", "tarjeta-credito"]
   },
   {
     name: "Santander Perú",
     baseRate: 19,
     riskAdjustment: { excelente: -3, bueno: -1, regular: 1, nuevo: 2 },
     maxAmount: { dependiente: 110000, independiente: 75000, empresario: 160000, pensionista: 55000 },
-    minIncome: { dependiente: 1150, independiente: 1700, empresario: 2300, pensionista: 850 }
-  },
-  {
-    name: "Compartamos Banco",
-    baseRate: 28,
-    riskAdjustment: { excelente: -7, bueno: -5, regular: -3, nuevo: -1 },
-    maxAmount: { dependiente: 40000, independiente: 30000, empresario: 60000, pensionista: 25000 },
-    minIncome: { dependiente: 500, independiente: 700, empresario: 1000, pensionista: 400 }
-  },
-  {
-    name: "CMAC Cusco",
-    baseRate: 24,
-    riskAdjustment: { excelente: -5, bueno: -3, regular: -1, nuevo: 1 },
-    maxAmount: { dependiente: 35000, independiente: 25000, empresario: 50000, pensionista: 20000 },
-    minIncome: { dependiente: 700, independiente: 1000, empresario: 1500, pensionista: 600 }
-  },
-  {
-    name: "CMAC Arequipa",
-    baseRate: 23,
-    riskAdjustment: { excelente: -4, bueno: -2, regular: 0, nuevo: 1 },
-    maxAmount: { dependiente: 40000, independiente: 30000, empresario: 55000, pensionista: 22000 },
-    minIncome: { dependiente: 750, independiente: 1100, empresario: 1600, pensionista: 650 }
-  },
-  {
-    name: "Financiera Confianza",
-    baseRate: 26,
-    riskAdjustment: { excelente: -6, bueno: -4, regular: -2, nuevo: 0 },
-    maxAmount: { dependiente: 30000, independiente: 22000, empresario: 45000, pensionista: 18000 },
-    minIncome: { dependiente: 600, independiente: 900, empresario: 1300, pensionista: 500 }
+    minIncome: { dependiente: 1150, independiente: 1700, empresario: 2300, pensionista: 850 },
+    productTypes: ["credito-personal", "credito-vehicular", "tarjeta-credito"]
   }
 ];
 
 export const generateOffers = (userData: UserData): BankOffer[] => {
   const offers: BankOffer[] = [];
   
-  console.log("Generando ofertas para usuario:", userData);
+  console.log("Generando ofertas para usuario con datos completos:", userData);
   
-  // Validaciones más flexibles para generar más ofertas
-  const incomeRatio = userData.requestedAmount / Math.max(userData.monthlyIncome, 1000);
+  // Validar que tengamos datos mínimos para generar ofertas
+  if (!userData.requestedAmount || userData.requestedAmount <= 0 || 
+      !userData.monthlyIncome || userData.monthlyIncome <= 0 ||
+      !userData.productType) {
+    console.log("Datos insuficientes para generar ofertas personalizadas");
+    return [];
+  }
+  
+  const incomeRatio = userData.requestedAmount / userData.monthlyIncome;
   const employmentType = (userData.employmentType || "dependiente") as keyof typeof banks[0]['maxAmount'];
   
-  // Factor de riesgo más flexible
-  let riskMultiplier = 1;
-  if (incomeRatio > 10) riskMultiplier = 1.5;
-  else if (incomeRatio > 7) riskMultiplier = 1.3;
-  else if (incomeRatio > 5) riskMultiplier = 1.2;
-  else if (incomeRatio < 3) riskMultiplier = 0.9;
-
-  // Ajuste por deudas existentes
-  const debtMultiplier = {
-    "no": 0.95,
-    "pocas": 1.0,
-    "moderadas": 1.15,
-    "altas": 1.3
-  }[userData.hasOtherDebts || "pocas"];
-
-  // Ajuste por relación bancaria
-  const relationshipMultiplier = {
-    "nuevo": 1.2,
-    "un-banco": 1.05,
-    "varios-bancos": 1.0,
-    "preferencial": 0.95
-  }[userData.bankingRelationship || "nuevo"];
-
-  banks.forEach((bank, index) => {
-    // Criterios más flexibles para generar ofertas de todos los bancos
+  // Filtrar bancos que ofrezcan el producto solicitado
+  const eligibleBanks = banks.filter(bank => 
+    bank.productTypes.includes(userData.productType || "credito-personal")
+  );
+  
+  console.log(`Bancos elegibles para ${userData.productType}: ${eligibleBanks.length}`);
+  
+  eligibleBanks.forEach((bank, index) => {
     const maxAmount = bank.maxAmount[employmentType];
     const minIncome = bank.minIncome[employmentType];
     
-    // Permitir ofertas incluso si no cumple completamente los requisitos (con condiciones especiales)
+    // Criterios más estrictos para generar solo ofertas relevantes
     let canOffer = true;
     let status: BankOffer["status"] = "aprobado";
-    let specialConditions = false;
     
+    // Verificar si cumple requisitos básicos
     if (userData.requestedAmount > maxAmount) {
-      // Ofrecer el monto máximo disponible en lugar de rechazar
-      specialConditions = true;
-      status = "pre-aprobado";
+      canOffer = false; // No ofrecer si excede el límite del banco
     }
     
     if (userData.monthlyIncome < minIncome) {
-      status = "pendiente";
-      specialConditions = true;
+      if (userData.monthlyIncome < minIncome * 0.8) {
+        canOffer = false; // No ofrecer si está muy por debajo del mínimo
+      } else {
+        status = "pendiente"; // Requiere evaluación adicional
+      }
+    }
+    
+    // Solo proceder si el banco puede ofrecer el producto
+    if (!canOffer) {
+      return;
     }
 
     const creditHistory = (userData.creditHistory || "nuevo") as keyof typeof bank.riskAdjustment;
     let interestRate = bank.baseRate + bank.riskAdjustment[creditHistory];
     
-    // Aplicar multiplicadores de riesgo
-    interestRate *= riskMultiplier * debtMultiplier * relationshipMultiplier;
+    // Ajustes por perfil del usuario
+    if (incomeRatio > 10) interestRate += 3;
+    else if (incomeRatio > 7) interestRate += 2;
+    else if (incomeRatio > 5) interestRate += 1;
+    else if (incomeRatio < 3) interestRate -= 1;
+
+    // Ajuste por deudas existentes
+    const debtMultiplier = {
+      "no": 0.95,
+      "pocas": 1.0,
+      "moderadas": 1.15,
+      "altas": 1.3
+    }[userData.hasOtherDebts || "pocas"];
     
-    // Bonificación por banco preferido
-    if (userData.preferredBank && bank.name.toLowerCase().includes(userData.preferredBank.toLowerCase())) {
-      interestRate *= 0.95;
-    }
+    interestRate *= debtMultiplier;
     
-    // Variación competitiva
-    const competitiveVariation = (Math.random() - 0.5) * 2;
+    // Variación competitiva pequeña
+    const competitiveVariation = (Math.random() - 0.5) * 1;
     interestRate += competitiveVariation;
     
     // Límites del mercado peruano
@@ -205,8 +189,7 @@ export const generateOffers = (userData: UserData): BankOffer[] => {
       maxTerm = 48;
     }
     
-    // Ajustar monto si excede límites del banco
-    const offerAmount = Math.min(userData.requestedAmount, maxAmount);
+    const offerAmount = userData.requestedAmount; // Usar el monto exacto solicitado
     
     const monthlyRate = interestRate / 100 / 12;
     const monthlyPayment = (offerAmount * monthlyRate * Math.pow(1 + monthlyRate, term)) / 
@@ -216,7 +199,7 @@ export const generateOffers = (userData: UserData): BankOffer[] => {
     const averageCost = offerAmount * (1 + (interestRate * term / 12 / 100)); 
     const savings = Math.max(0, averageCost - totalCost);
     
-    // Determinar estado final
+    // Evaluar aprobación
     const approvalScore = (
       (creditHistory === "excelente" ? 40 : 
        creditHistory === "bueno" ? 30 : 
@@ -226,9 +209,7 @@ export const generateOffers = (userData: UserData): BankOffer[] => {
       (userData.hasOtherDebts === "no" ? 10 : 0)
     );
     
-    if (specialConditions) {
-      status = approvalScore >= 50 ? "pre-aprobado" : "pendiente";
-    } else if (approvalScore >= 60) {
+    if (approvalScore >= 60) {
       status = "aprobado";
     } else if (approvalScore >= 40) {
       status = "pre-aprobado";
@@ -241,12 +222,10 @@ export const generateOffers = (userData: UserData): BankOffer[] => {
     if (interestRate < 22 && approvalScore >= 50) riskLevel = "Bajo";
     else if (interestRate > 30 || approvalScore < 35) riskLevel = "Alto";
     
-    // Tiempo de aprobación
     const approvalTime = status === "aprobado" ? 
       (userData.urgencyLevel === "inmediato" ? "24 horas" : "48 horas") :
       status === "pre-aprobado" ? "3-5 días" : "5-10 días";
 
-    // Requisitos específicos
     const baseRequirements = [
       "DNI vigente",
       "Sustento de ingresos últimos 3 meses"
@@ -262,11 +241,6 @@ export const generateOffers = (userData: UserData): BankOffer[] => {
       baseRequirements.push("Declaración jurada de ingresos", "Comprobantes de ingresos");
     }
 
-    if (specialConditions) {
-      baseRequirements.push("Condiciones especiales aplicarán");
-    }
-
-    // Generar características y descripción específicas por banco
     const features = generateFeatures(bank.name, userData.productType || "credito-personal");
     const description = generateDescription(bank.name, userData.productType || "credito-personal");
     
@@ -275,7 +249,7 @@ export const generateOffers = (userData: UserData): BankOffer[] => {
       approvalScore + 
       (interestRate < 20 ? 20 : interestRate < 25 ? 15 : 10) +
       (status === "aprobado" ? 20 : status === "pre-aprobado" ? 10 : 5) +
-      (Math.random() * 10) // Factor de variabilidad
+      (Math.random() * 10)
     ));
 
     offers.push({
@@ -301,7 +275,7 @@ export const generateOffers = (userData: UserData): BankOffer[] => {
     });
   });
   
-  console.log("Ofertas generadas:", offers.length);
+  console.log(`Ofertas generadas: ${offers.length} de ${eligibleBanks.length} bancos elegibles`);
   
   // Marcar la mejor oferta como recomendada
   if (offers.length > 0) {

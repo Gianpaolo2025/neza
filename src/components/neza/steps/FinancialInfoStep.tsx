@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp, DollarSign } from "lucide-react";
 import { ProductListView } from "./ProductListView";
 
 interface FinancialInfo {
@@ -97,7 +97,7 @@ export const FinancialInfoStep = ({
 
   const canProceed = () => {
     return data.creditType && 
-           data.requestedAmount >= 0 && 
+           data.requestedAmount > 0 && 
            data.monthlyIncome > 0 && 
            data.occupation && 
            data.workTime > 0;
@@ -107,7 +107,9 @@ export const FinancialInfoStep = ({
     if (currentSubStep === 1) {
       return `¡Perfecto, ${personalData.firstName}! Elige el producto financiero ideal para ti 💰`;
     } else if (currentSubStep === 2) {
-      return `¡Excelente elección! Ahora cuéntame sobre tu situación financiera 📊`;
+      return `¡Excelente elección! Ahora cuéntame cuánto dinero necesitas 💰`;
+    } else if (currentSubStep === 3) {
+      return `¡Casi terminamos! Cuéntame sobre tu situación laboral 💼`;
     }
     return `¡Buen trabajo! Ya tienes un perfil financiero sólido 🎯`;
   };
@@ -127,7 +129,7 @@ export const FinancialInfoStep = ({
         >
           💰
         </motion.div>
-        <p className="text-lg text-gray-700 font-medium">
+        <p className="text-lg text-slate-700 font-medium">
           {getMotivationalMessage()}
         </p>
       </motion.div>
@@ -139,22 +141,22 @@ export const FinancialInfoStep = ({
           animate={{ opacity: 1 }}
           className="mb-8"
         >
-          <Card>
+          <Card className="border-blue-200 bg-blue-50/50">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-600">
+                <span className="text-sm font-medium text-slate-600">
                   Nivel de perfil financiero
                 </span>
-                <span className="text-lg font-bold text-emerald-600">
+                <span className="text-lg font-bold text-blue-600">
                   {profileLevel}%
                 </span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-3">
+              <div className="w-full bg-slate-200 rounded-full h-3">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${profileLevel}%` }}
                   transition={{ duration: 0.5 }}
-                  className="h-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full flex items-center justify-end pr-2"
+                  className="h-3 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-end pr-2"
                 >
                   {profileLevel >= 50 && <TrendingUp className="w-3 h-3 text-white" />}
                 </motion.div>
@@ -165,7 +167,7 @@ export const FinancialInfoStep = ({
       )}
 
       <AnimatePresence mode="wait">
-        {/* Paso 1: Selección de producto con vista de lista */}
+        {/* Paso 1: Selección de producto */}
         {currentSubStep === 1 && (
           <motion.div
             key="product-selection"
@@ -181,8 +183,72 @@ export const FinancialInfoStep = ({
           </motion.div>
         )}
 
-        {/* Paso 2: Información detallada */}
+        {/* Paso 2: Monto solicitado */}
         {currentSubStep === 2 && (
+          <motion.div
+            key="amount"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+          >
+            <Card className="border-blue-200 bg-white/80">
+              <CardContent className="p-8">
+                <div className="text-center mb-6">
+                  <DollarSign className="w-12 h-12 mx-auto text-blue-600 mb-4" />
+                  <Label className="text-2xl font-bold text-slate-800 mb-4 block">
+                    ¿Cuánto dinero necesitas?
+                  </Label>
+                  <p className="text-slate-600">
+                    Especifica el monto exacto que necesitas para tu {data.creditType.replace('-', ' ')}
+                  </p>
+                </div>
+                
+                <div className="space-y-6">
+                  <div className="text-center">
+                    <Input
+                      type="number"
+                      value={data.requestedAmount || ''}
+                      onChange={(e) => handleAmountChange(Number(e.target.value))}
+                      placeholder="Ej: 25000"
+                      className="text-2xl py-6 text-center font-bold border-blue-300 focus:border-blue-500"
+                    />
+                    <p className="text-sm text-slate-500 mt-2">Soles peruanos (S/)</p>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <Slider
+                      value={[data.requestedAmount]}
+                      onValueChange={([value]) => handleAmountChange(value)}
+                      min={1000}
+                      max={200000}
+                      step={1000}
+                      className="w-full"
+                    />
+                    <div className="flex justify-between text-sm text-slate-500">
+                      <span>S/ 1,000</span>
+                      <span>S/ 200,000</span>
+                    </div>
+                  </div>
+
+                  {data.requestedAmount > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-center p-4 bg-blue-50 border border-blue-200 rounded-lg"
+                    >
+                      <p className="text-blue-800 font-medium">
+                        Monto solicitado: <span className="text-xl font-bold">S/ {data.requestedAmount.toLocaleString()}</span>
+                      </p>
+                    </motion.div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Paso 3: Información laboral e ingresos */}
+        {currentSubStep === 3 && (
           <motion.div
             key="details"
             initial={{ opacity: 0, x: 50 }}
@@ -190,40 +256,10 @@ export const FinancialInfoStep = ({
             exit={{ opacity: 0, x: -50 }}
             className="space-y-6"
           >
-            {/* Monto solicitado */}
-            <Card>
-              <CardContent className="p-6">
-                <Label className="text-lg font-medium text-gray-700 mb-4 block">
-                  ¿Cuánto necesitas? 💵
-                </Label>
-                <div className="space-y-4">
-                  <Input
-                    type="number"
-                    value={data.requestedAmount || ''}
-                    onChange={(e) => handleAmountChange(Number(e.target.value))}
-                    placeholder="Ingresa el monto"
-                    className="text-lg py-6"
-                  />
-                  <Slider
-                    value={[data.requestedAmount]}
-                    onValueChange={([value]) => handleAmountChange(value)}
-                    min={0}
-                    max={100000}
-                    step={1000}
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-sm text-gray-500">
-                    <span>S/ 0</span>
-                    <span>S/ 100,000</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Ingresos mensuales */}
-            <Card>
+            <Card className="border-blue-200 bg-white/80">
               <CardContent className="p-6">
-                <Label className="text-lg font-medium text-gray-700 mb-4 block">
+                <Label className="text-lg font-medium text-slate-700 mb-4 block">
                   ¿Cuáles son tus ingresos mensuales? 📈
                 </Label>
                 <Input
@@ -231,13 +267,13 @@ export const FinancialInfoStep = ({
                   value={data.monthlyIncome || ''}
                   onChange={(e) => handleIncomeChange(Number(e.target.value))}
                   placeholder="Ej: 3000"
-                  className="text-lg py-6"
+                  className="text-lg py-6 border-blue-300 focus:border-blue-500"
                 />
                 {data.requestedAmount > 0 && data.monthlyIncome > 0 && (
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="mt-3 text-sm text-gray-600"
+                    className="mt-3 text-sm text-slate-600"
                   >
                     Capacidad de pago: {Math.round(data.requestedAmount / data.monthlyIncome)} meses aprox.
                   </motion.div>
@@ -246,9 +282,9 @@ export const FinancialInfoStep = ({
             </Card>
 
             {/* Ocupación */}
-            <Card>
+            <Card className="border-blue-200 bg-white/80">
               <CardContent className="p-6">
-                <Label className="text-lg font-medium text-gray-700 mb-4 block">
+                <Label className="text-lg font-medium text-slate-700 mb-4 block">
                   ¿A qué te dedicas? 💼
                 </Label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -257,7 +293,11 @@ export const FinancialInfoStep = ({
                       key={occupation}
                       variant={data.occupation === occupation ? "default" : "outline"}
                       onClick={() => onUpdate({ ...data, occupation })}
-                      className="text-sm h-auto py-3 px-2"
+                      className={`text-sm h-auto py-3 px-2 ${
+                        data.occupation === occupation 
+                          ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                          : 'border-blue-300 text-blue-700 hover:bg-blue-50'
+                      }`}
                     >
                       {occupation}
                     </Button>
@@ -267,9 +307,9 @@ export const FinancialInfoStep = ({
             </Card>
 
             {/* Tiempo de trabajo */}
-            <Card>
+            <Card className="border-blue-200 bg-white/80">
               <CardContent className="p-6">
-                <Label className="text-lg font-medium text-gray-700 mb-4 block">
+                <Label className="text-lg font-medium text-slate-700 mb-4 block">
                   ¿Cuánto tiempo llevas trabajando? ⏰
                 </Label>
                 <div className="space-y-4">
@@ -278,7 +318,7 @@ export const FinancialInfoStep = ({
                     value={data.workTime || ''}
                     onChange={(e) => onUpdate({ ...data, workTime: Number(e.target.value) })}
                     placeholder="Meses de experiencia laboral"
-                    className="text-lg py-6"
+                    className="text-lg py-6 border-blue-300 focus:border-blue-500"
                   />
                   <Slider
                     value={[data.workTime]}
@@ -288,7 +328,7 @@ export const FinancialInfoStep = ({
                     step={1}
                     className="w-full"
                   />
-                  <div className="flex justify-between text-sm text-gray-500">
+                  <div className="flex justify-between text-sm text-slate-500">
                     <span>1 mes</span>
                     <span>10 años</span>
                   </div>
@@ -301,25 +341,37 @@ export const FinancialInfoStep = ({
 
       {/* Botones de navegación */}
       <div className="flex gap-4 mt-8">
-        <Button variant="outline" onClick={onPrev} className="flex-1">
+        <Button 
+          variant="outline" 
+          onClick={onPrev} 
+          className="flex-1 border-blue-300 text-blue-700 hover:bg-blue-50"
+        >
           Anterior
         </Button>
         
-        {currentSubStep === 2 ? (
-          <Button 
-            onClick={onNext} 
-            disabled={!canProceed()}
-            className="flex-1 bg-emerald-600 hover:bg-emerald-700"
-          >
-            {profileLevel >= 70 ? '¡Continuar! 🚀' : 'Continuar'}
-          </Button>
-        ) : (
+        {currentSubStep === 1 ? (
           <Button 
             onClick={() => setCurrentSubStep(2)} 
             disabled={!data.creditType}
-            className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+            className="flex-1 bg-blue-600 hover:bg-blue-700"
           >
             Siguiente
+          </Button>
+        ) : currentSubStep === 2 ? (
+          <Button 
+            onClick={() => setCurrentSubStep(3)} 
+            disabled={!data.requestedAmount || data.requestedAmount <= 0}
+            className="flex-1 bg-blue-600 hover:bg-blue-700"
+          >
+            Continuar
+          </Button>
+        ) : (
+          <Button 
+            onClick={onNext} 
+            disabled={!canProceed()}
+            className="flex-1 bg-blue-600 hover:bg-blue-700"
+          >
+            {profileLevel >= 70 ? '¡Buscar Ofertas! 🚀' : 'Buscar Ofertas'}
           </Button>
         )}
       </div>
