@@ -5,6 +5,8 @@ import { Header } from "@/components/Header";
 import { AsesorIAChat } from "@/components/AsesorIAChat";
 import { useAsesorIA } from "@/hooks/useAsesorIA";
 import { InteractiveOnboarding } from "@/components/neza/InteractiveOnboarding";
+import { BankCarousel } from "@/components/BankCarousel";
+import { VeracityMessage } from "@/components/VeracityMessage";
 
 export interface UserData {
   dni: string;
@@ -57,31 +59,38 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-cyan-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100">
       <Header />
       
       {!isRegistered ? (
         <div className="container mx-auto px-4 py-8">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent mb-4">
-              Bienvenido a tu Asesor Financiero Personal
+          <div className="text-center mb-12">
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-800 to-slate-600 bg-clip-text text-transparent mb-6">
+              Tu Asesor Financiero Personal
             </h1>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+            <p className="text-xl text-slate-700 max-w-3xl mx-auto leading-relaxed">
               AsesorIA te guiará paso a paso para encontrar los mejores productos financieros del mercado peruano, 
               supervisados por la SBS y ordenados especialmente para tu perfil.
             </p>
           </div>
           
+          {/* Mensaje de veracidad */}
+          <VeracityMessage />
+          
+          {/* Formulario de onboarding */}
           <InteractiveOnboarding 
             onBack={() => {}} 
             onComplete={handleUserRegistration}
           />
+          
+          {/* Carrusel de bancos colaboradores */}
+          <BankCarousel />
         </div>
       ) : (
         <OffersDashboard user={user!} onBack={handleBackToForm} />
       )}
 
-      {/* AsesorIA Chat Global */}
+      {/* AsesorIA Chat - Solo ícono flotante discreto */}
       <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
     </div>
   );

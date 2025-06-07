@@ -2,7 +2,7 @@
 import { useState } from 'react';
 
 export const useAsesorIA = () => {
-  const [isChatOpen, setIsChatOpen] = useState(true); // Cambiado a true para que aparezca automáticamente
+  const [isChatOpen, setIsChatOpen] = useState(false); // Cambiado a false para que NO aparezca automáticamente
 
   const toggleChat = () => {
     setIsChatOpen(!isChatOpen);
