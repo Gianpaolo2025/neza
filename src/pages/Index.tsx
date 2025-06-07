@@ -19,10 +19,10 @@ export interface UserData {
   employmentType: string;
   creditHistory: string;
   productType: string; // Made required to match User interface
-  hasOtherDebts?: string;
-  bankingRelationship?: string;
-  urgencyLevel?: string;
-  preferredBank?: string;
+  hasOtherDebts: string; // Made required to match User interface
+  bankingRelationship: string; // Made required to match User interface
+  urgencyLevel: string; // Made required to match User interface
+  preferredBank: string; // Made required to match User interface
 }
 
 const Index = () => {
@@ -43,9 +43,9 @@ const Index = () => {
       employmentType: userData.financialInfo?.employmentType || '',
       creditHistory: userData.clientProfile?.hasPreviousCredit ? "bueno" : "nuevo",
       productType: userData.financialInfo?.productType || 'credito-personal', // Ensure productType is always set
-      hasOtherDebts: userData.financialInfo?.hasOtherDebts || '',
-      bankingRelationship: userData.financialInfo?.bankingRelationship || '',
-      urgencyLevel: userData.financialInfo?.urgencyLevel || '',
+      hasOtherDebts: userData.financialInfo?.hasOtherDebts || 'no',
+      bankingRelationship: userData.financialInfo?.bankingRelationship || 'ninguna',
+      urgencyLevel: userData.financialInfo?.urgencyLevel || 'no-urgente',
       preferredBank: ''
     };
     
