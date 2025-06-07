@@ -1,12 +1,12 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { TrendingUp, DollarSign } from "lucide-react";
+import { TrendingUp, DollarSign, Briefcase, Clock } from "lucide-react";
 import { ProductListView } from "./ProductListView";
 
 interface FinancialInfo {
@@ -15,6 +15,11 @@ interface FinancialInfo {
   monthlyIncome: number;
   occupation: string;
   workTime: number;
+  hasOtherDebts: string;
+  bankingRelationship: string;
+  urgencyLevel: string;
+  productType: string;
+  employmentType: string;
 }
 
 interface PersonalData {
@@ -38,13 +43,33 @@ interface FinancialInfoStepProps {
 
 const occupations = [
   'Empleado dependiente',
-  'Profesional independiente',
+  'Profesional independiente', 
   'Empresario',
   'Comerciante',
   'Funcionario público',
   'Docente',
   'Pensionista',
   'Otros'
+];
+
+const employmentTypes = [
+  { id: 'dependiente', label: 'Dependiente', description: 'Trabajas para una empresa' },
+  { id: 'independiente', label: 'Independiente', description: 'Trabajas por cuenta propia' },
+  { id: 'empresario', label: 'Empresario', description: 'Tienes tu propia empresa' },
+  { id: 'pensionista', label: 'Pensionista', description: 'Recibes pensión' }
+];
+
+const debtLevels = [
+  { id: 'no', label: 'No tengo deudas', description: 'Sin deudas actuales' },
+  { id: 'pocas', label: 'Pocas deudas', description: 'Algunas deudas menores' },
+  { id: 'moderadas', label: 'Deudas moderadas', description: 'Nivel medio de deudas' },
+  { id: 'altas', label: 'Deudas altas', description: 'Nivel alto de deudas' }
+];
+
+const urgencyLevels = [
+  { id: 'flexible', label: 'Flexible', description: 'Puedo esperar' },
+  { id: 'pronto', label: 'Pronto', description: 'En 1-2 semanas' },
+  { id: 'inmediato', label: 'Inmediato', description: 'Lo necesito YA' }
 ];
 
 export const FinancialInfoStep = ({ 
@@ -57,42 +82,43 @@ export const FinancialInfoStep = ({
   const [currentSubStep, setCurrentSubStep] = useState(1);
   const [profileLevel, setProfileLevel] = useState(0);
 
+  useEffect(() => {
+    calculateProfileLevel();
+  }, [data]);
+
   const calculateProfileLevel = () => {
     let level = 0;
-    if (data.monthlyIncome >= 3000) level += 25;
+    
+    // Ingresos
+    if (data.monthlyIncome >= 3000) level += 20;
     else if (data.monthlyIncome >= 1500) level += 15;
     else if (data.monthlyIncome >= 800) level += 10;
 
+    // Relación monto/ingresos
     if (data.requestedAmount > 0 && data.monthlyIncome > 0) {
       const ratio = data.requestedAmount / data.monthlyIncome;
-      if (ratio <= 5) level += 25;
+      if (ratio <= 5) level += 20;
       else if (ratio <= 10) level += 15;
       else level += 5;
     }
 
-    if (data.workTime >= 24) level += 25;
-    else if (data.workTime >= 12) level += 15;
-    else if (data.workTime >= 6) level += 10;
+    // Experiencia laboral
+    if (data.workTime >= 24) level += 15;
+    else if (data.workTime >= 12) level += 10;
+    else if (data.workTime >= 6) level += 5;
 
-    if (data.occupation && data.creditType) level += 25;
+    // Completitud del perfil
+    if (data.occupation && data.creditType) level += 10;
+    if (data.employmentType) level += 10;
+    if (data.hasOtherDebts) level += 5;
+    if (data.urgencyLevel) level += 5;
 
     setProfileLevel(Math.min(level, 100));
   };
 
   const handleProductSelect = (productId: string) => {
-    onUpdate({ ...data, creditType: productId });
+    onUpdate({ ...data, creditType: productId, productType: productId });
     setCurrentSubStep(2);
-    calculateProfileLevel();
-  };
-
-  const handleAmountChange = (amount: number) => {
-    onUpdate({ ...data, requestedAmount: amount });
-    calculateProfileLevel();
-  };
-
-  const handleIncomeChange = (income: number) => {
-    onUpdate({ ...data, monthlyIncome: income });
-    calculateProfileLevel();
   };
 
   const canProceed = () => {
@@ -100,18 +126,25 @@ export const FinancialInfoStep = ({
            data.requestedAmount > 0 && 
            data.monthlyIncome > 0 && 
            data.occupation && 
-           data.workTime > 0;
+           data.workTime > 0 &&
+           data.employmentType &&
+           data.hasOtherDebts &&
+           data.urgencyLevel;
   };
 
   const getMotivationalMessage = () => {
-    if (currentSubStep === 1) {
-      return `¡Perfecto, ${personalData.firstName}! Elige el producto financiero ideal para ti 💰`;
-    } else if (currentSubStep === 2) {
-      return `¡Excelente elección! Ahora cuéntame cuánto dinero necesitas 💰`;
-    } else if (currentSubStep === 3) {
-      return `¡Casi terminamos! Cuéntame sobre tu situación laboral 💼`;
+    switch (currentSubStep) {
+      case 1:
+        return `¡Perfecto, ${personalData.firstName}! Elige el producto financiero ideal para ti 💰`;
+      case 2:
+        return `¡Excelente elección! Ahora cuéntame cuánto dinero necesitas 💰`;
+      case 3:
+        return `¡Casi terminamos! Cuéntame sobre tu situación laboral 💼`;
+      case 4:
+        return `¡Último paso! Información adicional para mejores ofertas 🎯`;
+      default:
+        return `¡Buen trabajo! Ya tienes un perfil financiero sólido 🎯`;
     }
-    return `¡Buen trabajo! Ya tienes un perfil financiero sólido 🎯`;
   };
 
   return (
@@ -208,7 +241,7 @@ export const FinancialInfoStep = ({
                     <Input
                       type="number"
                       value={data.requestedAmount || ''}
-                      onChange={(e) => handleAmountChange(Number(e.target.value))}
+                      onChange={(e) => onUpdate({ ...data, requestedAmount: Number(e.target.value) })}
                       placeholder="Ej: 25000"
                       className="text-2xl py-6 text-center font-bold border-blue-300 focus:border-blue-500"
                     />
@@ -218,7 +251,7 @@ export const FinancialInfoStep = ({
                   <div className="space-y-4">
                     <Slider
                       value={[data.requestedAmount]}
-                      onValueChange={([value]) => handleAmountChange(value)}
+                      onValueChange={([value]) => onUpdate({ ...data, requestedAmount: value })}
                       min={1000}
                       max={200000}
                       step={1000}
@@ -250,12 +283,43 @@ export const FinancialInfoStep = ({
         {/* Paso 3: Información laboral e ingresos */}
         {currentSubStep === 3 && (
           <motion.div
-            key="details"
+            key="work-info"
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
             className="space-y-6"
           >
+            {/* Tipo de empleo */}
+            <Card className="border-blue-200 bg-white/80">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <Briefcase className="w-5 h-5 text-blue-600" />
+                  <Label className="text-lg font-medium text-slate-700">
+                    ¿Cuál es tu situación laboral? 💼
+                  </Label>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {employmentTypes.map((type) => (
+                    <Button
+                      key={type.id}
+                      variant={data.employmentType === type.id ? "default" : "outline"}
+                      onClick={() => onUpdate({ ...data, employmentType: type.id })}
+                      className={`h-auto p-4 text-left ${
+                        data.employmentType === type.id 
+                          ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                          : 'border-blue-300 text-blue-700 hover:bg-blue-50'
+                      }`}
+                    >
+                      <div>
+                        <div className="font-medium">{type.label}</div>
+                        <div className="text-sm opacity-75">{type.description}</div>
+                      </div>
+                    </Button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Ingresos mensuales */}
             <Card className="border-blue-200 bg-white/80">
               <CardContent className="p-6">
@@ -265,7 +329,7 @@ export const FinancialInfoStep = ({
                 <Input
                   type="number"
                   value={data.monthlyIncome || ''}
-                  onChange={(e) => handleIncomeChange(Number(e.target.value))}
+                  onChange={(e) => onUpdate({ ...data, monthlyIncome: Number(e.target.value) })}
                   placeholder="Ej: 3000"
                   className="text-lg py-6 border-blue-300 focus:border-blue-500"
                 />
@@ -309,9 +373,12 @@ export const FinancialInfoStep = ({
             {/* Tiempo de trabajo */}
             <Card className="border-blue-200 bg-white/80">
               <CardContent className="p-6">
-                <Label className="text-lg font-medium text-slate-700 mb-4 block">
-                  ¿Cuánto tiempo llevas trabajando? ⏰
-                </Label>
+                <div className="flex items-center gap-3 mb-4">
+                  <Clock className="w-5 h-5 text-blue-600" />
+                  <Label className="text-lg font-medium text-slate-700">
+                    ¿Cuánto tiempo llevas trabajando? ⏰
+                  </Label>
+                </div>
                 <div className="space-y-4">
                   <Input
                     type="number"
@@ -337,33 +404,96 @@ export const FinancialInfoStep = ({
             </Card>
           </motion.div>
         )}
+
+        {/* Paso 4: Información adicional */}
+        {currentSubStep === 4 && (
+          <motion.div
+            key="additional-info"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            className="space-y-6"
+          >
+            {/* Deudas existentes */}
+            <Card className="border-blue-200 bg-white/80">
+              <CardContent className="p-6">
+                <Label className="text-lg font-medium text-slate-700 mb-4 block">
+                  ¿Tienes otras deudas actualmente? 💳
+                </Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {debtLevels.map((level) => (
+                    <Button
+                      key={level.id}
+                      variant={data.hasOtherDebts === level.id ? "default" : "outline"}
+                      onClick={() => onUpdate({ ...data, hasOtherDebts: level.id })}
+                      className={`h-auto p-4 text-left ${
+                        data.hasOtherDebts === level.id 
+                          ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                          : 'border-blue-300 text-blue-700 hover:bg-blue-50'
+                      }`}
+                    >
+                      <div>
+                        <div className="font-medium">{level.label}</div>
+                        <div className="text-sm opacity-75">{level.description}</div>
+                      </div>
+                    </Button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Urgencia */}
+            <Card className="border-blue-200 bg-white/80">
+              <CardContent className="p-6">
+                <Label className="text-lg font-medium text-slate-700 mb-4 block">
+                  ¿Qué tan urgente necesitas el dinero? ⚡
+                </Label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {urgencyLevels.map((level) => (
+                    <Button
+                      key={level.id}
+                      variant={data.urgencyLevel === level.id ? "default" : "outline"}
+                      onClick={() => onUpdate({ ...data, urgencyLevel: level.id })}
+                      className={`h-auto p-4 text-center ${
+                        data.urgencyLevel === level.id 
+                          ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                          : 'border-blue-300 text-blue-700 hover:bg-blue-50'
+                      }`}
+                    >
+                      <div>
+                        <div className="font-medium">{level.label}</div>
+                        <div className="text-sm opacity-75">{level.description}</div>
+                      </div>
+                    </Button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
       </AnimatePresence>
 
       {/* Botones de navegación */}
       <div className="flex gap-4 mt-8">
         <Button 
           variant="outline" 
-          onClick={onPrev} 
+          onClick={currentSubStep === 1 ? onPrev : () => setCurrentSubStep(currentSubStep - 1)} 
           className="flex-1 border-blue-300 text-blue-700 hover:bg-blue-50"
         >
           Anterior
         </Button>
         
-        {currentSubStep === 1 ? (
+        {currentSubStep < 4 ? (
           <Button 
-            onClick={() => setCurrentSubStep(2)} 
-            disabled={!data.creditType}
+            onClick={() => setCurrentSubStep(currentSubStep + 1)} 
+            disabled={
+              (currentSubStep === 1 && !data.creditType) ||
+              (currentSubStep === 2 && (!data.requestedAmount || data.requestedAmount <= 0)) ||
+              (currentSubStep === 3 && (!data.monthlyIncome || !data.occupation || !data.workTime || !data.employmentType))
+            }
             className="flex-1 bg-blue-600 hover:bg-blue-700"
           >
             Siguiente
-          </Button>
-        ) : currentSubStep === 2 ? (
-          <Button 
-            onClick={() => setCurrentSubStep(3)} 
-            disabled={!data.requestedAmount || data.requestedAmount <= 0}
-            className="flex-1 bg-blue-600 hover:bg-blue-700"
-          >
-            Continuar
           </Button>
         ) : (
           <Button 

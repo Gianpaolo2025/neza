@@ -94,23 +94,53 @@ const banks = [
     maxAmount: { dependiente: 110000, independiente: 75000, empresario: 160000, pensionista: 55000 },
     minIncome: { dependiente: 1150, independiente: 1700, empresario: 2300, pensionista: 850 },
     productTypes: ["credito-personal", "credito-vehicular", "tarjeta-credito"]
+  },
+  {
+    name: "Compartamos Banco",
+    baseRate: 28,
+    riskAdjustment: { excelente: -5, bueno: -3, regular: -1, nuevo: 1 },
+    maxAmount: { dependiente: 35000, independiente: 25000, empresario: 50000, pensionista: 20000 },
+    minIncome: { dependiente: 500, independiente: 700, empresario: 1000, pensionista: 400 },
+    productTypes: ["credito-personal"]
+  },
+  {
+    name: "CMAC Cusco",
+    baseRate: 26,
+    riskAdjustment: { excelente: -4, bueno: -2, regular: 0, nuevo: 2 },
+    maxAmount: { dependiente: 45000, independiente: 35000, empresario: 70000, pensionista: 25000 },
+    minIncome: { dependiente: 700, independiente: 1000, empresario: 1500, pensionista: 600 },
+    productTypes: ["credito-personal", "credito-vehicular"]
+  },
+  {
+    name: "CMAC Arequipa",
+    baseRate: 24,
+    riskAdjustment: { excelente: -3, bueno: -1, regular: 1, nuevo: 2 },
+    maxAmount: { dependiente: 40000, independiente: 30000, empresario: 60000, pensionista: 20000 },
+    minIncome: { dependiente: 650, independiente: 950, empresario: 1400, pensionista: 550 },
+    productTypes: ["credito-personal"]
+  },
+  {
+    name: "Financiera Confianza",
+    baseRate: 27,
+    riskAdjustment: { excelente: -4, bueno: -2, regular: 0, nuevo: 1 },
+    maxAmount: { dependiente: 38000, independiente: 28000, empresario: 55000, pensionista: 18000 },
+    minIncome: { dependiente: 600, independiente: 800, empresario: 1200, pensionista: 500 },
+    productTypes: ["credito-personal"]
   }
 ];
 
 export const generateOffers = (userData: UserData): BankOffer[] => {
-  const offers: BankOffer[] = [];
+  console.log("Generando ofertas para usuario:", userData);
   
-  console.log("Generando ofertas para usuario con datos completos:", userData);
-  
-  // Validar que tengamos datos mínimos para generar ofertas
+  // Validación de datos mínimos
   if (!userData.requestedAmount || userData.requestedAmount <= 0 || 
       !userData.monthlyIncome || userData.monthlyIncome <= 0 ||
       !userData.productType) {
-    console.log("Datos insuficientes para generar ofertas personalizadas");
-    return [];
+    console.log("Datos insuficientes, generando ofertas limitadas");
+    return generateLimitedOffers(userData);
   }
   
-  const incomeRatio = userData.requestedAmount / userData.monthlyIncome;
+  const offers: BankOffer[] = [];
   const employmentType = (userData.employmentType || "dependiente") as keyof typeof banks[0]['maxAmount'];
   
   // Filtrar bancos que ofrezcan el producto solicitado
@@ -124,178 +154,236 @@ export const generateOffers = (userData: UserData): BankOffer[] => {
     const maxAmount = bank.maxAmount[employmentType];
     const minIncome = bank.minIncome[employmentType];
     
-    // Criterios más estrictos para generar solo ofertas relevantes
-    let canOffer = true;
-    let status: BankOffer["status"] = "aprobado";
+    // Criterios estrictos para calificar
+    const canOffer = evaluateUserEligibility(userData, bank, maxAmount, minIncome);
     
-    // Verificar si cumple requisitos básicos
-    if (userData.requestedAmount > maxAmount) {
-      canOffer = false; // No ofrecer si excede el límite del banco
-    }
-    
-    if (userData.monthlyIncome < minIncome) {
-      if (userData.monthlyIncome < minIncome * 0.8) {
-        canOffer = false; // No ofrecer si está muy por debajo del mínimo
-      } else {
-        status = "pendiente"; // Requiere evaluación adicional
-      }
-    }
-    
-    // Solo proceder si el banco puede ofrecer el producto
-    if (!canOffer) {
-      return;
+    if (!canOffer.eligible) {
+      console.log(`${bank.name}: No elegible - ${canOffer.reason}`);
+      return; // No generar oferta para este banco
     }
 
-    const creditHistory = (userData.creditHistory || "nuevo") as keyof typeof bank.riskAdjustment;
-    let interestRate = bank.baseRate + bank.riskAdjustment[creditHistory];
-    
-    // Ajustes por perfil del usuario
-    if (incomeRatio > 10) interestRate += 3;
-    else if (incomeRatio > 7) interestRate += 2;
-    else if (incomeRatio > 5) interestRate += 1;
-    else if (incomeRatio < 3) interestRate -= 1;
-
-    // Ajuste por deudas existentes
-    const debtMultiplier = {
-      "no": 0.95,
-      "pocas": 1.0,
-      "moderadas": 1.15,
-      "altas": 1.3
-    }[userData.hasOtherDebts || "pocas"];
-    
-    interestRate *= debtMultiplier;
-    
-    // Variación competitiva pequeña
-    const competitiveVariation = (Math.random() - 0.5) * 1;
-    interestRate += competitiveVariation;
-    
-    // Límites del mercado peruano
-    interestRate = Math.max(15, Math.min(40, interestRate));
-    
-    // Calcular plazo basado en monto y tipo de producto
-    let term = 24;
-    let maxTerm = 60;
-    if (userData.productType === "credito-vehicular") {
-      term = 60;
-      maxTerm = 96;
-    } else if (userData.productType === "credito-hipotecario") {
-      term = 240;
-      maxTerm = 360;
-    } else if (userData.requestedAmount > 50000) {
-      term = 36;
-      maxTerm = 72;
-    } else if (userData.requestedAmount > 20000) {
-      term = 30;
-      maxTerm = 48;
+    const offer = generateBankOffer(userData, bank, index, maxAmount, minIncome);
+    if (offer) {
+      offers.push(offer);
     }
-    
-    const offerAmount = userData.requestedAmount; // Usar el monto exacto solicitado
-    
-    const monthlyRate = interestRate / 100 / 12;
-    const monthlyPayment = (offerAmount * monthlyRate * Math.pow(1 + monthlyRate, term)) / 
-                          (Math.pow(1 + monthlyRate, term) - 1);
-    
-    const totalCost = monthlyPayment * term;
-    const averageCost = offerAmount * (1 + (interestRate * term / 12 / 100)); 
-    const savings = Math.max(0, averageCost - totalCost);
-    
-    // Evaluar aprobación
-    const approvalScore = (
-      (creditHistory === "excelente" ? 40 : 
-       creditHistory === "bueno" ? 30 : 
-       creditHistory === "regular" ? 15 : 10) +
-      (incomeRatio < 4 ? 30 : incomeRatio < 7 ? 20 : 10) +
-      (userData.monthlyIncome > minIncome ? 20 : 5) +
-      (userData.hasOtherDebts === "no" ? 10 : 0)
-    );
-    
-    if (approvalScore >= 60) {
-      status = "aprobado";
-    } else if (approvalScore >= 40) {
-      status = "pre-aprobado";
-    } else {
-      status = "pendiente";
-    }
-    
-    // Nivel de riesgo
-    let riskLevel: BankOffer["riskLevel"] = "Medio";
-    if (interestRate < 22 && approvalScore >= 50) riskLevel = "Bajo";
-    else if (interestRate > 30 || approvalScore < 35) riskLevel = "Alto";
-    
-    const approvalTime = status === "aprobado" ? 
-      (userData.urgencyLevel === "inmediato" ? "24 horas" : "48 horas") :
-      status === "pre-aprobado" ? "3-5 días" : "5-10 días";
-
-    const baseRequirements = [
-      "DNI vigente",
-      "Sustento de ingresos últimos 3 meses"
-    ];
-
-    if (status === "pendiente") {
-      baseRequirements.push("Evaluación crediticia adicional");
-    }
-
-    if (employmentType === "dependiente") {
-      baseRequirements.push("Últimas 3 boletas de pago", "Certificado de trabajo");
-    } else if (employmentType === "independiente") {
-      baseRequirements.push("Declaración jurada de ingresos", "Comprobantes de ingresos");
-    }
-
-    const features = generateFeatures(bank.name, userData.productType || "credito-personal");
-    const description = generateDescription(bank.name, userData.productType || "credito-personal");
-    
-    // Calcular score basado en múltiples factores
-    const score = Math.min(100, Math.round(
-      approvalScore + 
-      (interestRate < 20 ? 20 : interestRate < 25 ? 15 : 10) +
-      (status === "aprobado" ? 20 : status === "pre-aprobado" ? 10 : 5) +
-      (Math.random() * 10)
-    ));
-
-    offers.push({
-      id: `${bank.name.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}-${index}`,
-      bankName: bank.name,
-      interestRate: Math.round(interestRate * 100) / 100,
-      rate: Math.round(interestRate * 100) / 100,
-      monthlyPayment: Math.round(monthlyPayment),
-      term,
-      maxTerm,
-      maxAmount,
-      totalCost: Math.round(totalCost),
-      savings: Math.round(savings),
-      status,
-      approvalTime,
-      riskLevel,
-      recommended: false,
-      requirements: baseRequirements,
-      score,
-      productType: userData.productType || "credito-personal",
-      features,
-      description
-    });
   });
   
   console.log(`Ofertas generadas: ${offers.length} de ${eligibleBanks.length} bancos elegibles`);
   
+  // Si no hay ofertas suficientes, generar algunas alternativas
+  if (offers.length === 0) {
+    return generateAlternativeOffers(userData);
+  }
+  
   // Marcar la mejor oferta como recomendada
   if (offers.length > 0) {
-    const eligibleOffers = offers.filter(o => o.status === "aprobado");
-    const offersToConsider = eligibleOffers.length > 0 ? eligibleOffers : offers;
-    
-    const bestOffer = offersToConsider.reduce((prev, current) => 
-      (current.interestRate < prev.interestRate) ? current : prev
+    const bestOffer = offers.reduce((prev, current) => 
+      (current.score > prev.score) ? current : prev
     );
     bestOffer.recommended = true;
   }
   
-  // Ordenar por estado y luego por tasa de interés
-  return offers.sort((a, b) => {
-    const statusOrder = { "aprobado": 1, "pre-aprobado": 2, "pendiente": 3 };
-    const statusA = statusOrder[a.status];
-    const statusB = statusOrder[b.status];
-    
-    if (statusA !== statusB) return statusA - statusB;
-    return a.interestRate - b.interestRate;
+  // Ordenar por score (de mayor a menor)
+  return offers.sort((a, b) => b.score - a.score);
+};
+
+const evaluateUserEligibility = (userData: UserData, bank: any, maxAmount: number, minIncome: number) => {
+  // Verificar monto máximo
+  if (userData.requestedAmount > maxAmount) {
+    return { eligible: false, reason: `Monto excede límite (${maxAmount})` };
+  }
+  
+  // Verificar ingresos mínimos
+  if (userData.monthlyIncome < minIncome * 0.7) { // 30% de flexibilidad
+    return { eligible: false, reason: `Ingresos insuficientes (min: ${minIncome})` };
+  }
+  
+  // Verificar relación deuda-ingreso
+  const debtToIncomeRatio = userData.requestedAmount / userData.monthlyIncome;
+  if (debtToIncomeRatio > 15) { // Máximo 15 veces el ingreso mensual
+    return { eligible: false, reason: "Relación deuda-ingreso muy alta" };
+  }
+  
+  return { eligible: true, reason: "Cumple criterios" };
+};
+
+const generateBankOffer = (userData: UserData, bank: any, index: number, maxAmount: number, minIncome: number): BankOffer | null => {
+  const creditHistory = (userData.creditHistory || "nuevo") as keyof typeof bank.riskAdjustment;
+  let interestRate = bank.baseRate + bank.riskAdjustment[creditHistory];
+  
+  // Ajustes por perfil
+  const incomeRatio = userData.requestedAmount / userData.monthlyIncome;
+  if (incomeRatio > 10) interestRate += 3;
+  else if (incomeRatio > 7) interestRate += 2;
+  else if (incomeRatio > 5) interestRate += 1;
+  else if (incomeRatio < 3) interestRate -= 1;
+
+  // Ajuste por deudas existentes
+  const debtMultiplier = {
+    "no": 0.95,
+    "pocas": 1.0,
+    "moderadas": 1.15,
+    "altas": 1.3
+  }[userData.hasOtherDebts || "pocas"];
+  
+  interestRate *= debtMultiplier;
+  interestRate = Math.max(15, Math.min(40, interestRate));
+  
+  // Calcular términos
+  let term = calculateTerm(userData.requestedAmount, userData.productType || "credito-personal");
+  let maxTerm = term + 24;
+  
+  const monthlyRate = interestRate / 100 / 12;
+  const monthlyPayment = (userData.requestedAmount * monthlyRate * Math.pow(1 + monthlyRate, term)) / 
+                        (Math.pow(1 + monthlyRate, term) - 1);
+  
+  const totalCost = monthlyPayment * term;
+  
+  // Evaluar estado de aprobación
+  const approvalScore = calculateApprovalScore(userData, creditHistory, incomeRatio, minIncome);
+  const status = getApprovalStatus(approvalScore);
+  const riskLevel = getRiskLevel(interestRate, approvalScore);
+  
+  return {
+    id: `${bank.name.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}-${index}`,
+    bankName: bank.name,
+    interestRate: Math.round(interestRate * 100) / 100,
+    rate: Math.round(interestRate * 100) / 100,
+    monthlyPayment: Math.round(monthlyPayment),
+    term,
+    maxTerm,
+    maxAmount,
+    totalCost: Math.round(totalCost),
+    savings: Math.round(Math.random() * 5000), // Simplificado
+    status,
+    approvalTime: getApprovalTime(status, userData.urgencyLevel),
+    riskLevel,
+    recommended: false,
+    requirements: generateRequirements(userData.employmentType || "dependiente", status),
+    score: approvalScore,
+    productType: userData.productType || "credito-personal",
+    features: generateFeatures(bank.name, userData.productType || "credito-personal"),
+    description: generateDescription(bank.name, userData.productType || "credito-personal")
+  };
+};
+
+const calculateTerm = (amount: number, productType: string): number => {
+  if (productType === "credito-vehicular") return 60;
+  if (productType === "credito-hipotecario") return 240;
+  if (amount > 50000) return 36;
+  if (amount > 20000) return 30;
+  return 24;
+};
+
+const calculateApprovalScore = (userData: UserData, creditHistory: string, incomeRatio: number, minIncome: number): number => {
+  let score = 0;
+  
+  // Historial crediticio
+  score += creditHistory === "excelente" ? 40 : 
+           creditHistory === "bueno" ? 30 : 
+           creditHistory === "regular" ? 15 : 10;
+  
+  // Relación ingreso-deuda
+  score += incomeRatio < 4 ? 30 : incomeRatio < 7 ? 20 : 10;
+  
+  // Ingresos vs mínimo requerido
+  score += userData.monthlyIncome > minIncome ? 20 : 5;
+  
+  // Deudas existentes
+  score += userData.hasOtherDebts === "no" ? 10 : 0;
+  
+  return Math.min(score, 100);
+};
+
+const getApprovalStatus = (score: number): BankOffer["status"] => {
+  if (score >= 60) return "aprobado";
+  if (score >= 40) return "pre-aprobado";
+  return "pendiente";
+};
+
+const getRiskLevel = (interestRate: number, score: number): BankOffer["riskLevel"] => {
+  if (interestRate < 22 && score >= 50) return "Bajo";
+  if (interestRate > 30 || score < 35) return "Alto";
+  return "Medio";
+};
+
+const getApprovalTime = (status: BankOffer["status"], urgency?: string): string => {
+  if (status === "aprobado") {
+    return urgency === "inmediato" ? "24 horas" : "48 horas";
+  }
+  return status === "pre-aprobado" ? "3-5 días" : "5-10 días";
+};
+
+const generateRequirements = (employmentType: string, status: BankOffer["status"]): string[] => {
+  const baseRequirements = ["DNI vigente", "Sustento de ingresos últimos 3 meses"];
+  
+  if (status === "pendiente") {
+    baseRequirements.push("Evaluación crediticia adicional");
+  }
+  
+  if (employmentType === "dependiente") {
+    baseRequirements.push("Últimas 3 boletas de pago", "Certificado de trabajo");
+  } else if (employmentType === "independiente") {
+    baseRequirements.push("Declaración jurada de ingresos", "Comprobantes de ingresos");
+  }
+  
+  return baseRequirements;
+};
+
+const generateLimitedOffers = (userData: UserData): BankOffer[] => {
+  // Generar solo 2-3 ofertas básicas si faltan datos
+  return banks.slice(0, 3).map((bank, index) => ({
+    id: `limited-${index}`,
+    bankName: bank.name,
+    interestRate: bank.baseRate + 5,
+    rate: bank.baseRate + 5,
+    monthlyPayment: Math.round((userData.requestedAmount || 10000) * 0.05),
+    term: 24,
+    maxTerm: 60,
+    maxAmount: 50000,
+    totalCost: Math.round((userData.requestedAmount || 10000) * 1.3),
+    savings: 0,
+    status: "pendiente" as const,
+    approvalTime: "5-10 días",
+    riskLevel: "Medio" as const,
+    recommended: index === 0,
+    requirements: ["Completar información personal", "Verificación de ingresos"],
+    score: 30 + index * 10,
+    productType: userData.productType || "credito-personal",
+    features: ["Evaluación personalizada", "Asesoría especializada"],
+    description: `Oferta preliminar de ${bank.name}. Completa tu información para mejores condiciones.`
+  }));
+};
+
+const generateAlternativeOffers = (userData: UserData): BankOffer[] => {
+  // Generar ofertas alternativas con montos menores o condiciones especiales
+  const alternativeBanks = banks.filter(bank => 
+    bank.minIncome.dependiente <= (userData.monthlyIncome || 1000)
+  ).slice(0, 5);
+  
+  return alternativeBanks.map((bank, index) => {
+    const adjustedAmount = Math.min(userData.requestedAmount, bank.maxAmount.dependiente * 0.7);
+    return {
+      id: `alternative-${index}`,
+      bankName: bank.name,
+      interestRate: bank.baseRate + 3,
+      rate: bank.baseRate + 3,
+      monthlyPayment: Math.round(adjustedAmount * 0.06),
+      term: 18,
+      maxTerm: 36,
+      maxAmount: Math.round(adjustedAmount),
+      totalCost: Math.round(adjustedAmount * 1.25),
+      savings: 0,
+      status: "pre-aprobado" as const,
+      approvalTime: "3-5 días",
+      riskLevel: "Medio" as const,
+      recommended: index === 0,
+      requirements: ["Verificación de ingresos", "Evaluación crediticia"],
+      score: 45 + index * 5,
+      productType: userData.productType || "credito-personal",
+      features: ["Monto ajustado a tu perfil", "Condiciones flexibles"],
+      description: `${bank.name} ofrece condiciones especiales adaptadas a tu perfil financiero.`
+    };
   });
 };
 
