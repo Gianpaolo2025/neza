@@ -29,6 +29,28 @@ export interface Offer {
   features: string[];
 }
 
+export interface BankOffer {
+  id: string;
+  bankName: string;
+  productType: string;
+  interestRate: number;
+  rate: number;
+  monthlyPayment: number;
+  maxAmount: number;
+  maxTerm: number;
+  term: number;
+  totalCost: number;
+  savings: number;
+  approvalTime: string;
+  riskLevel: string;
+  status: string;
+  recommended: boolean;
+  requirements: string[];
+  features: string[];
+  description: string;
+  score: number;
+}
+
 const bankNames = ["BCP", "BBVA", "Scotiabank", "Interbank", "Banco Pichincha"];
 const productNames = {
   "credito-personal": ["Crédito Personal"],
@@ -121,6 +143,54 @@ export const generateOffers = (user: UserData): Offer[] => {
       ],
       score,
       features: generateFeatures(bankName, productType)
+    });
+  }
+
+  return offers.sort((a, b) => b.score - a.score);
+};
+
+export const generateBankOffers = (user: UserData): BankOffer[] => {
+  const offers: BankOffer[] = [];
+
+  for (let i = 0; i < 15; i++) {
+    const bankName = bankNames[i % bankNames.length];
+    const productType = user.productType;
+    const interestRate = faker.number.float({ min: 5, max: 25, precision: 0.1 });
+    const loanAmount = user.requestedAmount;
+    const termInMonths = faker.number.int({ min: 12, max: 60 });
+    const monthlyPayment = (loanAmount * (interestRate / 100)) / (1 - Math.pow(1 + (interestRate / 100), -termInMonths));
+
+    const product = {
+      minIncome: faker.number.int({ min: 1000, max: user.monthlyIncome }),
+      maxAmount: faker.number.int({ min: user.requestedAmount, max: 100000 })
+    };
+
+    const score = calculateScore(user, product);
+
+    offers.push({
+      id: `offer-${i}`,
+      bankName,
+      productType,
+      interestRate,
+      rate: interestRate,
+      monthlyPayment,
+      maxAmount: loanAmount,
+      maxTerm: termInMonths,
+      term: termInMonths,
+      totalCost: monthlyPayment * termInMonths,
+      savings: faker.number.int({ min: 500, max: 5000 }),
+      approvalTime: faker.helpers.arrayElement(["24 horas", "48 horas", "72 horas"]),
+      riskLevel: faker.helpers.arrayElement(["Bajo", "Medio", "Alto"]),
+      status: faker.helpers.arrayElement(["aprobado", "pre-aprobado", "pendiente"]),
+      recommended: i === 0,
+      requirements: [
+        "DNI",
+        "Justificante de ingresos",
+        "Historial crediticio positivo"
+      ],
+      features: generateFeatures(bankName, productType),
+      description: `Crédito ${productType} con condiciones preferenciales`,
+      score
     });
   }
 

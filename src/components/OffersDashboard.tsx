@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Clock, CheckCircle, Star, Eye, TrendingUp, DollarSign, Shield } from "lucide-react";
 import { UserData } from "@/pages/Index";
-import { generateOffers, BankOffer } from "@/utils/offerGenerator";
+import { generateBankOffers, BankOffer } from "@/utils/offerGenerator";
 import { OfferDetail } from "@/components/OfferDetail";
 import { motion } from "framer-motion";
 
@@ -28,7 +28,17 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
       // Simular tiempo de carga
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      const generatedOffers = generateOffers(user);
+      // Convert UserData to the format expected by generateBankOffers
+      const convertedUser = {
+        ...user,
+        productType: user.productType || "credito-personal",
+        hasOtherDebts: user.hasOtherDebts || "no",
+        bankingRelationship: user.bankingRelationship || "ninguna",
+        urgencyLevel: user.urgencyLevel || "normal",
+        preferredBank: user.preferredBank || ""
+      };
+      
+      const generatedOffers = generateBankOffers(convertedUser);
       setOffers(generatedOffers);
       setLoading(false);
     };
@@ -37,7 +47,15 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
 
     // Simular actualizaciones en tiempo real cada 15 segundos
     const interval = setInterval(() => {
-      const updatedOffers = generateOffers(user);
+      const convertedUser = {
+        ...user,
+        productType: user.productType || "credito-personal",
+        hasOtherDebts: user.hasOtherDebts || "no",
+        bankingRelationship: user.bankingRelationship || "ninguna",
+        urgencyLevel: user.urgencyLevel || "normal",
+        preferredBank: user.preferredBank || ""
+      };
+      const updatedOffers = generateBankOffers(convertedUser);
       setOffers(updatedOffers);
     }, 15000);
 

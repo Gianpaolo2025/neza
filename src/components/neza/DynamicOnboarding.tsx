@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,10 @@ interface PersonalData {
   email: string;
   phone: string;
   address: string;
+  occupation: string;
+  workYears: number;
+  workMonths: number;
+  preferredCurrency: string;
   isValidated: boolean;
   otpVerified: boolean;
 }
@@ -73,6 +78,10 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
       email: "",
       phone: "",
       address: "",
+      occupation: "",
+      workYears: 0,
+      workMonths: 0,
+      preferredCurrency: "",
       isValidated: false,
       otpVerified: false
     },
@@ -194,7 +203,7 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
       phone: data.personalData.phone,
       monthlyIncome: data.financialInfo.monthlyIncome,
       requestedAmount: data.financialInfo.requestedAmount,
-      productType: data.financialInfo.productType,
+      productType: data.financialInfo.productType || "credito-personal", // Provide default value
       employmentType: data.financialInfo.employmentType,
       hasOtherDebts: data.financialInfo.hasOtherDebts,
       bankingRelationship: data.financialInfo.bankingRelationship,
