@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,7 +33,7 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
         bankingRelationship: user.bankingRelationship || "ninguna",
         urgencyLevel: user.urgencyLevel || "normal",
         preferredBank: user.preferredBank || "",
-        preferredCurrency: user.preferredCurrency || "PEN"
+        preferredCurrency: (user as any).preferredCurrency || "PEN"
       };
       
       const generatedOffers = generateBankOffers(convertedUser);
@@ -52,7 +51,7 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
         bankingRelationship: user.bankingRelationship || "ninguna",
         urgencyLevel: user.urgencyLevel || "normal",
         preferredBank: user.preferredBank || "",
-        preferredCurrency: user.preferredCurrency || "PEN"
+        preferredCurrency: (user as any).preferredCurrency || "PEN"
       };
       const updatedOffers = generateBankOffers(convertedUser);
       setOffers(updatedOffers);
@@ -163,7 +162,7 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
                 {getProductDisplayName(user.productType || "credito-personal")}
               </Badge>
               <Badge className="bg-cyan-100 text-cyan-800 border-cyan-300">
-                {offers[0]?.currency} {user.requestedAmount.toLocaleString()}
+                {offers[0]?.currency || "S/."} {user.requestedAmount.toLocaleString()}
               </Badge>
             </div>
           </div>
