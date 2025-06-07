@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, ArrowRight, CheckCircle, Shield, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle, Shield, Sparkles, AlertTriangle, Clock } from "lucide-react";
 import { PersonalDataStep } from "./steps/PersonalDataStep";
 import { FinancialInfoStep } from "./steps/FinancialInfoStep";
 import { ClientProfileStep } from "./steps/ClientProfileStep";
@@ -69,6 +68,7 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [showAsesorIA, setShowAsesorIA] = useState(true);
   const [currentView, setCurrentView] = useState<'onboarding' | 'offers' | 'intelligent' | 'interactive'>('onboarding');
+  const [countdownDays, setCountdownDays] = useState<number | null>(null);
   const [data, setData] = useState<OnboardingData>({
     personalData: {
       firstName: "",
@@ -81,7 +81,7 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
       occupation: "",
       workYears: 0,
       workMonths: 0,
-      preferredCurrency: "",
+      preferredCurrency: "PEN",
       isValidated: false,
       otpVerified: false
     },
@@ -127,6 +127,27 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
     localStorage.setItem('nezaOnboardingData', JSON.stringify(data));
   }, [data]);
 
+  // Configurar contador regresivo basado en urgencia
+  useEffect(() => {
+    if (data.financialInfo.urgencyLevel) {
+      const urgencyMap = {
+        'inmediato': 7,
+        'una-semana': 7,
+        'un-mes': 30,
+        'no-urgente': 90
+      };
+      const days = urgencyMap[data.financialInfo.urgencyLevel as keyof typeof urgencyMap] || 30;
+      setCountdownDays(days);
+      
+      // Simular countdown (en producción esto vendría del servidor)
+      const interval = setInterval(() => {
+        setCountdownDays(prev => prev && prev > 0 ? prev - 1 : 0);
+      }, 24 * 60 * 60 * 1000); // 24 horas
+      
+      return () => clearInterval(interval);
+    }
+  }, [data.financialInfo.urgencyLevel]);
+
   const asesorMessages = {
     1: `¡Hola! Soy AsesorIA, tu asistente financiera personal certificada por la SBS. Te acompañaré paso a paso para encontrar la mejor opción financiera para ti. ${data.isReturningUser ? '¡Me alegra verte de nuevo! Continuemos donde lo dejamos.' : 'Empecemos con tus datos personales de forma 100% segura.'}`,
     2: "¡Perfecto! Ahora te voy a mostrar TODOS los productos financieros disponibles en el mercado peruano, ordenados especialmente para tu perfil. Te ayudo a elegir la mejor opción con las tasas más competitivas.",
@@ -144,14 +165,26 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
 
   const handlePersonalDataUpdate = (personalData: PersonalData) => {
     setData(prev => ({ ...prev, personalData }));
+    // Auto-advance si todos los campos están completos
+    if (personalData.isValidated && personalData.otpVerified) {
+      setTimeout(() => setCurrentStep(2), 500);
+    }
   };
 
   const handleFinancialInfoUpdate = (financialInfo: FinancialInfo) => {
     setData(prev => ({ ...prev, financialInfo }));
+    // Auto-advance si la información esencial está completa
+    if (financialInfo.productType && financialInfo.requestedAmount > 0 && financialInfo.urgencyLevel) {
+      setTimeout(() => setCurrentStep(3), 500);
+    }
   };
 
   const handleClientProfileUpdate = (clientProfile: ClientProfile) => {
     setData(prev => ({ ...prev, clientProfile }));
+    // Auto-advance a ofertas si está completo
+    if (clientProfile.financialKnowledge) {
+      setTimeout(() => setCurrentView('offers'), 1000);
+    }
   };
 
   const canProceedToNext = () => {
@@ -203,7 +236,7 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
       phone: data.personalData.phone,
       monthlyIncome: data.financialInfo.monthlyIncome,
       requestedAmount: data.financialInfo.requestedAmount,
-      productType: data.financialInfo.productType || "credito-personal", // Provide default value
+      productType: data.financialInfo.productType || "credito-personal",
       employmentType: data.financialInfo.employmentType,
       hasOtherDebts: data.financialInfo.hasOtherDebts,
       bankingRelationship: data.financialInfo.bankingRelationship,
@@ -243,7 +276,6 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
   const getUserProgress = () => {
     let profileLevel = 0;
     
-    // Calcular nivel basado en datos completados
     if (data.personalData.isValidated && data.personalData.otpVerified) profileLevel += 25;
     if (data.financialInfo.productType && data.financialInfo.requestedAmount > 0) profileLevel += 25;
     if (data.financialInfo.monthlyIncome > 0) profileLevel += 25;
@@ -261,7 +293,7 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
     return (
       <OffersDashboard 
         user={convertToUserData()}
-        onBack={handleBackToOnboarding}
+        onBack={() => setCurrentView('onboarding')}
       />
     );
   }
@@ -271,7 +303,7 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
     return (
       <IntelligentSystem 
         userProfile={convertToUserProfile()}
-        onBack={handleBackToOnboarding}
+        onBack={() => setCurrentView('onboarding')}
       />
     );
   }
@@ -280,7 +312,7 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
   if (currentView === 'interactive') {
     return (
       <InteractiveOnboarding 
-        onBack={handleBackToOnboarding}
+        onBack={() => setCurrentView('onboarding')}
         onComplete={(userData) => {
           setData(userData);
           setCurrentView('offers');
@@ -291,8 +323,18 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50">
+      {/* MENSAJE PERMANENTE OBLIGATORIO - SIEMPRE VISIBLE */}
+      <div className="bg-neza-blue-600 text-white py-3 px-4 sticky top-0 z-50 shadow-md">
+        <div className="container mx-auto flex items-center justify-center">
+          <AlertTriangle className="w-5 h-5 mr-2 text-neza-cyan-200" />
+          <p className="text-center font-medium">
+            Por favor, no nos mientas. Esta información es clave para brindarte los mejores productos.
+          </p>
+        </div>
+      </div>
+
       <div className="container mx-auto px-4 py-6">
-        {/* Header */}
+        {/* Header con contador regresivo */}
         <div className="flex items-center justify-between mb-6">
           <Button variant="ghost" onClick={onBack} className="flex items-center gap-2 text-slate-600 hover:text-slate-800">
             <ArrowLeft className="w-4 h-4" />
@@ -304,9 +346,18 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
             <p className="text-slate-600">Tu camino hacia la mejor opción financiera</p>
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            {countdownDays !== null && (
+              <div className="bg-neza-blue-100 border border-neza-blue-300 rounded-lg px-3 py-2 text-center">
+                <div className="flex items-center gap-1 text-neza-blue-700">
+                  <Clock className="w-4 h-4" />
+                  <span className="font-bold">{countdownDays}</span>
+                </div>
+                <div className="text-xs text-neza-blue-600">días restantes</div>
+              </div>
+            )}
             <Button
-              onClick={handleViewInteractive}
+              onClick={() => setCurrentView('interactive')}
               variant="outline"
               className="bg-purple-50 border-purple-300 text-purple-700 hover:bg-purple-100"
             >
@@ -316,23 +367,29 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
           </div>
         </div>
 
-        {/* Progress Bar - mejorado */}
+        {/* Progress Bar - mejorado con flujo continuo */}
         <Card className="mb-6 bg-white/70 backdrop-blur-sm border-blue-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-4">
                 {[1, 2, 3].map((step) => (
-                  <div key={step} className={`
-                    flex items-center justify-center w-12 h-12 rounded-full border-2 transition-all font-bold
-                    ${currentStep === step 
-                      ? 'bg-blue-600 border-blue-600 text-white shadow-lg' 
-                      : currentStep > step 
-                        ? 'bg-green-500 border-green-500 text-white shadow-md'
-                        : 'bg-white border-slate-300 text-slate-400'
-                    }
-                  `}>
+                  <motion.div 
+                    key={step} 
+                    className={`
+                      flex items-center justify-center w-12 h-12 rounded-full border-2 transition-all font-bold cursor-pointer
+                      ${currentStep === step 
+                        ? 'bg-blue-600 border-blue-600 text-white shadow-lg scale-110' 
+                        : currentStep > step 
+                          ? 'bg-green-500 border-green-500 text-white shadow-md'
+                          : 'bg-white border-slate-300 text-slate-400'
+                      }
+                    `}
+                    whileHover={{ scale: currentStep >= step ? 1.1 : 1 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => currentStep >= step && setCurrentStep(step)}
+                  >
                     {currentStep > step ? <CheckCircle className="w-6 h-6" /> : step}
-                  </div>
+                  </motion.div>
                 ))}
               </div>
               
@@ -346,15 +403,15 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
             <Progress value={getProgressPercentage()} className="h-3 mb-4" />
             
             <div className="grid grid-cols-3 gap-4 text-sm">
-              <div className={`text-center ${currentStep >= 1 ? 'text-blue-600 font-medium' : 'text-slate-400'}`}>
+              <div className={`text-center transition-colors ${currentStep >= 1 ? 'text-blue-600 font-medium' : 'text-slate-400'}`}>
                 <div className="font-semibold">1. Datos Personales</div>
                 <div className="text-xs">Verificación segura DNI</div>
               </div>
-              <div className={`text-center ${currentStep >= 2 ? 'text-blue-600 font-medium' : 'text-slate-400'}`}>
+              <div className={`text-center transition-colors ${currentStep >= 2 ? 'text-blue-600 font-medium' : 'text-slate-400'}`}>
                 <div className="font-semibold">2. Productos Financieros</div>
                 <div className="text-xs">Catálogo completo del mercado</div>
               </div>
-              <div className={`text-center ${currentStep >= 3 ? 'text-blue-600 font-medium' : 'text-slate-400'}`}>
+              <div className={`text-center transition-colors ${currentStep >= 3 ? 'text-blue-600 font-medium' : 'text-slate-400'}`}>
                 <div className="font-semibold">3. Perfil Personalizado</div>
                 <div className="text-xs">Recomendaciones inteligentes</div>
               </div>
@@ -383,42 +440,44 @@ export const DynamicOnboarding = ({ onBack }: DynamicOnboardingProps) => {
           )}
         </AnimatePresence>
 
-        {/* Step Content */}
-        <motion.div
-          key={currentStep}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.3 }}
-        >
-          {currentStep === 1 && (
-            <PersonalDataStep
-              data={data.personalData}
-              onUpdate={handlePersonalDataUpdate}
-              onNext={handleNext}
-              isReturningUser={data.isReturningUser}
-            />
-          )}
-          
-          {currentStep === 2 && (
-            <FinancialInfoStep
-              data={data.financialInfo}
-              personalData={data.personalData}
-              onUpdate={handleFinancialInfoUpdate}
-              onNext={handleNext}
-              onPrev={handlePrevious}
-            />
-          )}
-          
-          {currentStep === 3 && (
-            <ClientProfileStep
-              data={data.clientProfile}
-              onUpdate={handleClientProfileUpdate}
-              onNext={handleNext}
-              onPrev={handlePrevious}
-            />
-          )}
-        </motion.div>
+        {/* Step Content con transiciones fluidas */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentStep}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            {currentStep === 1 && (
+              <PersonalDataStep
+                data={data.personalData}
+                onUpdate={handlePersonalDataUpdate}
+                onNext={() => setCurrentStep(2)}
+                isReturningUser={data.isReturningUser}
+              />
+            )}
+            
+            {currentStep === 2 && (
+              <FinancialInfoStep
+                data={data.financialInfo}
+                personalData={data.personalData}
+                onUpdate={handleFinancialInfoUpdate}
+                onNext={() => setCurrentStep(3)}
+                onPrev={() => setCurrentStep(1)}
+              />
+            )}
+            
+            {currentStep === 3 && (
+              <ClientProfileStep
+                data={data.clientProfile}
+                onUpdate={handleClientProfileUpdate}
+                onNext={() => setCurrentView('offers')}
+                onPrev={() => setCurrentStep(2)}
+              />
+            )}
+          </motion.div>
+        </AnimatePresence>
 
         {/* Navigation mejorada */}
         <div className="flex justify-between items-center mt-8">

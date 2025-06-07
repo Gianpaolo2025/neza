@@ -2,443 +2,465 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Clock, CheckCircle, Star, Eye, TrendingUp, DollarSign, Shield, ExternalLink, Gavel } from "lucide-react";
-import { UserData } from "@/pages/Index";
-import { generateBankOffers, BankOffer } from "@/utils/offerGenerator";
-import { OfferDetail } from "@/components/OfferDetail";
+import { Slider } from "@/components/ui/slider";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, Trophy, TrendingUp, AlertTriangle, ExternalLink, RefreshCw, Clock, Settings } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { generateOffers } from "@/utils/offerGenerator";
+import { userTrackingService } from "@/services/userTracking";
+
+interface User {
+  firstName: string;
+  lastName: string;
+  dni: string;
+  email: string;
+  phone: string;
+  monthlyIncome: number;
+  requestedAmount: number;
+  productType: string;
+  employmentType: string;
+  hasOtherDebts: string;
+  bankingRelationship: string;
+  urgencyLevel: string;
+  creditHistory: string;
+  preferredBank: string;
+}
 
 interface OffersDashboardProps {
-  user: UserData;
+  user: User;
   onBack: () => void;
 }
 
+interface Offer {
+  id: string;
+  bankName: string;
+  bankLogo: string;
+  productName: string;
+  productType: string;
+  amount: number;
+  interestRate: number;
+  monthlyPayment: number;
+  term: number;
+  status: 'pre-approved' | 'approved' | 'auction';
+  score: number;
+  features: string[];
+  requirements: string[];
+  bankUrl: string;
+  originalRate?: number;
+  timeLeft?: number;
+}
+
 export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
-  const [offers, setOffers] = useState<BankOffer[]>([]);
+  const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedOffer, setSelectedOffer] = useState<string | null>(null);
-  const [viewingOffer, setViewingOffer] = useState<BankOffer | null>(null);
-  const [filterCategory, setFilterCategory] = useState<string>("all");
-  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [selectedProductType, setSelectedProductType] = useState(user.productType);
+  const [requestedAmount, setRequestedAmount] = useState(user.requestedAmount);
+  const [countdownDays, setCountdownDays] = useState(7);
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
-    const loadOffers = async () => {
-      setLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const convertedUser = {
-        ...user,
-        productType: user.productType || "credito-personal",
-        hasOtherDebts: user.hasOtherDebts || "no",
-        bankingRelationship: user.bankingRelationship || "ninguna",
-        urgencyLevel: user.urgencyLevel || "normal",
-        preferredBank: user.preferredBank || "",
-        preferredCurrency: (user as any).preferredCurrency || "PEN"
-      };
-      
-      const generatedOffers = generateBankOffers(convertedUser);
-      setOffers(generatedOffers);
-      setLoading(false);
-    };
-
     loadOffers();
+    userTrackingService.trackActivity('page_visit', { page: 'offers_dashboard' });
 
+    // Countdown timer basado en urgencia
+    const urgencyMap = {
+      'inmediato': 3,
+      'una-semana': 7,
+      'un-mes': 30,
+      'no-urgente': 90
+    };
+    setCountdownDays(urgencyMap[user.urgencyLevel as keyof typeof urgencyMap] || 7);
+
+    // Auto-refresh auction offers every 30 seconds
     const interval = setInterval(() => {
-      const convertedUser = {
-        ...user,
-        productType: user.productType || "credito-personal",
-        hasOtherDebts: user.hasOtherDebts || "no",
-        bankingRelationship: user.bankingRelationship || "ninguna",
-        urgencyLevel: user.urgencyLevel || "normal",
-        preferredBank: user.preferredBank || "",
-        preferredCurrency: (user as any).preferredCurrency || "PEN"
-      };
-      const updatedOffers = generateBankOffers(convertedUser);
-      setOffers(updatedOffers);
-    }, 15000);
+      updateAuctionOffers();
+    }, 30000);
 
     return () => clearInterval(interval);
-  }, [user]);
+  }, [selectedProductType, requestedAmount]);
 
-  const handleViewOffer = (offer: BankOffer) => {
-    setViewingOffer(offer);
+  const loadOffers = async () => {
+    setLoading(true);
+    
+    // Simulate loading time
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    const generatedOffers = generateOffers({
+      ...user,
+      productType: selectedProductType,
+      requestedAmount: requestedAmount
+    });
+
+    // Remove duplicate banks - keep only the best offer per bank
+    const uniqueOffers = generatedOffers.reduce((acc: Offer[], current) => {
+      const existingBank = acc.find(offer => offer.bankName === current.bankName);
+      if (!existingBank || current.score > existingBank.score) {
+        return [...acc.filter(offer => offer.bankName !== current.bankName), current];
+      }
+      return acc;
+    }, []);
+
+    setOffers(uniqueOffers);
+    setLoading(false);
   };
 
-  const handleBackToOffers = () => {
-    setViewingOffer(null);
+  const updateAuctionOffers = () => {
+    setOffers(prev => prev.map(offer => {
+      if (offer.status === 'auction') {
+        const reduction = Math.random() * 0.5 + 0.1; // 0.1% to 0.6% reduction
+        const newRate = Math.max(offer.interestRate - reduction, 8.0); // Minimum 8%
+        return {
+          ...offer,
+          originalRate: offer.originalRate || offer.interestRate,
+          interestRate: Number(newRate.toFixed(2)),
+          monthlyPayment: calculateMonthlyPayment(requestedAmount, newRate, offer.term),
+          timeLeft: Math.floor(Math.random() * 3600) + 1800 // 30 min to 90 min
+        };
+      }
+      return offer;
+    }));
   };
 
-  const handleApplyForCredit = (offer: BankOffer) => {
-    // Abrir la página del banco en una nueva ventana
-    window.open(offer.bankUrl, '_blank');
-    alert("Te estamos redirigiendo al banco. Completa tu solicitud directamente con la entidad financiera.");
+  const calculateMonthlyPayment = (amount: number, rate: number, term: number) => {
+    const monthlyRate = rate / 100 / 12;
+    const numPayments = term;
+    return (amount * monthlyRate * Math.pow(1 + monthlyRate, numPayments)) / (Math.pow(1 + monthlyRate, numPayments) - 1);
   };
 
-  if (viewingOffer) {
-    return (
-      <OfferDetail 
-        offer={viewingOffer} 
-        onBack={handleBackToOffers}
-        onApply={() => handleApplyForCredit(viewingOffer)}
-      />
-    );
-  }
+  const handleBankRedirect = (bankUrl: string, bankName: string) => {
+    userTrackingService.trackActivity('bank_redirect', { 
+      bankName,
+      productType: selectedProductType,
+      amount: requestedAmount
+    });
+    
+    // Ensure we redirect to the actual bank URL, not NEZA
+    if (bankUrl && !bankUrl.includes('neza') && !bankUrl.includes('localhost')) {
+      window.open(bankUrl, '_blank');
+    } else {
+      // Fallback URLs for real banks
+      const bankUrls: { [key: string]: string } = {
+        'BCP': 'https://www.viabcp.com',
+        'BBVA': 'https://www.bbva.pe',
+        'Interbank': 'https://www.interbank.com.pe',
+        'Scotiabank': 'https://www.scotiabank.com.pe',
+        'BanBif': 'https://www.banbif.com.pe',
+        'Pichincha': 'https://www.pichincha.pe'
+      };
+      window.open(bankUrls[bankName] || 'https://www.google.com/search?q=' + bankName + '+peru', '_blank');
+    }
+  };
+
+  const getOffersByStatus = (status: string) => {
+    return offers.filter(offer => offer.status === status);
+  };
+
+  const preApprovedOffers = getOffersByStatus('pre-approved');
+  const approvedOffers = getOffersByStatus('approved');
+  const auctionOffers = getOffersByStatus('auction');
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-cyan-50">
-        <div className="max-w-6xl mx-auto p-4 md:p-6">
-          <div className="text-center py-12">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            >
-              <Gavel className="h-12 w-12 mx-auto text-blue-600 mb-4" />
-            </motion.div>
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">
-              🏛️ Proceso de Subasta Activo
-            </h2>
-            <p className="text-gray-600 mb-4">
-              Las entidades financieras están compitiendo por tu solicitud en tiempo real
+      <div className="min-h-screen bg-gradient-to-br from-neza-blue-50 to-neza-cyan-100">
+        {/* MENSAJE PERMANENTE */}
+        <div className="bg-neza-blue-600 text-white py-3 px-4 sticky top-0 z-50">
+          <div className="container mx-auto flex items-center justify-center">
+            <AlertTriangle className="w-5 h-5 mr-2 text-neza-cyan-200" />
+            <p className="text-center font-medium">
+              Por favor, no nos mientas. Esta información es clave para brindarte los mejores productos.
             </p>
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800 max-w-md mx-auto">
-              <strong>ℹ️ Este es un proceso de subasta:</strong> Los bancos ajustan sus ofertas automáticamente para darte las mejores condiciones.
-            </div>
+          </div>
+        </div>
+
+        <div className="container mx-auto px-4 py-6">
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-neza-blue-600 mx-auto mb-4"></div>
+            <h2 className="text-2xl font-bold text-neza-blue-800 mb-2">
+              Analizando ofertas personalizadas...
+            </h2>
+            <p className="text-neza-blue-600">
+              Evaluando {selectedProductType} por S/. {requestedAmount.toLocaleString()}
+            </p>
           </div>
         </div>
       </div>
     );
   }
 
-  const categories = [...new Set(offers.map(offer => offer.category))];
-  const filteredOffers = offers.filter(offer => {
-    const categoryMatch = filterCategory === "all" || offer.category === filterCategory;
-    const statusMatch = filterStatus === "all" || offer.auctionStatus === filterStatus;
-    return categoryMatch && statusMatch;
-  });
-
-  const getProductDisplayName = (productType: string) => {
-    const names = {
-      "credito-personal": "Crédito Personal",
-      "credito-vehicular": "Crédito Vehicular", 
-      "credito-hipotecario": "Crédito Hipotecario",
-      "tarjeta-credito": "Tarjeta de Crédito",
-      "credito-empresarial": "Crédito Empresarial"
-    };
-    return names[productType as keyof typeof names] || "Producto Financiero";
-  };
-
-  const getStatusColor = (status: string) => {
-    if (status === 'approved') return 'bg-green-100 text-green-800 border-green-300';
-    if (status === 'preapproved') return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-    return 'bg-gray-100 text-gray-800 border-gray-300';
-  };
-
-  const getStatusText = (status: string) => {
-    if (status === 'approved') return '✅ APROBADO';
-    if (status === 'preapproved') return '⏳ PRE-APROBADO';
-    return '📋 PENDIENTE';
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-cyan-50">
-      <div className="max-w-7xl mx-auto p-4 md:p-6">
-        {/* Header mejorado para móvil */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-          <Button 
-            variant="outline" 
-            onClick={onBack} 
-            className="flex items-center space-x-2 border-blue-300 text-blue-600 hover:bg-blue-50 w-full md:w-auto"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span>Nueva Búsqueda</span>
-          </Button>
-          
-          <div className="text-center md:text-right">
-            <p className="text-sm text-slate-600">Solicitud para</p>
-            <p className="font-semibold text-slate-800">{user.firstName} {user.lastName}</p>
-            <div className="flex flex-wrap justify-center md:justify-end gap-2 mt-2">
-              <Badge className="bg-blue-100 text-blue-800 border-blue-300">
-                {getProductDisplayName(user.productType || "credito-personal")}
-              </Badge>
-              <Badge className="bg-cyan-100 text-cyan-800 border-cyan-300">
-                {offers[0]?.currency || "S/."} {user.requestedAmount.toLocaleString()}
-              </Badge>
+    <div className="min-h-screen bg-gradient-to-br from-neza-blue-50 to-neza-cyan-100">
+      {/* MENSAJE PERMANENTE */}
+      <div className="bg-neza-blue-600 text-white py-3 px-4 sticky top-0 z-50">
+        <div className="container mx-auto flex items-center justify-center">
+          <AlertTriangle className="w-5 h-5 mr-2 text-neza-cyan-200" />
+          <p className="text-center font-medium">
+            Por favor, no nos mientas. Esta información es clave para brindarte los mejores productos.
+          </p>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-6">
+        {/* Header with countdown and settings */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center">
+            <Button variant="ghost" onClick={onBack} className="mr-4 text-neza-blue-600">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Volver
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold text-neza-blue-800">
+                Ofertas Personalizadas para {user.firstName}
+              </h1>
+              <p className="text-neza-blue-600">
+                {selectedProductType} • S/. {requestedAmount.toLocaleString()}
+              </p>
             </div>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            {/* Countdown */}
+            <div className="bg-neza-blue-100 border border-neza-blue-300 rounded-lg px-4 py-2 text-center">
+              <div className="flex items-center gap-1 text-neza-blue-700">
+                <Clock className="w-4 h-4" />
+                <span className="font-bold text-lg">{countdownDays}</span>
+              </div>
+              <div className="text-xs text-neza-blue-600">días restantes</div>
+            </div>
+
+            {/* Quick Settings */}
+            <Button
+              variant="outline"
+              onClick={() => setShowSettings(!showSettings)}
+              className="border-neza-blue-300 text-neza-blue-600"
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Ajustar
+            </Button>
           </div>
         </div>
 
-        {/* Información de subasta */}
-        <Card className="mb-6 bg-gradient-to-r from-yellow-50 to-orange-50 border-orange-200">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2 text-orange-800">
-              <Gavel className="h-5 w-5" />
-              <span>🏛️ Sistema de Subasta Financiera</span>
-            </CardTitle>
-            <CardDescription className="text-orange-700">
-              <strong>Este es un proceso de subasta:</strong> {filteredOffers.length} entidades financieras supervisadas por la SBS están compitiendo por tu solicitud. 
-              Las tasas se actualizan automáticamente cada 15 segundos para ofrecerte las mejores condiciones.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-
-        {/* Filtros por categoría y estado */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <Card className="bg-white/80">
-            <CardContent className="p-4">
-              <h3 className="font-semibold mb-3 text-slate-700">📂 Filtrar por Categoría</h3>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={filterCategory === "all" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setFilterCategory("all")}
-                  className="text-xs"
-                >
-                  Todos
-                </Button>
-                {categories.map(category => (
-                  <Button
-                    key={category}
-                    variant={filterCategory === category ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setFilterCategory(category)}
-                    className="text-xs"
+        {/* Quick adjustment settings */}
+        <AnimatePresence>
+          {showSettings && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-6"
+            >
+              <Card className="bg-white/80 border-neza-blue-200">
+                <CardHeader>
+                  <CardTitle className="text-neza-blue-800">Ajustes Rápidos</CardTitle>
+                  <CardDescription>
+                    Cambia el producto o monto sin volver a llenar el formulario
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-neza-blue-700 mb-2 block">
+                        Tipo de Producto
+                      </label>
+                      <Select value={selectedProductType} onValueChange={setSelectedProductType}>
+                        <SelectTrigger className="border-neza-blue-200">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="credito-personal">Crédito Personal</SelectItem>
+                          <SelectItem value="credito-vehicular">Crédito Vehicular</SelectItem>
+                          <SelectItem value="credito-hipotecario">Crédito Hipotecario</SelectItem>
+                          <SelectItem value="tarjeta-credito">Tarjeta de Crédito</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium text-neza-blue-700 mb-2 block">
+                        Monto Solicitado: S/. {requestedAmount.toLocaleString()}
+                      </label>
+                      <Slider
+                        value={[requestedAmount]}
+                        onValueChange={(value) => setRequestedAmount(value[0])}
+                        max={500000}
+                        min={1000}
+                        step={1000}
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    onClick={loadOffers}
+                    className="bg-neza-blue-600 hover:bg-neza-blue-700"
                   >
-                    {category}
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Actualizar Ofertas
                   </Button>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Summary stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <Card className="bg-white/60 border-green-200">
+            <CardContent className="pt-6 text-center">
+              <div className="text-2xl font-bold text-green-600">{approvedOffers.length}</div>
+              <p className="text-sm text-green-700">Productos Aprobados</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-white/60 border-yellow-200">
+            <CardContent className="pt-6 text-center">
+              <div className="text-2xl font-bold text-yellow-600">{preApprovedOffers.length}</div>
+              <p className="text-sm text-yellow-700">Pre-aprobados</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-white/60 border-purple-200">
+            <CardContent className="pt-6 text-center">
+              <div className="text-2xl font-bold text-purple-600">{auctionOffers.length}</div>
+              <p className="text-sm text-purple-700">En Subasta Activa</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Dynamic Auction Section */}
+        {auctionOffers.length > 0 && (
+          <Card className="mb-6 border-yellow-300 bg-gradient-to-r from-yellow-50 to-orange-50">
+            <CardHeader>
+              <CardTitle className="flex items-center text-yellow-800">
+                <Trophy className="w-5 h-5 mr-2" />
+                🔥 Subasta Dinámica Activa
+              </CardTitle>
+              <CardDescription>
+                Los bancos están compitiendo por tu solicitud. Las tasas mejoran automáticamente.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {auctionOffers.map((offer, index) => (
+                  <motion.div 
+                    key={offer.id}
+                    className={`
+                      p-4 rounded-lg border-2 transition-all
+                      ${index === 0 ? 'border-yellow-400 bg-yellow-100' : 'border-neza-silver-200 bg-white'}
+                    `}
+                    animate={{ scale: index === 0 ? [1, 1.02, 1] : 1 }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center">
+                        {index === 0 && <Trophy className="w-5 h-5 text-yellow-600 mr-2" />}
+                        <div>
+                          <h3 className="font-semibold text-neza-blue-900">{offer.bankName}</h3>
+                          <p className="text-sm text-neza-silver-600">{offer.productName}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="flex items-center gap-2">
+                          {offer.originalRate && (
+                            <span className="text-sm line-through text-neza-silver-500">
+                              {offer.originalRate}%
+                            </span>
+                          )}
+                          <div className="text-lg font-bold text-green-600">
+                            {offer.interestRate}% TEA
+                          </div>
+                        </div>
+                        <div className="text-sm text-neza-silver-600">
+                          S/. {offer.monthlyPayment.toLocaleString()}/mes
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-neza-silver-600">
+                        ⏱️ Expira en: {Math.floor((offer.timeLeft || 3600) / 60)} minutos
+                      </div>
+                      <Button 
+                        onClick={() => handleBankRedirect(offer.bankUrl, offer.bankName)}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        Ir al Banco
+                      </Button>
+                    </div>
+                  </motion.div>
                 ))}
               </div>
             </CardContent>
           </Card>
+        )}
 
-          <Card className="bg-white/80">
-            <CardContent className="p-4">
-              <h3 className="font-semibold mb-3 text-slate-700">🎯 Estado de Subasta</h3>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={filterStatus === "all" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setFilterStatus("all")}
-                  className="text-xs"
-                >
-                  Todos
-                </Button>
-                <Button
-                  variant={filterStatus === "approved" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setFilterStatus("approved")}
-                  className="text-xs"
-                >
-                  ✅ Aprobados
-                </Button>
-                <Button
-                  variant={filterStatus === "preapproved" ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setFilterStatus("preapproved")}
-                  className="text-xs"
-                >
-                  ⏳ Pre-aprobados
-                </Button>
+        {/* Approved Offers */}
+        {approvedOffers.length > 0 && (
+          <Card className="mb-6 border-green-200">
+            <CardHeader>
+              <CardTitle className="text-green-800">
+                ✅ Productos Aprobados ({approvedOffers.length} opciones disponibles)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4">
+                {approvedOffers.map((offer) => (
+                  <div key={offer.id} className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold text-green-900">{offer.bankName}</h3>
+                        <p className="text-sm text-green-700">{offer.productName}</p>
+                        <div className="text-lg font-bold text-green-600 mt-1">
+                          {offer.interestRate}% TEA • S/. {offer.monthlyPayment.toLocaleString()}/mes
+                        </div>
+                      </div>
+                      <Button 
+                        onClick={() => handleBankRedirect(offer.bankUrl, offer.bankName)}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        Solicitar en {offer.bankName}
+                      </Button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
-        </div>
+        )}
 
-        {/* Lista de ofertas mejorada para móvil */}
-        <div className="space-y-4">
-          <AnimatePresence>
-            {filteredOffers.map((offer, index) => (
-              <motion.div
-                key={offer.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Card 
-                  className={`cursor-pointer transition-all duration-300 hover:shadow-lg border-l-4 ${
-                    index === 0 
-                      ? 'border-l-green-500 bg-green-50/50' 
-                      : 'border-l-blue-300'
-                  } ${
-                    selectedOffer === offer.id 
-                      ? 'ring-2 ring-blue-500 bg-blue-50' 
-                      : 'hover:bg-gray-50'
-                  } bg-white/80 backdrop-blur-sm`}
-                  onClick={() => setSelectedOffer(offer.id)}
-                >
-                  <CardContent className="p-4 md:p-6">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      {/* Información principal */}
-                      <div className="flex-1">
-                        <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mb-2">
-                          <div className="flex items-center gap-2">
-                            <span className="text-2xl">{offer.icon}</span>
-                            <h4 className="text-lg md:text-xl font-bold text-slate-800">
-                              {offer.bankName}
-                            </h4>
-                          </div>
-                          
-                          <div className="flex flex-wrap gap-2">
-                            {index === 0 && (
-                              <Badge className="bg-green-100 text-green-800 border-green-300">
-                                <Star className="w-3 h-3 mr-1" />
-                                Mejor Opción
-                              </Badge>
-                            )}
-                            
-                            <Badge className={getStatusColor(offer.auctionStatus)}>
-                              {getStatusText(offer.auctionStatus)}
-                            </Badge>
-                          </div>
+        {/* Pre-approved Offers */}
+        {preApprovedOffers.length > 0 && (
+          <Card className="border-yellow-200">
+            <CardHeader>
+              <CardTitle className="text-yellow-800">
+                ⏳ Pre-aprobados ({preApprovedOffers.length} opciones disponibles)
+              </CardTitle>
+              <CardDescription>
+                Estos productos requieren documentación adicional
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4">
+                {preApprovedOffers.map((offer) => (
+                  <div key={offer.id} className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold text-yellow-900">{offer.bankName}</h3>
+                        <p className="text-sm text-yellow-700">{offer.productName}</p>
+                        <div className="text-lg font-bold text-yellow-600 mt-1">
+                          {offer.interestRate}% TEA • S/. {offer.monthlyPayment.toLocaleString()}/mes
                         </div>
-                        
-                        <p className="text-sm text-slate-500 mb-3">{offer.category}</p>
-                        
-                        {/* Beneficios principales */}
-                        <div className="flex flex-wrap gap-2 mb-4">
-                          {offer.features.slice(0, 3).map((feature, idx) => (
-                            <span 
-                              key={idx}
-                              className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full"
-                            >
-                              {feature}
-                            </span>
-                          ))}
-                        </div>
-
-                        <p className="text-sm text-slate-600 mb-2">
-                          {offer.description}
-                        </p>
                       </div>
-
-                      {/* Información financiera */}
-                      <div className="text-center md:text-right md:ml-6">
-                        <div className="space-y-2 md:space-y-3">
-                          <div className="flex flex-col md:flex-row md:items-center gap-2">
-                            <DollarSign className="w-5 h-5 text-green-600 mx-auto md:mx-0" />
-                            <span className="text-xl md:text-2xl font-bold text-green-600">
-                              {offer.rate}% TEA
-                            </span>
-                          </div>
-                          
-                          <div className="text-sm text-slate-600">
-                            <div className="font-semibold">Cuota mensual:</div>
-                            <div className="text-lg font-bold text-slate-800">
-                              {offer.currency} {offer.monthlyPayment.toLocaleString()}
-                            </div>
-                          </div>
-                          
-                          <div className="text-sm text-slate-600 space-y-1">
-                            <div>Monto: {offer.currency} {offer.maxAmount.toLocaleString()}</div>
-                            <div>Plazo: hasta {offer.maxTerm} meses</div>
-                          </div>
-                          
-                          <div className="flex flex-col md:flex-row items-center gap-1 text-xs text-slate-500 justify-center md:justify-end">
-                            <Shield className="w-3 h-3" />
-                            <span>Supervisado SBS</span>
-                          </div>
-
-                          <div className="text-center md:text-right text-sm font-medium text-blue-600">
-                            Score: {offer.score}/100
-                          </div>
-                        </div>
-                        
-                        {selectedOffer === offer.id && (
-                          <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            className="mt-3"
-                          >
-                            <CheckCircle className="w-6 h-6 text-blue-600 mx-auto" />
-                          </motion.div>
-                        )}
-                      </div>
+                      <Button 
+                        onClick={() => handleBankRedirect(offer.bankUrl, offer.bankName)}
+                        variant="outline" 
+                        className="border-yellow-400 text-yellow-700 hover:bg-yellow-100"
+                      >
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        Aplicar en {offer.bankName}
+                      </Button>
                     </div>
-
-                    {/* Botones de acción */}
-                    <div className="mt-4 pt-4 border-t border-slate-200">
-                      <div className="flex flex-col md:flex-row justify-between items-center gap-3">
-                        <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleViewOffer(offer);
-                            }}
-                            className="border-blue-300 text-blue-600 hover:bg-blue-50 w-full md:w-auto"
-                          >
-                            <Eye className="w-4 h-4 mr-1" />
-                            Ver Requisitos
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleApplyForCredit(offer);
-                            }}
-                            className="border-green-300 text-green-600 hover:bg-green-50 w-full md:w-auto"
-                          >
-                            <ExternalLink className="w-4 h-4 mr-1" />
-                            Ir al Banco
-                          </Button>
-                        </div>
-                        
-                        <Button 
-                          size="sm"
-                          className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 w-full md:w-auto"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedOffer(offer.id);
-                          }}
-                        >
-                          Seleccionar Oferta
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
-
-        {/* Acción final */}
-        {selectedOffer && (
-          <Card className="mt-6 border-green-200 bg-green-50/80 backdrop-blur-sm">
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <Star className="h-8 w-8 mx-auto text-green-600 mb-2" />
-                <h3 className="text-lg font-semibold text-green-900 mb-2">
-                  ¡Oferta Seleccionada!
-                </h3>
-                <p className="text-green-700 mb-4">
-                  Procede con la solicitud formal en la página oficial del banco
-                </p>
-                <div className="flex flex-col md:flex-row justify-center space-y-2 md:space-y-0 md:space-x-4">
-                  <Button 
-                    variant="outline"
-                    onClick={() => {
-                      const offer = offers.find(o => o.id === selectedOffer);
-                      if (offer) handleViewOffer(offer);
-                    }}
-                    className="border-green-300 text-green-700 hover:bg-green-100"
-                  >
-                    Ver Requisitos Completos
-                  </Button>
-                  <Button 
-                    className="bg-green-600 hover:bg-green-700"
-                    onClick={() => {
-                      const offer = offers.find(o => o.id === selectedOffer);
-                      if (offer) handleApplyForCredit(offer);
-                    }}
-                  >
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Ir al Banco Oficial
-                  </Button>
-                </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
