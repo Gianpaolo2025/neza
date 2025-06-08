@@ -17,7 +17,7 @@ export const ProductsCarousel = ({ onViewCatalog }: ProductsCarouselProps) => {
       id: 'credito-hipotecario',
       name: 'Crédito Hipotecario',
       description: 'Compra tu casa propia con las mejores condiciones del mercado',
-      emoji: '🏠',
+      icon: Home,
       estimatedRate: '6.5% - 12%',
       minAmount: 'S/. 50,000',
       maxAmount: 'S/. 500,000',
@@ -28,7 +28,7 @@ export const ProductsCarousel = ({ onViewCatalog }: ProductsCarouselProps) => {
       id: 'credito-vehicular',
       name: 'Crédito Vehicular',
       description: 'Financia tu vehículo nuevo o usado con tasas preferenciales',
-      emoji: '🚗',
+      icon: Car,
       estimatedRate: '8% - 15%',
       minAmount: 'S/. 10,000',
       maxAmount: 'S/. 150,000',
@@ -39,7 +39,7 @@ export const ProductsCarousel = ({ onViewCatalog }: ProductsCarouselProps) => {
       id: 'credito-personal',
       name: 'Crédito Personal',
       description: 'Dinero rápido para tus proyectos personales sin garantías',
-      emoji: '💰',
+      icon: CreditCard,
       estimatedRate: '12% - 35%',
       minAmount: 'S/. 1,000',
       maxAmount: 'S/. 50,000',
@@ -77,6 +77,7 @@ export const ProductsCarousel = ({ onViewCatalog }: ProductsCarouselProps) => {
   };
 
   const currentProduct = featuredProducts[currentIndex];
+  const IconComponent = currentProduct.icon;
 
   return (
     <div className="space-y-8">
@@ -109,33 +110,32 @@ export const ProductsCarousel = ({ onViewCatalog }: ProductsCarouselProps) => {
         {/* Product Card */}
         <Card className="hover:shadow-xl transition-all duration-300 border-neza-blue-200 bg-white/80 backdrop-blur-sm mx-8">
           <CardHeader className="pb-4">
-            <div className="flex flex-col items-center mb-4">
-              {/* Emoji centrado */}
-              <div className="w-20 h-20 bg-neza-blue-50 rounded-full flex items-center justify-center mb-4">
-                <span className="text-4xl">{currentProduct.emoji}</span>
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-16 h-16 bg-neza-blue-100 rounded-lg flex items-center justify-center">
+                <IconComponent className="w-8 h-8 text-neza-blue-600" />
               </div>
               <Badge className={getCategoryColor(currentProduct.category)}>
                 {currentProduct.category}
               </Badge>
             </div>
-            <CardTitle className="text-xl text-neza-blue-800 text-center">{currentProduct.name}</CardTitle>
-            <CardDescription className="text-neza-silver-600 text-center">
+            <CardTitle className="text-xl text-neza-blue-800">{currentProduct.name}</CardTitle>
+            <CardDescription className="text-neza-silver-600">
               {currentProduct.description}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="text-center">
+              <div>
                 <span className="font-medium text-neza-blue-700">Tasa estimada:</span>
                 <div className="text-neza-silver-600">{currentProduct.estimatedRate}</div>
               </div>
-              <div className="text-center">
+              <div>
                 <span className="font-medium text-neza-blue-700">Plazo:</span>
                 <div className="text-neza-silver-600">{currentProduct.term}</div>
               </div>
             </div>
             
-            <div className="text-center">
+            <div>
               <span className="font-medium text-neza-blue-700 text-sm">Rango:</span>
               <div className="text-neza-silver-600">{currentProduct.minAmount} - {currentProduct.maxAmount}</div>
             </div>
