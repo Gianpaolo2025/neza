@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -225,7 +224,7 @@ export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialP
       </div>
 
       {/* Estilos CSS para el resaltado fuerte */}
-      <style jsx global>{`
+      <style>{`
         .tutorial-highlight-strong {
           position: relative;
           z-index: 60;
