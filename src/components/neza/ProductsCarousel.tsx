@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Home, Car, CreditCard, PiggyBank, Shield, TrendingUp, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { Home, Car, CreditCard, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface ProductsCarouselProps {
   onViewCatalog: () => void;
@@ -17,36 +17,33 @@ export const ProductsCarousel = ({ onViewCatalog }: ProductsCarouselProps) => {
       id: 'credito-hipotecario',
       name: 'Crédito Hipotecario',
       description: 'Compra tu casa propia con las mejores condiciones del mercado',
-      icon: <Home className="w-8 h-8 text-neza-blue-600" />,
+      emoji: '🏠',
       estimatedRate: '6.5% - 12%',
       minAmount: 'S/. 50,000',
       maxAmount: 'S/. 500,000',
       term: '5-30 años',
-      highlights: ['Financia hasta 90%', 'Sin penalidad por prepago', 'Tasa fija o variable'],
       category: 'Más Popular'
     },
     {
       id: 'credito-vehicular',
       name: 'Crédito Vehicular',
       description: 'Financia tu vehículo nuevo o usado con tasas preferenciales',
-      icon: <Car className="w-8 h-8 text-neza-blue-600" />,
+      emoji: '🚗',
       estimatedRate: '8% - 15%',
       minAmount: 'S/. 10,000',
       maxAmount: 'S/. 150,000',
       term: '2-7 años',
-      highlights: ['Aprobación rápida', 'Cobertura integral', 'Vehículos 0km y usados'],
       category: 'Recomendado'
     },
     {
       id: 'credito-personal',
       name: 'Crédito Personal',
       description: 'Dinero rápido para tus proyectos personales sin garantías',
-      icon: <CreditCard className="w-8 h-8 text-neza-blue-600" />,
+      emoji: '💰',
       estimatedRate: '12% - 35%',
       minAmount: 'S/. 1,000',
       maxAmount: 'S/. 50,000',
       term: '6 meses - 5 años',
-      highlights: ['Sin garantía', 'Aprobación en 24h', 'Uso libre'],
       category: 'Express'
     }
   ];
@@ -112,43 +109,35 @@ export const ProductsCarousel = ({ onViewCatalog }: ProductsCarouselProps) => {
         {/* Product Card */}
         <Card className="hover:shadow-xl transition-all duration-300 border-neza-blue-200 bg-white/80 backdrop-blur-sm mx-8">
           <CardHeader className="pb-4">
-            <div className="flex items-center justify-between mb-3">
-              {currentProduct.icon}
+            <div className="flex flex-col items-center mb-4">
+              {/* Emoji centrado */}
+              <div className="w-20 h-20 bg-neza-blue-50 rounded-full flex items-center justify-center mb-4">
+                <span className="text-4xl">{currentProduct.emoji}</span>
+              </div>
               <Badge className={getCategoryColor(currentProduct.category)}>
                 {currentProduct.category}
               </Badge>
             </div>
-            <CardTitle className="text-xl text-neza-blue-800">{currentProduct.name}</CardTitle>
-            <CardDescription className="text-neza-silver-600">
+            <CardTitle className="text-xl text-neza-blue-800 text-center">{currentProduct.name}</CardTitle>
+            <CardDescription className="text-neza-silver-600 text-center">
               {currentProduct.description}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <div>
+              <div className="text-center">
                 <span className="font-medium text-neza-blue-700">Tasa estimada:</span>
                 <div className="text-neza-silver-600">{currentProduct.estimatedRate}</div>
               </div>
-              <div>
+              <div className="text-center">
                 <span className="font-medium text-neza-blue-700">Plazo:</span>
                 <div className="text-neza-silver-600">{currentProduct.term}</div>
               </div>
-              <div className="col-span-2">
-                <span className="font-medium text-neza-blue-700">Rango:</span>
-                <div className="text-neza-silver-600">{currentProduct.minAmount} - {currentProduct.maxAmount}</div>
-              </div>
             </div>
             
-            <div>
-              <span className="font-medium text-neza-blue-700 text-sm">Beneficios principales:</span>
-              <ul className="mt-2 space-y-1">
-                {currentProduct.highlights.map((highlight, index) => (
-                  <li key={index} className="flex items-center text-sm text-neza-silver-600">
-                    <span className="w-1.5 h-1.5 bg-neza-blue-500 rounded-full mr-2"></span>
-                    {highlight}
-                  </li>
-                ))}
-              </ul>
+            <div className="text-center">
+              <span className="font-medium text-neza-blue-700 text-sm">Rango:</span>
+              <div className="text-neza-silver-600">{currentProduct.minAmount} - {currentProduct.maxAmount}</div>
             </div>
           </CardContent>
         </Card>
