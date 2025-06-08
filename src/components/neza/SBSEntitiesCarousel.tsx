@@ -1,129 +1,105 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Shield } from "lucide-react";
-
-interface SBSEntity {
-  id: string;
-  name: string;
-  type: "banco" | "caja-municipal" | "caja-rural" | "financiera";
-  logo: string;
-  sbsCode: string;
-}
-
-const sbsEntities: SBSEntity[] = [
-  // Bancos
-  { id: "1", name: "ALFIN Banco", type: "banco", logo: "🏛️", sbsCode: "B-01001" },
-  { id: "2", name: "BBVA", type: "banco", logo: "🏦", sbsCode: "B-01002" },
-  { id: "3", name: "Banco BCI", type: "banco", logo: "🏪", sbsCode: "B-01003" },
-  { id: "4", name: "BANCOM", type: "banco", logo: "🏢", sbsCode: "B-01004" },
-  { id: "5", name: "Banco de Crédito", type: "banco", logo: "🏛️", sbsCode: "B-01005" },
-  { id: "6", name: "Banco de la Nación", type: "banco", logo: "🏬", sbsCode: "B-01006" },
-  { id: "7", name: "Banco Falabella", type: "banco", logo: "🏪", sbsCode: "B-01007" },
-  { id: "8", name: "Banco GNB", type: "banco", logo: "🏛️", sbsCode: "B-01008" },
-  { id: "9", name: "BanBif", type: "banco", logo: "🏦", sbsCode: "B-01009" },
-  { id: "10", name: "Interbank", type: "banco", logo: "🏢", sbsCode: "B-01010" },
-  { id: "11", name: "Banco Pichincha", type: "banco", logo: "🏛️", sbsCode: "B-01011" },
-  { id: "12", name: "Banco Ripley", type: "banco", logo: "🏬", sbsCode: "B-01012" },
-  { id: "13", name: "Santander Perú", type: "banco", logo: "🏪", sbsCode: "B-01013" },
-  { id: "14", name: "Bank of China (Perú)", type: "banco", logo: "🏛️", sbsCode: "B-01014" },
-  { id: "15", name: "Citibank del Perú", type: "banco", logo: "🏦", sbsCode: "B-01015" },
-  { id: "16", name: "Compartamos Banco", type: "banco", logo: "🏢", sbsCode: "B-01016" },
-  { id: "17", name: "ICBC Perú Bank S.A.", type: "banco", logo: "🏛️", sbsCode: "B-01017" },
-  { id: "18", name: "Mibanco", type: "banco", logo: "🏬", sbsCode: "B-01018" },
-  { id: "19", name: "Santander Consumer", type: "banco", logo: "🏪", sbsCode: "B-01019" },
-  { id: "20", name: "Scotiabank Perú", type: "banco", logo: "🏛️", sbsCode: "B-01020" },
-  
-  // Financieras
-  { id: "21", name: "Financiera Confianza", type: "financiera", logo: "💼", sbsCode: "F-03001" },
-  { id: "22", name: "Financiera Efectiva", type: "financiera", logo: "💼", sbsCode: "F-03002" },
-  { id: "23", name: "Financiera Proempresa", type: "financiera", logo: "💼", sbsCode: "F-03004" },
-  
-  // Cajas Municipales
-  { id: "27", name: "Caja Municipal Cusco", type: "caja-municipal", logo: "🏛️", sbsCode: "C-02001" },
-  { id: "28", name: "Caja Municipal Arequipa", type: "caja-municipal", logo: "🏛️", sbsCode: "C-02002" },
-  { id: "29", name: "Caja Municipal Huancayo", type: "caja-municipal", logo: "🏛️", sbsCode: "C-02004" },
-  { id: "30", name: "Caja Municipal Piura", type: "caja-municipal", logo: "🏛️", sbsCode: "C-02008" },
-  { id: "31", name: "Caja Municipal Trujillo", type: "caja-municipal", logo: "🏛️", sbsCode: "C-02010" },
-  
-  // Cajas Rurales
-  { id: "38", name: "Caja Rural Los Andes", type: "caja-rural", logo: "🏪", sbsCode: "R-04002" },
-  { id: "39", name: "Caja Rural del Centro", type: "caja-rural", logo: "🏪", sbsCode: "R-04003" }
-];
-
-const getTypeLabel = (type: string) => {
-  const labels = {
-    "banco": "Banco",
-    "caja-municipal": "Caja Municipal", 
-    "caja-rural": "Caja Rural",
-    "financiera": "Financiera"
-  };
-  return labels[type as keyof typeof labels] || type;
-};
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import { sbsEntitiesData } from "@/data/sbsEntities";
+import { Shield, Star } from "lucide-react";
 
 export const SBSEntitiesCarousel = () => {
-  // Triplicamos las entidades para crear efecto continuo suave
-  const triplicatedEntities = [...sbsEntities, ...sbsEntities, ...sbsEntities];
-
   return (
-    <div className="w-full bg-gradient-to-r from-blue-50 to-cyan-50 py-8 px-4">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
+    <div className="bg-neza-blue-800 text-white py-12">
+      <div className="container mx-auto px-4 max-w-6xl">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <Shield className="w-6 h-6 text-blue-600" />
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-800">
-              Entidades Financieras Reguladas SBS
-            </h2>
+            <Shield className="w-6 h-6 text-neza-blue-400" />
+            <h3 className="text-2xl font-bold">Entidades Supervisadas por la SBS y SMV</h3>
           </div>
-          <p className="text-slate-600 max-w-2xl mx-auto">
-            Todas las entidades están supervisadas por la Superintendencia de Banca, Seguros y AFP del Perú
+          <p className="text-neza-blue-200 max-w-2xl mx-auto">
+            Más de 30 entidades financieras autorizadas compiten para ofrecerte las mejores condiciones
+          </p>
+          <p className="text-neza-blue-300 text-sm mt-2">
+            No todas las entidades están supervisadas por la Superintendencia de Banca, Seguros y AFP (SBS) ni por la Superintendencia del Mercado de Valores (SMV).
           </p>
         </div>
 
-        {/* Carrusel Continuo con movimiento optimizado */}
-        <div className="relative overflow-hidden bg-white/50 backdrop-blur-sm rounded-xl py-6">
-          <div
-            className="flex gap-4 animate-[scroll_90s_linear_infinite] hover:animate-[scroll_90s_linear_infinite_paused]"
-            style={{ width: "calc(300% + 3rem)" }}
-          >
-            {triplicatedEntities.map((entity, index) => (
-              <div
-                key={`${entity.id}-${index}`}
-                className="flex-shrink-0 hover:scale-105 transition-transform duration-200"
-              >
-                <Card className="w-44 bg-white/80 backdrop-blur-sm border-slate-200 hover:shadow-lg transition-all duration-300">
-                  <CardContent className="p-3 text-center">
-                    <div className="text-xl mb-2">{entity.logo}</div>
+        <Carousel
+          opts={{
+            align: "start",
+            loop: true,
+          }}
+          className="w-full"
+        >
+          <CarouselContent className="-ml-1">
+            {sbsEntitiesData.map((entity, index) => (
+              <CarouselItem key={index} className="pl-1 md:basis-1/3 lg:basis-1/4">
+                <Card className="bg-white/10 backdrop-blur-sm border-neza-blue-600 hover:bg-white/20 transition-all duration-200">
+                  <CardContent className="p-4 text-center">
+                    <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center mx-auto mb-3">
+                      <img
+                        src={entity.logo}
+                        alt={entity.name}
+                        className="w-12 h-12 object-contain"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          target.nextElementSibling?.classList.remove('hidden');
+                        }}
+                      />
+                      <div className="w-12 h-12 bg-neza-blue-100 rounded flex items-center justify-center text-neza-blue-600 font-bold text-xl hidden">
+                        {entity.name.charAt(0)}
+                      </div>
+                    </div>
                     
-                    <h3 className="font-bold text-slate-800 mb-2 text-xs line-clamp-2 h-8">
+                    <h4 className="font-semibold text-white text-sm mb-2 leading-tight">
                       {entity.name}
-                    </h3>
+                    </h4>
                     
-                    <div className="mb-2">
-                      <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700 border border-blue-200">
-                        {getTypeLabel(entity.type)}
+                    <div className="flex items-center justify-center gap-1 mb-2">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-3 h-3 ${
+                            i < entity.rating
+                              ? "text-yellow-400 fill-current"
+                              : "text-gray-400"
+                          }`}
+                        />
+                      ))}
+                      <span className="text-xs text-neza-blue-200 ml-1">
+                        {entity.rating.toFixed(1)}
                       </span>
                     </div>
                     
-                    <div className="text-xs text-slate-500">
-                      <span className="font-mono">{entity.sbsCode}</span>
+                    <p className="text-xs text-neza-blue-300 mb-2">
+                      {entity.specialties.join(", ")}
+                    </p>
+                    
+                    <div className="flex justify-center">
+                      <span className={`
+                        inline-block px-2 py-1 rounded-full text-xs font-medium
+                        ${entity.type === 'Banco' 
+                          ? 'bg-neza-blue-500 text-white' 
+                          : entity.type === 'Cooperativa'
+                          ? 'bg-green-500 text-white'
+                          : 'bg-purple-500 text-white'
+                        }
+                      `}>
+                        {entity.type}
+                      </span>
                     </div>
                   </CardContent>
                 </Card>
-              </div>
+              </CarouselItem>
             ))}
-          </div>
-        </div>
-
-        {/* Footer con información SBS */}
-        <div className="mt-8 text-center">
-          <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
-            <Shield className="w-4 h-4 text-blue-600" />
-            <span className="text-sm text-blue-800">
-              100% Supervisadas por la SBS - Gobierno del Perú
-            </span>
-          </div>
-        </div>
+          </CarouselContent>
+          <CarouselPrevious className="text-white border-white hover:bg-white/20" />
+          <CarouselNext className="text-white border-white hover:bg-white/20" />
+        </Carousel>
       </div>
     </div>
   );

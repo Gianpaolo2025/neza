@@ -1,21 +1,21 @@
+
 import { useState, useEffect } from "react";
 import { ProductCatalog } from "@/components/neza/ProductCatalog";
 import { UserOnboarding } from "@/components/neza/UserOnboarding";
 import { SBSEntitiesCarousel } from "@/components/neza/SBSEntitiesCarousel";
 import { ProductsCarousel } from "@/components/neza/ProductsCarousel";
-import { InteractiveFAQ } from "@/components/neza/InteractiveFAQ";
+import { PlatformSuggestions } from "@/components/neza/PlatformSuggestions";
 import { InteractiveTutorial } from "@/components/neza/InteractiveTutorial";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AsesorIAChat } from "@/components/AsesorIAChat";
 import { useAsesorIA } from "@/hooks/useAsesorIA";
 import { userTrackingService } from "@/services/userTracking";
-import { Sparkles, FileText, TrendingUp, Shield, Users, Zap, AlertTriangle, Clock, Brain, Trophy, Target, MessageCircle, X, Filter, CheckCircle } from "lucide-react";
+import { Sparkles, FileText, TrendingUp, Shield, Users, Zap, AlertTriangle, Clock, Brain, Trophy, Target, MessageCircle, X, Filter, CheckCircle, PlayCircle } from "lucide-react";
 
 const NezaRoute = () => {
   const [currentView, setCurrentView] = useState<'home' | 'catalog' | 'onboarding'>('home');
   const [showWelcomeMessage, setShowWelcomeMessage] = useState(true);
-  const [showTutorialPopup, setShowTutorialPopup] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [forceOnboarding, setForceOnboarding] = useState(false);
   const [userEmail, setUserEmail] = useState<string>('');
@@ -30,36 +30,25 @@ const NezaRoute = () => {
     userTrackingService.startSession(tempEmail, 'direct', 'Visita directa a página principal');
     userTrackingService.trackActivity('page_visit', { page: 'home' }, 'Usuario visitó la página principal');
 
-    // Mostrar popup de tutorial después de 1 segundo y luego iniciar tutorial automáticamente
-    const timer = setTimeout(() => {
-      const hasSeenTutorial = localStorage.getItem('nezaTutorialShown');
-      if (!hasSeenTutorial) {
-        setShowTutorialPopup(true);
-        // Auto-iniciar tutorial después de 3 segundos si no interactúa
-        setTimeout(() => {
-          if (showTutorialPopup) {
-            handleStartTutorial();
-          }
-        }, 3000);
-      }
-    }, 1000);
+    // Verificar si es la primera visita para mostrar tutorial automáticamente
+    const hasSeenTutorial = localStorage.getItem('nezaTutorialShown');
+    if (!hasSeenTutorial) {
+      // Mostrar tutorial automáticamente después de 2 segundos
+      const timer = setTimeout(() => {
+        setShowTutorial(true);
+      }, 2000);
+      
+      return () => clearTimeout(timer);
+    }
 
     return () => {
-      clearTimeout(timer);
       userTrackingService.endSession();
     };
   }, []);
 
   const handleStartTutorial = () => {
-    userTrackingService.trackActivity('tutorial_start', { action: 'start_tutorial' }, 'Usuario inició el tutorial');
-    setShowTutorialPopup(false);
+    userTrackingService.trackActivity('tutorial_start', { action: 'start_tutorial' }, 'Usuario inició el tutorial manualmente');
     setShowTutorial(true);
-    localStorage.setItem('nezaTutorialShown', 'true');
-  };
-
-  const handleSkipTutorial = () => {
-    userTrackingService.trackActivity('button_click', { action: 'skip_tutorial' }, 'Usuario omitió el tutorial');
-    setShowTutorialPopup(false);
     localStorage.setItem('nezaTutorialShown', 'true');
   };
 
@@ -133,43 +122,6 @@ const NezaRoute = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-neza-blue-50 via-white to-neza-blue-50 overflow-x-hidden relative">
       
-      {/* Popup de Tutorial */}
-      {showTutorialPopup && (
-        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
-          <Card className="bg-white border-2 border-neza-blue-200 shadow-2xl max-w-md w-full animate-in fade-in zoom-in duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-neza-blue-500 to-neza-blue-600 rounded-full flex items-center justify-center animate-pulse">
-                  <Sparkles className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-lg text-gray-800">🎯 ¡Bienvenido a NEZA!</h4>
-                  <p className="text-sm text-gray-600">¿Te gustaría hacer un recorrido guiado?</p>
-                </div>
-              </div>
-              <p className="text-gray-700 mb-4">
-                Te mostraré paso a paso cómo funciona nuestra plataforma de subasta financiera y cómo obtener las mejores ofertas.
-              </p>
-              <div className="flex gap-3">
-                <Button
-                  onClick={handleStartTutorial}
-                  className="bg-neza-blue-600 hover:bg-neza-blue-700 text-white flex-1"
-                >
-                  ✅ Iniciar Tour Guiado
-                </Button>
-                <Button
-                  onClick={handleSkipTutorial}
-                  variant="outline"
-                  className="border-gray-300 text-gray-600 hover:bg-gray-50 flex-1"
-                >
-                  ❌ Omitir
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
       {/* Tutorial Interactivo - Siempre visible cuando showTutorial es true */}
       <InteractiveTutorial 
         isVisible={showTutorial} 
@@ -223,10 +175,20 @@ const NezaRoute = () => {
           <p className="text-neza-blue-600 text-lg md:text-xl mb-4">
             Sistema de Subasta Financiera Inteligente
           </p>
-          <div className="bg-neza-blue-50 border border-neza-blue-200 rounded-lg p-4 text-sm text-neza-blue-800 max-w-2xl mx-auto">
+          <div className="bg-neza-blue-50 border border-neza-blue-200 rounded-lg p-4 text-sm text-neza-blue-800 max-w-2xl mx-auto mb-6">
             <strong>🏛️ Aquí los bancos compiten para darte lo mejor:</strong> Las entidades financieras luchan en tiempo real 
             para ofrecerte las mejores condiciones. Tú eliges la ganadora.
           </div>
+          
+          {/* Botón para iniciar tutorial manualmente */}
+          <Button
+            onClick={handleStartTutorial}
+            variant="outline"
+            className="border-neza-blue-300 text-neza-blue-600 hover:bg-neza-blue-50 flex items-center gap-2 mx-auto"
+          >
+            <PlayCircle className="w-4 h-4" />
+            Ver Tutorial Guiado
+          </Button>
         </div>
 
         {/* Experiencia Interactiva - Solicitud OBLIGATORIA */}
@@ -336,16 +298,16 @@ const NezaRoute = () => {
           </div>
         </div>
 
-        {/* Sugerencias de Usuarios en lugar de FAQ */}
-        <div id="faq-section" className="mb-16 max-w-4xl mx-auto">
+        {/* Sugerencias de Usuarios para mejorar la plataforma */}
+        <div id="suggestions-section" className="mb-16 max-w-4xl mx-auto">
           <h3 className="text-2xl font-bold text-center text-neza-blue-800 mb-8">
-            💬 Sugerencias de Usuarios
+            💡 Sugerencias de los Usuarios
           </h3>
-          <InteractiveFAQ />
+          <PlatformSuggestions />
         </div>
       </div>
 
-      {/* Carrusel de Entidades SBS */}
+      {/* Carrusel de Entidades SBS y SMV */}
       <div id="sbs-entities" className="relative z-20">
         <SBSEntitiesCarousel />
       </div>
@@ -359,7 +321,10 @@ const NezaRoute = () => {
           </div>
           <p className="text-neza-silver-300 text-sm max-w-2xl mx-auto">
             NEZA es un sistema de subasta financiera donde las entidades autorizadas y supervisadas 
-            por la Superintendencia de Banca, Seguros y AFP (SBS) del Perú compiten para ofrecerte las mejores condiciones.
+            por la Superintendencia de Banca, Seguros y AFP (SBS) y la Superintendencia del Mercado de Valores (SMV) del Perú compiten para ofrecerte las mejores condiciones.
+          </p>
+          <p className="text-neza-silver-400 text-xs mt-2">
+            No todas las entidades están supervisadas por la Superintendencia de Banca, Seguros y AFP (SBS) ni por la Superintendencia del Mercado de Valores (SMV).
           </p>
         </div>
       </div>

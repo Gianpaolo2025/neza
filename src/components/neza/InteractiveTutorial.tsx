@@ -26,10 +26,18 @@ export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialP
   const tutorialSteps: TutorialStep[] = [
     {
       id: "welcome",
-      target: "#products-section",
+      target: "#interactive-experience",
       title: "¡Bienvenido a NEZA!",
       description: "Te voy a mostrar cómo funciona nuestra plataforma de subasta financiera. ¡Empezamos!",
       position: "bottom"
+    },
+    {
+      id: "request-button",
+      target: "#interactive-experience",
+      title: "Botón Solicitar",
+      description: "Este es el botón principal para solicitar cualquier producto. Al presionarlo irás directamente al cuestionario obligatorio de 8 preguntas.",
+      position: "top",
+      highlight: true
     },
     {
       id: "catalog",
@@ -37,14 +45,6 @@ export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialP
       title: "Catálogo de Productos",
       description: "Aquí puedes explorar todos nuestros productos financieros disponibles con información detallada de cada uno.",
       position: "bottom",
-      highlight: true
-    },
-    {
-      id: "request-button",
-      target: "#interactive-experience",
-      title: "Botón Solicitar",
-      description: "Este es el botón principal para solicitar cualquier producto. Al presionarlo irás directamente al cuestionario obligatorio.",
-      position: "top",
       highlight: true
     },
     {
@@ -65,23 +65,23 @@ export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialP
       id: "entities",
       target: "#sbs-entities",
       title: "Entidades Financieras Aliadas",
-      description: "Todas estas entidades supervisadas por la SBS pueden participar en tu subasta para ofrecerte sus mejores propuestas.",
+      description: "Todas estas entidades supervisadas por la SBS y SMV pueden participar en tu subasta para ofrecerte sus mejores propuestas.",
       position: "top",
       highlight: true
     },
     {
       id: "chat-help",
       target: "#chat-button",
-      title: "Centro de Ayuda",
-      description: "Usa este chat en cualquier momento para obtener asesoría personalizada durante todo el proceso.",
+      title: "Centro de Ayuda - AsesorIA",
+      description: "Usa este chat en cualquier momento para obtener asesoría personalizada y respuestas a preguntas frecuentes durante todo el proceso.",
       position: "left",
       highlight: true
     },
     {
       id: "suggestions",
-      target: "#faq-section",
-      title: "Sugerencias de Usuarios",
-      description: "Encuentra preguntas frecuentes de otros usuarios y haz clic en cualquiera para enviarla al chat de AsesorIA.",
+      target: "#suggestions-section",
+      title: "Sugerencias para Mejorar",
+      description: "Aquí puedes dejar tus sugerencias para ayudarnos a mejorar la plataforma NEZA.",
       position: "top"
     }
   ];
@@ -138,6 +138,7 @@ export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialP
       { totalSteps: tutorialSteps.length, completedSteps: currentStep + 1 },
       'Usuario completó o cerró el tutorial'
     );
+    localStorage.setItem('nezaTutorialShown', 'true');
     onClose();
   };
 
@@ -145,11 +146,11 @@ export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialP
 
   return (
     <>
-      {/* Overlay sutil - solo detrás del tutorial */}
-      <div className="fixed inset-0 bg-black/20 z-[50] pointer-events-none" />
+      {/* Overlay sutil detrás del tutorial */}
+      <div className="fixed inset-0 bg-black/20 z-[60] pointer-events-none" />
       
-      {/* Tutorial Card - Posicionado a la derecha con z-index alto */}
-      <div className="fixed top-1/2 right-6 transform -translate-y-1/2 z-[70]">
+      {/* Tutorial Card - Posicionado a la derecha con z-index muy alto */}
+      <div className="fixed top-1/2 right-6 transform -translate-y-1/2 z-[80]">
         <Card className="bg-white max-w-sm w-80 shadow-2xl border-2 border-neza-blue-500 animate-in fade-in slide-in-from-right duration-300">
           <CardContent className="p-6">
             <div className="flex justify-between items-start mb-4">
