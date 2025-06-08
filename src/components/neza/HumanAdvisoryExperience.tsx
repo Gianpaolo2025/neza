@@ -12,9 +12,8 @@ import { ArrowRight, ArrowLeft, Home, Car, CreditCard, Heart, Target, Play, Buil
 interface UserData {
   goal: string;
   amount: number;
-  profession: string;
+  workSituation: string;
   hasPayslips: string;
-  employmentType: string;
   monthlyIncome: number;
   personalInfo: {
     firstName: string;
@@ -37,9 +36,8 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete }: HumanAdvisoryExp
   const [data, setData] = useState<UserData>({
     goal: "",
     amount: 0,
-    profession: "",
+    workSituation: "",
     hasPayslips: "",
-    employmentType: "",
     monthlyIncome: 0,
     personalInfo: {
       firstName: "",
@@ -101,7 +99,25 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete }: HumanAdvisoryExp
     if (currentStep < steps.length - 1) {
       setCurrentStep(prev => prev + 1);
     } else {
-      onComplete(data);
+      // Convertir datos al formato esperado
+      const convertedData = {
+        firstName: data.personalInfo.firstName,
+        lastName: data.personalInfo.lastName,
+        dni: data.personalInfo.dni,
+        email: data.personalInfo.email,
+        phone: data.personalInfo.phone,
+        monthlyIncome: data.monthlyIncome,
+        requestedAmount: data.amount,
+        productType: data.goal === 'casa' ? 'credito-hipotecario' : 
+                     data.goal === 'auto' ? 'credito-vehicular' : 'credito-personal',
+        employmentType: data.workSituation,
+        hasOtherDebts: 'no',
+        bankingRelationship: data.preferredBank || 'ninguno',
+        urgencyLevel: 'normal',
+        creditHistory: data.hasPayslips === 'si' ? 'bueno' : 'nuevo',
+        preferredBank: data.preferredBank || ''
+      };
+      onComplete(convertedData);
     }
   };
 
@@ -116,13 +132,13 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete }: HumanAdvisoryExp
       case "intro": return true;
       case "goal": return data.goal !== "";
       case "amount": return data.amount > 0;
-      case "work": return data.profession !== "" && data.employmentType !== "";
+      case "work": return data.workSituation !== "";
       case "payslips": return data.hasPayslips !== "";
       case "income": return data.monthlyIncome > 0;
       case "personal": 
         return data.personalInfo.firstName && data.personalInfo.lastName && 
                data.personalInfo.dni && data.personalInfo.email && data.personalInfo.phone;
-      case "bank": return true; // Opcional
+      case "bank": return true;
       default: return false;
     }
   };
@@ -222,7 +238,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete }: HumanAdvisoryExp
                       >
                         <CardContent className="p-4 text-center">
                           <Home className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-                          <h4 className="font-medium">Una casa o depa</h4>
+                          <h4 className="font-medium">¿Quieres un depa o una casa?</h4>
                           <p className="text-xs text-gray-600">Vivienda propia</p>
                         </CardContent>
                       </Card>
@@ -282,32 +298,53 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete }: HumanAdvisoryExp
                   </div>
                 )}
 
-                {/* Paso 3: Trabajo */}
+                {/* Paso 3: Trabajo (fusionado) */}
                 {currentStep === 3 && (
                   <div className="space-y-4">
-                    <div>
-                      <Label>¿A qué te dedicas?</Label>
-                      <Input
-                        placeholder="Ejemplo: Contador, Vendedor, Ingeniero..."
-                        value={data.profession}
-                        onChange={(e) => setData(prev => ({ ...prev, profession: e.target.value }))}
-                        className="mt-2"
-                      />
-                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Card 
+                        className={`cursor-pointer transition-all ${data.workSituation === 'empleado' ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300'}`}
+                        onClick={() => setData(prev => ({ ...prev, workSituation: 'empleado' }))}
+                      >
+                        <CardContent className="p-4 text-center">
+                          <Building2 className="w-8 h-8 mx-auto mb-2 text-blue-600" />
+                          <h4 className="font-medium">Trabajo en planilla</h4>
+                          <p className="text-xs text-gray-600">Empleado dependiente</p>
+                        </CardContent>
+                      </Card>
 
-                    <div>
-                      <Label>¿Cuál es tu situación laboral?</Label>
-                      <Select onValueChange={(value) => setData(prev => ({ ...prev, employmentType: value }))}>
-                        <SelectTrigger className="mt-2">
-                          <SelectValue placeholder="Selecciona tu situación" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="empleado">Trabajo en planilla</SelectItem>
-                          <SelectItem value="independiente">Trabajo independiente</SelectItem>
-                          <SelectItem value="empresario">Tengo mi negocio</SelectItem>
-                          <SelectItem value="pensionista">Soy pensionista</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Card 
+                        className={`cursor-pointer transition-all ${data.workSituation === 'independiente' ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300'}`}
+                        onClick={() => setData(prev => ({ ...prev, workSituation: 'independiente' }))}
+                      >
+                        <CardContent className="p-4 text-center">
+                          <Users className="w-8 h-8 mx-auto mb-2 text-blue-600" />
+                          <h4 className="font-medium">Trabajo independiente</h4>
+                          <p className="text-xs text-gray-600">Por mi cuenta</p>
+                        </CardContent>
+                      </Card>
+
+                      <Card 
+                        className={`cursor-pointer transition-all ${data.workSituation === 'empresario' ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300'}`}
+                        onClick={() => setData(prev => ({ ...prev, workSituation: 'empresario' }))}
+                      >
+                        <CardContent className="p-4 text-center">
+                          <Briefcase className="w-8 h-8 mx-auto mb-2 text-blue-600" />
+                          <h4 className="font-medium">Tengo mi negocio</h4>
+                          <p className="text-xs text-gray-600">Empresario</p>
+                        </CardContent>
+                      </Card>
+
+                      <Card 
+                        className={`cursor-pointer transition-all ${data.workSituation === 'pensionista' ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300'}`}
+                        onClick={() => setData(prev => ({ ...prev, workSituation: 'pensionista' }))}
+                      >
+                        <CardContent className="p-4 text-center">
+                          <FileText className="w-8 h-8 mx-auto mb-2 text-blue-600" />
+                          <h4 className="font-medium">Soy pensionista</h4>
+                          <p className="text-xs text-gray-600">Jubilado/a</p>
+                        </CardContent>
+                      </Card>
                     </div>
                   </div>
                 )}
