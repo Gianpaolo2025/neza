@@ -145,19 +145,19 @@ export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialP
 
   return (
     <>
-      {/* Overlay */}
-      <div className="fixed inset-0 bg-black/60 z-50" />
+      {/* Overlay parcial - solo detrás del tutorial */}
+      <div className="fixed inset-0 bg-black/30 z-40 pointer-events-none" />
       
-      {/* Tutorial Card */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <Card className="bg-white max-w-md w-full shadow-2xl border-2 border-blue-200">
+      {/* Tutorial Card - Posicionado a la derecha */}
+      <div className="fixed top-1/2 right-6 transform -translate-y-1/2 z-50">
+        <Card className="bg-white max-w-sm w-80 shadow-2xl border-2 border-neza-blue-500">
           <CardContent className="p-6">
             <div className="flex justify-between items-start mb-4">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-r from-neza-blue-500 to-neza-blue-600 rounded-full flex items-center justify-center">
                   <Sparkles className="w-4 h-4 text-white" />
                 </div>
-                <span className="text-sm text-blue-600 font-medium">
+                <span className="text-sm text-neza-blue-600 font-medium">
                   Paso {currentStep + 1} de {tutorialSteps.length}
                 </span>
               </div>
@@ -165,7 +165,7 @@ export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialP
                 variant="ghost"
                 size="sm"
                 onClick={handleClose}
-                className="p-1 h-auto"
+                className="p-1 h-auto hover:bg-neza-blue-100"
               >
                 <X className="w-4 h-4" />
               </Button>
@@ -173,7 +173,7 @@ export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialP
 
             <div className="space-y-4">
               <div className="flex items-center gap-2 mb-2">
-                <Target className="w-5 h-5 text-blue-600" />
+                <Target className="w-5 h-5 text-neza-blue-600" />
                 <h3 className="text-lg font-bold text-gray-800">
                   {currentStepData.title}
                 </h3>
@@ -184,8 +184,8 @@ export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialP
               </p>
 
               {isHighlighting && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                  <p className="text-yellow-800 text-sm font-medium">
+                <div className="bg-neza-blue-50 border border-neza-blue-200 rounded-lg p-3">
+                  <p className="text-neza-blue-800 text-sm font-medium">
                     ✨ Observa el elemento resaltado en la página
                   </p>
                 </div>
@@ -197,7 +197,7 @@ export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialP
                 variant="outline"
                 onClick={handlePrev}
                 disabled={currentStep === 0}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 border-neza-blue-300 text-neza-blue-600 hover:bg-neza-blue-50"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Anterior
@@ -205,7 +205,7 @@ export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialP
               
               <Button
                 onClick={handleNext}
-                className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
+                className="bg-neza-blue-600 hover:bg-neza-blue-700 flex items-center gap-2"
               >
                 {currentStep === tutorialSteps.length - 1 ? 'Finalizar' : 'Siguiente'}
                 <ArrowRight className="w-4 h-4" />

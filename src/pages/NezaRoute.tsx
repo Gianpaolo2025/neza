@@ -47,7 +47,7 @@ const NezaRoute = () => {
   }, []);
 
   const handleStartTutorial = () => {
-    userTrackingService.trackActivity('button_click', { action: 'start_tutorial' }, 'Usuario inició el tutorial');
+    userTrackingService.trackActivity('tutorial_start', { action: 'start_tutorial' }, 'Usuario inició el tutorial');
     setShowTutorialPopup(false);
     setShowTutorial(true);
     localStorage.setItem('nezaTutorialShown', 'true');
@@ -69,13 +69,27 @@ const NezaRoute = () => {
     setCurrentView('onboarding');
   };
 
+  // Función para manejar solicitud desde el catálogo
+  const handleCatalogProductRequest = (productId?: string) => {
+    userTrackingService.trackActivity('button_click', { 
+      action: 'product_catalog_request',
+      productId: productId || 'unknown',
+      forced: true 
+    }, `Usuario solicitó producto ${productId || 'desconocido'} desde catálogo`);
+    setForceOnboarding(true);
+    setCurrentView('onboarding');
+  };
+
   if (currentView === 'catalog') {
     return (
       <>
-        <ProductCatalog onBack={() => {
-          userTrackingService.trackActivity('button_click', { action: 'back_to_home', from: 'catalog' }, 'Usuario regresó del catálogo a la página principal');
-          setCurrentView('home');
-        }} />
+        <ProductCatalog 
+          onBack={() => {
+            userTrackingService.trackActivity('button_click', { action: 'back_to_home', from: 'catalog' }, 'Usuario regresó del catálogo a la página principal');
+            setCurrentView('home');
+          }}
+          onProductRequest={handleCatalogProductRequest}
+        />
         <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
       </>
     );
@@ -112,10 +126,10 @@ const NezaRoute = () => {
       {/* Popup de Tutorial - Mejorado para mayor visibilidad */}
       {showTutorialPopup && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <Card className="bg-white border-2 border-blue-200 shadow-2xl max-w-md w-full">
+          <Card className="bg-white border-2 border-neza-blue-200 shadow-2xl max-w-md w-full">
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                <div className="w-12 h-12 bg-gradient-to-r from-neza-blue-500 to-neza-blue-600 rounded-full flex items-center justify-center">
                   <MessageCircle className="w-6 h-6 text-white" />
                 </div>
                 <div>
@@ -129,7 +143,7 @@ const NezaRoute = () => {
               <div className="flex gap-3">
                 <Button
                   onClick={handleStartTutorial}
-                  className="bg-blue-600 hover:bg-blue-700 text-white flex-1"
+                  className="bg-neza-blue-600 hover:bg-neza-blue-700 text-white flex-1"
                 >
                   ✅ Iniciar Tour Guiado
                 </Button>
@@ -209,7 +223,7 @@ const NezaRoute = () => {
             onClick={handleProductRequest}
           >
             <CardHeader className="text-center pb-4">
-              <div className="w-20 h-20 bg-gradient-to-r from-neza-blue-500 to-neza-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg animate-pulse">
+              <div className="w-20 h-20 bg-gradient-to-r from-neza-blue-500 to-neza-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg animate-pulse">
                 <FileText className="w-10 h-10 text-white animate-bounce" />
               </div>
               <CardTitle className="text-3xl text-neza-blue-800 flex items-center justify-center gap-2 mb-4">
@@ -236,13 +250,13 @@ const NezaRoute = () => {
                     <div className="text-sm text-green-600">Completa 8 preguntas</div>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                <div className="flex items-center gap-3 bg-neza-blue-50 border border-neza-blue-200 rounded-lg p-4">
+                  <div className="w-8 h-8 bg-neza-blue-500 rounded-full flex items-center justify-center">
                     <Trophy className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <div className="font-semibold text-blue-800">✅ Subasta automática</div>
-                    <div className="text-sm text-blue-600">Bancos compiten por ti</div>
+                    <div className="font-semibold text-neza-blue-800">✅ Subasta automática</div>
+                    <div className="text-sm text-neza-blue-600">Bancos compiten por ti</div>
                   </div>
                 </div>
               </div>

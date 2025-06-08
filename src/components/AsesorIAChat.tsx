@@ -198,7 +198,7 @@ export const AsesorIAChat = ({ isVisible = false, onToggle }: AsesorIAChatProps)
       >
         <Button
           onClick={toggleChat}
-          className="w-14 h-14 rounded-full bg-gradient-to-r from-blue-600 to-slate-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 group border-2 border-blue-200"
+          className="w-14 h-14 rounded-full bg-gradient-to-r from-neza-blue-600 to-slate-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 group border-2 border-neza-blue-200"
         >
           <motion.div
             animate={{ 
@@ -235,7 +235,7 @@ export const AsesorIAChat = ({ isVisible = false, onToggle }: AsesorIAChatProps)
         animate={{ opacity: 1, y: 0 }}
         className="fixed bottom-6 right-6 z-50"
       >
-        <Card className="w-80 bg-gradient-to-r from-blue-50 to-slate-50 border-blue-200 shadow-xl">
+        <Card className="w-80 bg-gradient-to-r from-neza-blue-50 to-slate-50 border-neza-blue-200 shadow-xl">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -248,7 +248,7 @@ export const AsesorIAChat = ({ isVisible = false, onToggle }: AsesorIAChatProps)
                   <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-blue-800">AsesorIA</h3>
+                  <h3 className="font-bold text-neza-blue-800">AsesorIA</h3>
                   <p className="text-xs text-slate-600">Tu asesora financiera IA</p>
                 </div>
               </div>
@@ -257,7 +257,7 @@ export const AsesorIAChat = ({ isVisible = false, onToggle }: AsesorIAChatProps)
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsMinimized(false)}
-                  className="text-blue-600 hover:text-blue-700 hover:bg-blue-100"
+                  className="text-neza-blue-600 hover:text-neza-blue-700 hover:bg-neza-blue-100"
                 >
                   <Maximize2 className="w-4 h-4" />
                 </Button>
@@ -265,7 +265,7 @@ export const AsesorIAChat = ({ isVisible = false, onToggle }: AsesorIAChatProps)
                   variant="ghost"
                   size="sm"
                   onClick={toggleChat}
-                  className="text-blue-600 hover:text-blue-700 hover:bg-blue-100"
+                  className="text-neza-blue-600 hover:text-neza-blue-700 hover:bg-neza-blue-100"
                 >
                   <X className="w-4 h-4" />
                 </Button>
@@ -284,9 +284,9 @@ export const AsesorIAChat = ({ isVisible = false, onToggle }: AsesorIAChatProps)
       animate={{ opacity: 1, y: 0, scale: 1 }}
       className="fixed bottom-6 right-6 z-50"
     >
-      <Card className="w-96 h-[600px] bg-white border-blue-200 shadow-2xl flex flex-col">
+      <Card className="w-96 h-[600px] bg-white border-neza-blue-200 shadow-2xl flex flex-col">
         {/* Header del chat */}
-        <div className="bg-gradient-to-r from-blue-600 to-slate-600 text-white p-4 rounded-t-lg">
+        <div className="bg-gradient-to-r from-neza-blue-600 to-slate-600 text-white p-4 rounded-t-lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="relative">
@@ -299,7 +299,7 @@ export const AsesorIAChat = ({ isVisible = false, onToggle }: AsesorIAChatProps)
               </div>
               <div>
                 <h3 className="font-bold text-lg">AsesorIA</h3>
-                <div className="flex items-center gap-2 text-blue-100">
+                <div className="flex items-center gap-2 text-neza-blue-100">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
                   <span className="text-sm">En línea • Asesoría financiera IA</span>
                 </div>
@@ -339,12 +339,12 @@ export const AsesorIAChat = ({ isVisible = false, onToggle }: AsesorIAChatProps)
                 <div className={`
                   max-w-[85%] p-3 rounded-lg text-sm
                   ${message.isUser 
-                    ? 'bg-blue-500 text-white rounded-br-none' 
+                    ? 'bg-neza-blue-500 text-white rounded-br-none' 
                     : 'bg-slate-100 text-slate-800 rounded-bl-none'
                   }
                 `}>
                   <p className="whitespace-pre-line">{message.text}</p>
-                  <p className={`text-xs mt-1 ${message.isUser ? 'text-blue-100' : 'text-slate-500'}`}>
+                  <p className={`text-xs mt-1 ${message.isUser ? 'text-neza-blue-100' : 'text-slate-500'}`}>
                     {message.timestamp.toLocaleTimeString('es-PE', { 
                       hour: '2-digit', 
                       minute: '2-digit' 
@@ -397,13 +397,13 @@ export const AsesorIAChat = ({ isVisible = false, onToggle }: AsesorIAChatProps)
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Pregúntame sobre productos financieros..."
-              className="flex-1 border-blue-200 focus:border-blue-400"
+              className="flex-1 border-neza-blue-200 focus:border-neza-blue-400"
               disabled={isTyping}
             />
             <Button
               onClick={handleSendMessage}
               disabled={!inputValue.trim() || isTyping}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-neza-blue-600 hover:bg-neza-blue-700 text-white"
             >
               <Send className="w-4 h-4" />
             </Button>
