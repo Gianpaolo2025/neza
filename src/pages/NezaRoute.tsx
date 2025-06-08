@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { ProductCatalog } from "@/components/neza/ProductCatalog";
 import { UserOnboarding } from "@/components/neza/UserOnboarding";
@@ -352,14 +353,14 @@ const NezaRoute = () => {
         </div>
       </div>
 
-      {/* Chatbot arriba */}
-      <div className="fixed bottom-28 right-4 z-40">
+      {/* Chatbot - Arriba del tutorial */}
+      <div className="fixed bottom-20 right-4 z-50">
         <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
       </div>
       
-      {/* Botón de tutorial debajo */}
+      {/* Botón de tutorial - Debajo del chatbot */}
       {!isChatOpen && !showTutorial && (
-        <div className="fixed bottom-4 right-4 z-50">
+        <div className="fixed bottom-4 right-4 z-40">
           <Button
             onClick={handleStartTutorial}
             variant="outline"
