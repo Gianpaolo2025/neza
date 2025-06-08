@@ -119,7 +119,7 @@ export const PlatformSuggestions = () => {
             onChange={(e) => setSuggestion(e.target.value)}
             onKeyPress={handleKeyPress}
             maxLength={500}
-            className="min-h-[100px] resize-none"
+            className="min-h-[60px] resize-none"
           />
           <div className="flex justify-between items-center">
             <span className="text-xs text-neza-blue-600">

@@ -88,7 +88,7 @@ const NezaRoute = () => {
         />
         
         {/* Chatbot arriba */}
-        <div className="fixed bottom-20 right-4 z-40">
+        <div className="fixed bottom-28 right-4 z-40">
           <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
         </div>
         
@@ -131,7 +131,7 @@ const NezaRoute = () => {
         />
         
         {/* Chatbot arriba */}
-        <div className="fixed bottom-20 right-4 z-40">
+        <div className="fixed bottom-28 right-4 z-40">
           <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
         </div>
         
@@ -352,12 +352,12 @@ const NezaRoute = () => {
         </div>
       </div>
 
-      {/* AsesorIA Chat - Arriba */}
-      <div className="fixed bottom-20 right-4 z-40">
+      {/* Chatbot arriba */}
+      <div className="fixed bottom-28 right-4 z-40">
         <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
       </div>
       
-      {/* Botón de tutorial - Debajo del chat */}
+      {/* Botón de tutorial debajo */}
       {!isChatOpen && !showTutorial && (
         <div className="fixed bottom-4 right-4 z-50">
           <Button
