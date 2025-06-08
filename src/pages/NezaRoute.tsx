@@ -87,8 +87,8 @@ const NezaRoute = () => {
           onClose={() => setShowTutorial(false)} 
         />
         
-        {/* Chatbot arriba */}
-        <div className="fixed bottom-32 right-4 z-50">
+        {/* Chatbot reubicado más arriba */}
+        <div className="fixed bottom-40 right-4 z-50">
           <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
         </div>
         
@@ -130,8 +130,8 @@ const NezaRoute = () => {
           onClose={() => setShowTutorial(false)} 
         />
         
-        {/* Chatbot arriba */}
-        <div className="fixed bottom-32 right-4 z-50">
+        {/* Chatbot reubicado más arriba */}
+        <div className="fixed bottom-40 right-4 z-50">
           <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
         </div>
         
@@ -351,8 +351,8 @@ const NezaRoute = () => {
         </div>
       </div>
 
-      {/* Chatbot - Más arriba para evitar superposición */}
-      <div className="fixed bottom-32 right-4 z-50">
+      {/* Chatbot reubicado más arriba (aproximadamente 100px más arriba) */}
+      <div className="fixed bottom-40 right-4 z-50">
         <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
       </div>
       
