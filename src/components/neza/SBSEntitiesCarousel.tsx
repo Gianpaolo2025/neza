@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/carousel";
 import { Shield, Building2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import Autoplay from "embla-carousel-autoplay";
 
 // Lista de 41 entidades financieras supervisadas por la SBS
 const sbsEntitiesData = [
@@ -304,6 +305,13 @@ export const SBSEntitiesCarousel = () => {
         {/* Carrusel de entidades */}
         <div className="relative">
           <Carousel
+            plugins={[
+              Autoplay({
+                delay: 3000,
+                stopOnInteraction: false,
+                stopOnMouseEnter: true,
+              }),
+            ]}
             opts={{
               align: "start",
               loop: true,
