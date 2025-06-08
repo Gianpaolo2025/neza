@@ -302,7 +302,7 @@ export const SBSEntitiesCarousel = () => {
           <Carousel
             plugins={[
               Autoplay({
-                delay: 50,
+                delay: 3000, // 3 segundos entre movimientos
                 stopOnInteraction: false,
                 stopOnMouseEnter: false,
               }),
@@ -310,9 +310,9 @@ export const SBSEntitiesCarousel = () => {
             opts={{
               align: "start",
               loop: true,
-              dragFree: true,
-              slidesToScroll: "auto",
-              duration: 30,
+              dragFree: false, // Movimiento controlado, no libre
+              slidesToScroll: 1, // Solo un elemento a la vez
+              duration: 1500, // Transición suave de 1.5 segundos
             }}
             className="w-full max-w-full"
           >
