@@ -1,244 +1,210 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Shield, Star } from "lucide-react";
+import { Shield } from "lucide-react";
 
 // Lista completa de más de 30 entidades financieras supervisadas por SBS y SMV
 const sbsEntitiesData = [
   {
     name: "Banco de Crédito del Perú",
     logo: "/placeholder.svg",
-    rating: 4.5,
     specialties: ["Préstamos Personales", "Hipotecarios"],
     type: "Banco"
   },
   {
     name: "BBVA",
     logo: "/placeholder.svg", 
-    rating: 4.3,
     specialties: ["Créditos Vehiculares", "Empresariales"],
     type: "Banco"
   },
   {
     name: "Interbank",
     logo: "/placeholder.svg",
-    rating: 4.4,
     specialties: ["Tarjetas de Crédito", "Préstamos"],
     type: "Banco"
   },
   {
     name: "Scotiabank",
     logo: "/placeholder.svg",
-    rating: 4.2,
     specialties: ["Créditos Hipotecarios", "Empresariales"],
     type: "Banco"
   },
   {
     name: "Mibanco",
     logo: "/placeholder.svg",
-    rating: 4.1,
     specialties: ["Microcréditos", "PYME"],
     type: "Banco"
   },
   {
     name: "Financiera Confianza",
     logo: "/placeholder.svg",
-    rating: 4.0,
     specialties: ["Préstamos Personales", "Vehiculares"],
     type: "Financiera"
   },
   {
     name: "Caja Arequipa",
     logo: "/placeholder.svg",
-    rating: 3.9,
     specialties: ["Microcréditos", "Ahorro"],
     type: "Cooperativa"
   },
   {
     name: "Caja Cusco",
     logo: "/placeholder.svg",
-    rating: 3.8,
     specialties: ["Créditos PYME", "Ahorro"],
     type: "Cooperativa"
   },
   {
     name: "Banco Falabella",
     logo: "/placeholder.svg",
-    rating: 4.0,
     specialties: ["Tarjetas", "Créditos de Consumo"],
     type: "Banco"
   },
   {
     name: "Banco Ripley",
     logo: "/placeholder.svg",
-    rating: 3.9,
     specialties: ["Tarjetas", "Préstamos Personales"],
     type: "Banco"
   },
   {
     name: "Caja Municipal de Sullana",
     logo: "/placeholder.svg",
-    rating: 3.8,
     specialties: ["Microcréditos", "PYME"],
     type: "Caja Municipal"
   },
   {
     name: "Caja Municipal de Piura",
     logo: "/placeholder.svg",
-    rating: 3.7,
     specialties: ["Microcréditos", "Ahorro"],
     type: "Caja Municipal"
   },
   {
     name: "Banco Santander",
     logo: "/placeholder.svg",
-    rating: 4.1,
     specialties: ["Créditos Vehiculares", "Empresariales"],
     type: "Banco"
   },
   {
     name: "Banco GNB",
     logo: "/placeholder.svg",
-    rating: 3.9,
     specialties: ["Banca Empresarial", "Comercio Exterior"],
     type: "Banco"
   },
   {
     name: "ICBC",
     logo: "/placeholder.svg",
-    rating: 3.8,
     specialties: ["Banca Corporativa", "Comercio Internacional"],
     type: "Banco"
   },
   {
     name: "Banco Pichincha",
     logo: "/placeholder.svg",
-    rating: 3.7,
     specialties: ["Préstamos Personales", "PYME"],
     type: "Banco"
   },
   {
     name: "Crediscotia Financiera",
     logo: "/placeholder.svg",
-    rating: 4.0,
     specialties: ["Créditos de Consumo", "Tarjetas"],
     type: "Financiera"
   },
   {
     name: "Financiera CrediScotia",
     logo: "/placeholder.svg",
-    rating: 3.9,
     specialties: ["Préstamos Personales", "Vehiculares"],
     type: "Financiera"
   },
   {
     name: "Compartamos Financiera",
     logo: "/placeholder.svg",
-    rating: 3.8,
     specialties: ["Microfinanzas", "Inclusión Financiera"],
     type: "Financiera"
   },
   {
     name: "Financiera Qapaq",
     logo: "/placeholder.svg",
-    rating: 3.7,
     specialties: ["Microcréditos", "PYME"],
     type: "Financiera"
   },
   {
     name: "Caja Rural de Ahorro y Crédito",
     logo: "/placeholder.svg",
-    rating: 3.6,
     specialties: ["Sector Rural", "Agropecuario"],
     type: "Caja Rural"
   },
   {
     name: "COOPAC San José",
     logo: "/placeholder.svg",
-    rating: 3.8,
     specialties: ["Ahorro", "Crédito Cooperativo"],
     type: "Cooperativa"
   },
   {
     name: "COOPAC Abaco",
     logo: "/placeholder.svg",
-    rating: 3.7,
     specialties: ["Créditos Personales", "Ahorro"],
     type: "Cooperativa"
   },
   {
     name: "Banco Azteca",
     logo: "/placeholder.svg",
-    rating: 3.6,
     specialties: ["Inclusión Financiera", "Microcréditos"],
     type: "Banco"
   },
   {
     name: "Caja Metropolitana",
     logo: "/placeholder.svg",
-    rating: 3.9,
     specialties: ["PYME", "Microfinanzas"],
     type: "Caja Municipal"
   },
   {
     name: "Caja Trujillo",
     logo: "/placeholder.svg",
-    rating: 3.8,
     specialties: ["Microcréditos", "Ahorro"],
     type: "Caja Municipal"
   },
   {
     name: "Caja Huancayo",
     logo: "/placeholder.svg",
-    rating: 3.7,
     specialties: ["PYME", "Microfinanzas"],
     type: "Caja Municipal"
   },
   {
     name: "Caja Tacna",
     logo: "/placeholder.svg",
-    rating: 3.6,
     specialties: ["Microcréditos", "Desarrollo Local"],
     type: "Caja Municipal"
   },
   {
     name: "Caja Ica",
     logo: "/placeholder.svg",
-    rating: 3.8,
     specialties: ["Agricultura", "PYME"],
     type: "Caja Municipal"
   },
   {
     name: "Financiera Proempresa",
     logo: "/placeholder.svg",
-    rating: 3.9,
     specialties: ["PYME", "Microfinanzas"],
     type: "Financiera"
   },
   {
     name: "Financiera Efectiva",
     logo: "/placeholder.svg",
-    rating: 3.7,
     specialties: ["Créditos de Consumo", "Préstamos"],
     type: "Financiera"
   },
   {
     name: "Banco de la Nación",
     logo: "/placeholder.svg",
-    rating: 3.5,
     specialties: ["Servicios Públicos", "Inclusión"],
     type: "Banco"
   },
   {
     name: "Mi Banco",
     logo: "/placeholder.svg",
-    rating: 4.0,
     specialties: ["Microfinanzas", "PYME"],
     type: "Banco"
   },
   {
     name: "Banco Continental",
     logo: "/placeholder.svg",
-    rating: 4.2,
     specialties: ["Banca Corporativa", "Retail"],
     type: "Banco"
   }
@@ -290,22 +256,6 @@ export const SBSEntitiesCarousel = () => {
                     <h4 className="font-semibold text-gray-800 text-sm mb-2 leading-tight">
                       {entity.name}
                     </h4>
-                    
-                    <div className="flex items-center justify-center gap-1 mb-2">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`w-3 h-3 ${
-                            i < entity.rating
-                              ? "text-yellow-400 fill-current"
-                              : "text-gray-400"
-                          }`}
-                        />
-                      ))}
-                      <span className="text-xs text-gray-600 ml-1">
-                        {entity.rating.toFixed(1)}
-                      </span>
-                    </div>
                     
                     <p className="text-xs text-gray-600 mb-2">
                       {entity.specialties.join(", ")}
