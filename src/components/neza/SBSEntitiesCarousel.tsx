@@ -7,8 +7,68 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { sbsEntitiesData } from "@/data/sbsEntities";
+import { sbsEntities } from "@/data/sbsEntities";
 import { Shield, Star } from "lucide-react";
+
+// Mock data for display since sbsEntities only has entities without the display properties
+const sbsEntitiesData = [
+  {
+    name: "Banco de Crédito del Perú",
+    logo: "/placeholder.svg",
+    rating: 4.5,
+    specialties: ["Préstamos Personales", "Hipotecarios"],
+    type: "Banco"
+  },
+  {
+    name: "BBVA",
+    logo: "/placeholder.svg", 
+    rating: 4.3,
+    specialties: ["Créditos Vehiculares", "Empresariales"],
+    type: "Banco"
+  },
+  {
+    name: "Interbank",
+    logo: "/placeholder.svg",
+    rating: 4.4,
+    specialties: ["Tarjetas de Crédito", "Préstamos"],
+    type: "Banco"
+  },
+  {
+    name: "Scotiabank",
+    logo: "/placeholder.svg",
+    rating: 4.2,
+    specialties: ["Créditos Hipotecarios", "Empresariales"],
+    type: "Banco"
+  },
+  {
+    name: "Mibanco",
+    logo: "/placeholder.svg",
+    rating: 4.1,
+    specialties: ["Microcréditos", "PYME"],
+    type: "Banco"
+  },
+  {
+    name: "Financiera Confianza",
+    logo: "/placeholder.svg",
+    rating: 4.0,
+    specialties: ["Préstamos Personales", "Vehiculares"],
+    type: "Financiera"
+  },
+  {
+    name: "Caja Arequipa",
+    logo: "/placeholder.svg",
+    rating: 3.9,
+    specialties: ["Microcréditos", "Ahorro"],
+    type: "Cooperativa"
+  },
+  {
+    name: "Caja Cusco",
+    logo: "/placeholder.svg",
+    rating: 3.8,
+    specialties: ["Créditos PYME", "Ahorro"],
+    type: "Cooperativa"
+  }
+];
 
 export const SBSEntitiesCarousel = () => {
   return (

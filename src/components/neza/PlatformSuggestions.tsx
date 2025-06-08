@@ -34,9 +34,9 @@ export const PlatformSuggestions = () => {
         timestamp: new Date().toISOString()
       }, 'low');
 
-      // Track user activity
+      // Track user activity using a valid activity type
       userTrackingService.trackActivity(
-        'platform_suggestion_submit',
+        'form_submit',
         { suggestion: sanitizedSuggestion },
         'Usuario envió sugerencia para mejorar la plataforma'
       );
