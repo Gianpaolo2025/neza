@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Eye, Users, TrendingUp, Clock, Filter, FileText, Smartphone, Monitor, Download } from "lucide-react";
-import { UserData } from "@/pages/Index";
+import { UserData } from "@/types/user";
 import { userTrackingService, UserProfile, UserSession } from "@/services/userTracking";
 import { fileStorageService } from "@/services/fileStorage";
 
