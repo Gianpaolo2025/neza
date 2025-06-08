@@ -83,7 +83,7 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
 
   const handleOtpComplete = (value: string) => {
     setOtpCode(value);
-    // Si el código tiene 6 dígitos, automáticamente continuar
+    // Si el código tiene 6 dígitos, automáticamente continuar sin validación
     if (value.length === 6) {
       onUpdate({ ...data, isValidated: true, otpVerified: true });
       onNext();
@@ -111,13 +111,13 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
             📧
           </motion.div>
           <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-800 to-slate-600 bg-clip-text text-transparent mb-4">
-            Verificación de Email
+            Verificación Simple
           </h2>
           <p className="text-base md:text-lg text-slate-700 mb-4">
             Ingresa cualquier código de 6 dígitos para continuar
           </p>
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
-            <strong>📱 Código:</strong> Ingresa cualquier secuencia de 6 números (ej: 123456)
+            <strong>✅ Fácil:</strong> Solo ingresa 6 números (ej: 123456) para avanzar al siguiente paso
           </div>
         </motion.div>
 
@@ -145,7 +145,7 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
                   </InputOTP>
                 </div>
                 <p className="text-sm text-gray-500 mt-2">
-                  Ingresa 6 dígitos para continuar
+                  Ingresa cualquier 6 dígitos para continuar
                 </p>
               </div>
             </div>
@@ -183,10 +183,10 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
           Datos Personales
         </h2>
         <p className="text-base md:text-lg text-slate-700 mb-4">
-          {isReturningUser ? "Actualiza tus datos si es necesario" : "Necesitamos conocerte mejor para encontrar las mejores opciones financieras"}
+          {isReturningUser ? "Actualiza tus datos si es necesario" : "Completa tus datos personales para continuar"}
         </p>
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800">
-          <strong>📍 Importante:</strong> Todos los campos son editables. Puedes modificar cualquier información previamente ingresada.
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-sm text-green-800">
+          <strong>✏️ Todos los campos son editables:</strong> Puedes modificar cualquier información, incluso si ya la habías ingresado antes
         </div>
       </motion.div>
 
