@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 import { 
   Carousel,
@@ -307,7 +308,7 @@ export const SBSEntitiesCarousel = () => {
           <Carousel
             plugins={[
               Autoplay({
-                delay: 3000,
+                delay: 4000,
                 stopOnInteraction: false,
                 stopOnMouseEnter: true,
               }),
