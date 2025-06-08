@@ -101,15 +101,15 @@ export const PlatformSuggestions = () => {
   }
 
   return (
-    <Card className="bg-amber-50 border-amber-200 max-w-4xl mx-auto">
+    <Card className="bg-neza-blue-50 border-neza-blue-200 max-w-4xl mx-auto">
       <CardHeader className="text-center pb-4">
-        <CardTitle className="text-lg text-amber-800 flex items-center justify-center gap-2">
+        <CardTitle className="text-lg text-neza-blue-800 flex items-center justify-center gap-2">
           <Lightbulb className="w-5 h-5" />
           ¿Tienes alguna sugerencia para que podamos mejorar NEZA?
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-amber-700 text-center text-sm">
+        <p className="text-neza-blue-700 text-center text-sm">
           Déjala aquí y ayúdanos a crear una mejor experiencia para todos.
         </p>
         <div className="space-y-3">
@@ -122,20 +122,20 @@ export const PlatformSuggestions = () => {
             className="min-h-[100px] resize-none"
           />
           <div className="flex justify-between items-center">
-            <span className="text-xs text-amber-600">
+            <span className="text-xs text-neza-blue-600">
               {suggestion.length}/500 caracteres
             </span>
             <Button
               onClick={handleSubmitSuggestion}
               disabled={!suggestion.trim() || isSubmitting}
-              className="bg-amber-600 hover:bg-amber-700"
+              className="bg-neza-blue-600 hover:bg-neza-blue-700"
             >
               <Send className="w-4 h-4 mr-2" />
               Enviar Sugerencia
             </Button>
           </div>
         </div>
-        <p className="text-xs text-amber-700 text-center">
+        <p className="text-xs text-neza-blue-700 text-center">
           Tu opinión es muy valiosa para nosotros. Todas las sugerencias son revisadas por nuestro equipo.
         </p>
       </CardContent>

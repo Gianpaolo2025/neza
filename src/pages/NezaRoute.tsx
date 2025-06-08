@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { ProductCatalog } from "@/components/neza/ProductCatalog";
 import { UserOnboarding } from "@/components/neza/UserOnboarding";
@@ -88,7 +87,24 @@ const NezaRoute = () => {
           onClose={() => setShowTutorial(false)} 
         />
         
-        <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
+        {/* Chatbot arriba */}
+        <div className="fixed bottom-20 right-4 z-40">
+          <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
+        </div>
+        
+        {/* Botón de tutorial debajo */}
+        {!isChatOpen && !showTutorial && (
+          <div className="fixed bottom-4 right-4 z-50">
+            <Button
+              onClick={handleStartTutorial}
+              variant="outline"
+              className="border-neza-blue-300 text-neza-blue-600 hover:bg-neza-blue-50 flex items-center gap-2 shadow-lg bg-white"
+            >
+              <PlayCircle className="w-4 h-4" />
+              Ver Tutorial
+            </Button>
+          </div>
+        )}
       </div>
     );
   }
@@ -114,7 +130,24 @@ const NezaRoute = () => {
           onClose={() => setShowTutorial(false)} 
         />
         
-        <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
+        {/* Chatbot arriba */}
+        <div className="fixed bottom-20 right-4 z-40">
+          <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
+        </div>
+        
+        {/* Botón de tutorial debajo */}
+        {!isChatOpen && !showTutorial && (
+          <div className="fixed bottom-4 right-4 z-50">
+            <Button
+              onClick={handleStartTutorial}
+              variant="outline"
+              className="border-neza-blue-300 text-neza-blue-600 hover:bg-neza-blue-50 flex items-center gap-2 shadow-lg bg-white"
+            >
+              <PlayCircle className="w-4 h-4" />
+              Ver Tutorial
+            </Button>
+          </div>
+        )}
       </div>
     );
   }
@@ -319,24 +352,24 @@ const NezaRoute = () => {
         </div>
       </div>
 
-      {/* AsesorIA Chat - Con botón de tutorial debajo */}
-      <div id="chat-button" className="relative z-40">
+      {/* AsesorIA Chat - Arriba */}
+      <div className="fixed bottom-20 right-4 z-40">
         <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
-        
-        {/* Botón de tutorial debajo del chat */}
-        {!isChatOpen && !showTutorial && (
-          <div className="fixed bottom-4 right-20 z-50">
-            <Button
-              onClick={handleStartTutorial}
-              variant="outline"
-              className="border-neza-blue-300 text-neza-blue-600 hover:bg-neza-blue-50 flex items-center gap-2 shadow-lg bg-white"
-            >
-              <PlayCircle className="w-4 h-4" />
-              Ver Tutorial
-            </Button>
-          </div>
-        )}
       </div>
+      
+      {/* Botón de tutorial - Debajo del chat */}
+      {!isChatOpen && !showTutorial && (
+        <div className="fixed bottom-4 right-4 z-50">
+          <Button
+            onClick={handleStartTutorial}
+            variant="outline"
+            className="border-neza-blue-300 text-neza-blue-600 hover:bg-neza-blue-50 flex items-center gap-2 shadow-lg bg-white"
+          >
+            <PlayCircle className="w-4 h-4" />
+            Ver Tutorial
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

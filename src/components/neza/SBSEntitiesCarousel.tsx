@@ -1,15 +1,8 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
 import { Shield, Star } from "lucide-react";
 
-// Mock data for display since sbsEntities only has entities without the display properties
+// Lista completa de más de 30 entidades financieras supervisadas por SBS y SMV
 const sbsEntitiesData = [
   {
     name: "Banco de Crédito del Perú",
@@ -227,6 +220,27 @@ const sbsEntitiesData = [
     rating: 3.7,
     specialties: ["Créditos de Consumo", "Préstamos"],
     type: "Financiera"
+  },
+  {
+    name: "Banco de la Nación",
+    logo: "/placeholder.svg",
+    rating: 3.5,
+    specialties: ["Servicios Públicos", "Inclusión"],
+    type: "Banco"
+  },
+  {
+    name: "Mi Banco",
+    logo: "/placeholder.svg",
+    rating: 4.0,
+    specialties: ["Microfinanzas", "PYME"],
+    type: "Banco"
+  },
+  {
+    name: "Banco Continental",
+    logo: "/placeholder.svg",
+    rating: 4.2,
+    specialties: ["Banca Corporativa", "Retail"],
+    type: "Banco"
   }
 ];
 
@@ -239,25 +253,23 @@ export const SBSEntitiesCarousel = () => {
             <Shield className="w-6 h-6 text-neza-blue-600" />
             <h3 className="text-2xl font-bold">Entidades Supervisadas por la SBS y SMV</h3>
           </div>
-          <p className="text-neza-blue-700 max-w-2xl mx-auto">
+          <p className="text-neza-blue-700 max-w-2xl mx-auto mb-4">
             Más de 30 entidades financieras autorizadas compiten para ofrecerte las mejores condiciones
           </p>
-          <p className="text-neza-blue-800 text-sm mt-2 font-medium">
-            Todos nuestros aliados están supervisados por la Superintendencia de Banca, Seguros y AFP (SBS) y por la Superintendencia del Mercado de Valores (SMV).
-          </p>
+          <div className="text-neza-blue-800 text-base font-medium">
+            <p>Todos nuestros aliados están supervisados por:</p>
+            <p className="font-semibold">Superintendencia de Banca, Seguros y AFP (SBS)</p>
+            <p className="font-semibold">y por la Superintendencia del Mercado de Valores (SMV)</p>
+          </div>
         </div>
 
-        <Carousel
-          opts={{
-            align: "start",
-            loop: true,
-          }}
-          className="w-full"
-        >
-          <CarouselContent className="-ml-1">
-            {sbsEntitiesData.map((entity, index) => (
-              <CarouselItem key={index} className="pl-1 md:basis-1/3 lg:basis-1/4">
-                <Card className="bg-white border-gray-200 hover:bg-gray-50 transition-all duration-200 shadow-sm hover:shadow-md">
+        {/* Carrusel horizontal automático */}
+        <div className="relative overflow-hidden">
+          <div className="flex animate-scroll gap-4" style={{ width: 'calc(300px * 35)' }}>
+            {/* Duplicamos las entidades para hacer el scroll infinito */}
+            {[...sbsEntitiesData, ...sbsEntitiesData].map((entity, index) => (
+              <div key={index} className="flex-shrink-0 w-72">
+                <Card className="bg-white border-gray-200 hover:bg-gray-50 transition-all duration-200 shadow-sm hover:shadow-md h-full">
                   <CardContent className="p-4 text-center">
                     <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-3">
                       <img
@@ -318,12 +330,10 @@ export const SBSEntitiesCarousel = () => {
                     </div>
                   </CardContent>
                 </Card>
-              </CarouselItem>
+              </div>
             ))}
-          </CarouselContent>
-          <CarouselPrevious className="text-gray-600 border-gray-300 hover:bg-gray-100" />
-          <CarouselNext className="text-gray-600 border-gray-300 hover:bg-gray-100" />
-        </Carousel>
+          </div>
+        </div>
       </div>
     </div>
   );
