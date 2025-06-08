@@ -28,61 +28,55 @@ export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialP
       id: "welcome",
       target: "#interactive-experience",
       title: "¡Bienvenido a NEZA!",
-      description: "Te voy a mostrar cómo funciona nuestra plataforma de subasta financiera. ¡Empezamos!",
+      description: "Te voy a mostrar cómo funciona nuestra plataforma paso a paso. Empezamos desde abajo hacia arriba para que veas todo el proceso completo.",
       position: "bottom"
-    },
-    {
-      id: "request-button",
-      target: "#interactive-experience",
-      title: "Botón Solicitar",
-      description: "Este es el botón principal para solicitar cualquier producto. Al presionarlo irás directamente al cuestionario obligatorio de 8 preguntas.",
-      position: "top",
-      highlight: true
-    },
-    {
-      id: "catalog",
-      target: "#products-section",
-      title: "Catálogo de Productos",
-      description: "Aquí puedes explorar todos nuestros productos financieros disponibles con información detallada de cada uno.",
-      position: "bottom",
-      highlight: true
-    },
-    {
-      id: "auction-system",
-      target: "#why-system",
-      title: "Sistema de Subasta",
-      description: "Aquí es donde la magia sucede: las entidades financieras compiten en tiempo real para darte las mejores condiciones.",
-      position: "bottom"
-    },
-    {
-      id: "questionnaire",
-      target: "#interactive-experience",
-      title: "Cuestionario de 8 Preguntas",
-      description: "El formulario te hará 8 preguntas sobre tu perfil financiero. Por ejemplo: 'En esta pregunta debes seleccionar tu ingreso mensual, ya que influye en la oferta que recibirás.'",
-      position: "top"
     },
     {
       id: "entities",
       target: "#sbs-entities",
-      title: "Entidades Financieras Aliadas",
-      description: "Todas estas entidades supervisadas por la SBS y SMV pueden participar en tu subasta para ofrecerte sus mejores propuestas.",
+      title: "Paso 1 - Entidades Financieras Supervisadas por la SBS y SMV",
+      description: "Aquí tienes más de 30 entidades financieras supervisadas por la SBS y SMV que participan en tu subasta. Todas se mueven automáticamente para que las conozcas.",
       position: "top",
-      highlight: true
-    },
-    {
-      id: "chat-help",
-      target: "#chat-button",
-      title: "Centro de Ayuda - AsesorIA",
-      description: "Usa este chat en cualquier momento para obtener asesoría personalizada y respuestas a preguntas frecuentes durante todo el proceso.",
-      position: "left",
       highlight: true
     },
     {
       id: "suggestions",
       target: "#suggestions-section",
-      title: "Sugerencias para Mejorar",
-      description: "Aquí puedes dejar tus sugerencias para ayudarnos a mejorar la plataforma NEZA.",
-      position: "top"
+      title: "Paso 2 - Sugerencias de los Usuarios",
+      description: "En esta sección puedes dejar cualquier sugerencia para mejorar la plataforma NEZA. Tu opinión es muy valiosa para nosotros.",
+      position: "top",
+      highlight: true
+    },
+    {
+      id: "auction-system",
+      target: "#why-system",
+      title: "Paso 3 - ¿Por qué usar nuestro Sistema de Subasta?",
+      description: "Aquí puedes ver todas las ventajas de nuestro sistema: transparencia, tú eliges, tiempo real y filtros inteligentes.",
+      position: "bottom",
+      highlight: true
+    },
+    {
+      id: "catalog",
+      target: "#products-section",
+      title: "Paso 4 - Descubrir los Productos Financieros Disponibles",
+      description: "Explora todos nuestros productos financieros disponibles: créditos, tarjetas, seguros y más. Al dar clic en 'Solicitar' te llevaremos directamente al formulario.",
+      position: "bottom",
+      highlight: true
+    },
+    {
+      id: "request-button",
+      target: "#interactive-experience",
+      title: "Paso 5 - Productos Financieros Digitales",
+      description: "Este es el botón principal para solicitar cualquier producto. Al presionarlo irás directamente al cuestionario obligatorio de 8 preguntas que toma menos de 2 minutos.",
+      position: "top",
+      highlight: true
+    },
+    {
+      id: "final",
+      target: "#interactive-experience",
+      title: "¡Aquí comienza la magia!",
+      description: "Al responder un breve cuestionario de menos de 2 minutos, te llevaremos directo a tu producto financiero ideal. Las entidades financieras competirán en tiempo real para darte las mejores condiciones.",
+      position: "bottom"
     }
   ];
 

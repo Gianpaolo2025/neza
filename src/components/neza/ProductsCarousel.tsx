@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Eye } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, CreditCard } from "lucide-react";
 
 interface Product {
   id: string;
@@ -128,9 +128,10 @@ const products: Product[] = [
 
 interface ProductsCarouselProps {
   onViewCatalog: () => void;
+  onProductRequest?: (productId: string) => void;
 }
 
-export const ProductsCarousel = ({ onViewCatalog }: ProductsCarouselProps) => {
+export const ProductsCarousel = ({ onViewCatalog, onProductRequest }: ProductsCarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // Auto-scroll optimizado - intervalo más largo para mejor rendimiento
@@ -148,6 +149,12 @@ export const ProductsCarousel = ({ onViewCatalog }: ProductsCarouselProps) => {
 
   const prevSlide = () => {
     setCurrentIndex((prev) => (prev - 1 + products.length) % products.length);
+  };
+
+  const handleProductRequest = (productId: string) => {
+    if (onProductRequest) {
+      onProductRequest(productId);
+    }
   };
 
   const currentProduct = products[currentIndex];
@@ -184,7 +191,7 @@ export const ProductsCarousel = ({ onViewCatalog }: ProductsCarouselProps) => {
         </button>
 
         {/* Contenedor del carrusel - Optimizado sin AnimatePresence */}
-        <div className="mx-12 min-h-[260px]">
+        <div className="mx-12 min-h-[300px]">
           <div className="transition-opacity duration-300">
             <Card className="bg-white/90 backdrop-blur-sm border-neza-blue-200 hover:shadow-xl transition-all duration-300">
               <CardHeader className="text-center pb-3">
@@ -231,13 +238,20 @@ export const ProductsCarousel = ({ onViewCatalog }: ProductsCarouselProps) => {
                   </div>
                 </div>
                 
-                <div className="flex justify-center pt-3">
+                <div className="flex flex-col sm:flex-row gap-3 pt-3">
+                  <Button
+                    onClick={() => handleProductRequest(currentProduct.id)}
+                    className="bg-neza-blue-600 hover:bg-neza-blue-700 flex items-center justify-center gap-2"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    Solicitar {currentProduct.name}
+                  </Button>
                   <Button
                     onClick={onViewCatalog}
                     variant="outline"
-                    className="border-neza-blue-300 text-neza-blue-600 hover:bg-neza-blue-50"
+                    className="border-neza-blue-300 text-neza-blue-600 hover:bg-neza-blue-50 flex items-center justify-center gap-2"
                   >
-                    <Eye className="w-4 h-4 mr-2" />
+                    <Eye className="w-4 h-4" />
                     Ver Catálogo Completo
                   </Button>
                 </div>

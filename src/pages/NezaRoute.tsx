@@ -179,16 +179,6 @@ const NezaRoute = () => {
             <strong>🏛️ Aquí los bancos compiten para darte lo mejor:</strong> Las entidades financieras luchan en tiempo real 
             para ofrecerte las mejores condiciones. Tú eliges la ganadora.
           </div>
-          
-          {/* Botón para iniciar tutorial manualmente */}
-          <Button
-            onClick={handleStartTutorial}
-            variant="outline"
-            className="border-neza-blue-300 text-neza-blue-600 hover:bg-neza-blue-50 flex items-center gap-2 mx-auto"
-          >
-            <PlayCircle className="w-4 h-4" />
-            Ver Tutorial Guiado
-          </Button>
         </div>
 
         {/* Experiencia Interactiva - Solicitud OBLIGATORIA */}
@@ -324,14 +314,28 @@ const NezaRoute = () => {
             por la Superintendencia de Banca, Seguros y AFP (SBS) y la Superintendencia del Mercado de Valores (SMV) del Perú compiten para ofrecerte las mejores condiciones.
           </p>
           <p className="text-neza-silver-400 text-xs mt-2">
-            No todas las entidades están supervisadas por la Superintendencia de Banca, Seguros y AFP (SBS) ni por la Superintendencia del Mercado de Valores (SMV).
+            Todos nuestros aliados están supervisados por la Superintendencia de Banca, Seguros y AFP (SBS) y por la Superintendencia del Mercado de Valores (SMV).
           </p>
         </div>
       </div>
 
-      {/* AsesorIA Chat - Con z-index menor al tutorial */}
+      {/* AsesorIA Chat - Con botón de tutorial debajo */}
       <div id="chat-button" className="relative z-40">
         <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
+        
+        {/* Botón de tutorial debajo del chat */}
+        {!isChatOpen && !showTutorial && (
+          <div className="fixed bottom-4 right-20 z-50">
+            <Button
+              onClick={handleStartTutorial}
+              variant="outline"
+              className="border-neza-blue-300 text-neza-blue-600 hover:bg-neza-blue-50 flex items-center gap-2 shadow-lg bg-white"
+            >
+              <PlayCircle className="w-4 h-4" />
+              Ver Tutorial
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

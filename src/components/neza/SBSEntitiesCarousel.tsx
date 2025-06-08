@@ -66,23 +66,184 @@ const sbsEntitiesData = [
     rating: 3.8,
     specialties: ["Créditos PYME", "Ahorro"],
     type: "Cooperativa"
+  },
+  {
+    name: "Banco Falabella",
+    logo: "/placeholder.svg",
+    rating: 4.0,
+    specialties: ["Tarjetas", "Créditos de Consumo"],
+    type: "Banco"
+  },
+  {
+    name: "Banco Ripley",
+    logo: "/placeholder.svg",
+    rating: 3.9,
+    specialties: ["Tarjetas", "Préstamos Personales"],
+    type: "Banco"
+  },
+  {
+    name: "Caja Municipal de Sullana",
+    logo: "/placeholder.svg",
+    rating: 3.8,
+    specialties: ["Microcréditos", "PYME"],
+    type: "Caja Municipal"
+  },
+  {
+    name: "Caja Municipal de Piura",
+    logo: "/placeholder.svg",
+    rating: 3.7,
+    specialties: ["Microcréditos", "Ahorro"],
+    type: "Caja Municipal"
+  },
+  {
+    name: "Banco Santander",
+    logo: "/placeholder.svg",
+    rating: 4.1,
+    specialties: ["Créditos Vehiculares", "Empresariales"],
+    type: "Banco"
+  },
+  {
+    name: "Banco GNB",
+    logo: "/placeholder.svg",
+    rating: 3.9,
+    specialties: ["Banca Empresarial", "Comercio Exterior"],
+    type: "Banco"
+  },
+  {
+    name: "ICBC",
+    logo: "/placeholder.svg",
+    rating: 3.8,
+    specialties: ["Banca Corporativa", "Comercio Internacional"],
+    type: "Banco"
+  },
+  {
+    name: "Banco Pichincha",
+    logo: "/placeholder.svg",
+    rating: 3.7,
+    specialties: ["Préstamos Personales", "PYME"],
+    type: "Banco"
+  },
+  {
+    name: "Crediscotia Financiera",
+    logo: "/placeholder.svg",
+    rating: 4.0,
+    specialties: ["Créditos de Consumo", "Tarjetas"],
+    type: "Financiera"
+  },
+  {
+    name: "Financiera CrediScotia",
+    logo: "/placeholder.svg",
+    rating: 3.9,
+    specialties: ["Préstamos Personales", "Vehiculares"],
+    type: "Financiera"
+  },
+  {
+    name: "Compartamos Financiera",
+    logo: "/placeholder.svg",
+    rating: 3.8,
+    specialties: ["Microfinanzas", "Inclusión Financiera"],
+    type: "Financiera"
+  },
+  {
+    name: "Financiera Qapaq",
+    logo: "/placeholder.svg",
+    rating: 3.7,
+    specialties: ["Microcréditos", "PYME"],
+    type: "Financiera"
+  },
+  {
+    name: "Caja Rural de Ahorro y Crédito",
+    logo: "/placeholder.svg",
+    rating: 3.6,
+    specialties: ["Sector Rural", "Agropecuario"],
+    type: "Caja Rural"
+  },
+  {
+    name: "COOPAC San José",
+    logo: "/placeholder.svg",
+    rating: 3.8,
+    specialties: ["Ahorro", "Crédito Cooperativo"],
+    type: "Cooperativa"
+  },
+  {
+    name: "COOPAC Abaco",
+    logo: "/placeholder.svg",
+    rating: 3.7,
+    specialties: ["Créditos Personales", "Ahorro"],
+    type: "Cooperativa"
+  },
+  {
+    name: "Banco Azteca",
+    logo: "/placeholder.svg",
+    rating: 3.6,
+    specialties: ["Inclusión Financiera", "Microcréditos"],
+    type: "Banco"
+  },
+  {
+    name: "Caja Metropolitana",
+    logo: "/placeholder.svg",
+    rating: 3.9,
+    specialties: ["PYME", "Microfinanzas"],
+    type: "Caja Municipal"
+  },
+  {
+    name: "Caja Trujillo",
+    logo: "/placeholder.svg",
+    rating: 3.8,
+    specialties: ["Microcréditos", "Ahorro"],
+    type: "Caja Municipal"
+  },
+  {
+    name: "Caja Huancayo",
+    logo: "/placeholder.svg",
+    rating: 3.7,
+    specialties: ["PYME", "Microfinanzas"],
+    type: "Caja Municipal"
+  },
+  {
+    name: "Caja Tacna",
+    logo: "/placeholder.svg",
+    rating: 3.6,
+    specialties: ["Microcréditos", "Desarrollo Local"],
+    type: "Caja Municipal"
+  },
+  {
+    name: "Caja Ica",
+    logo: "/placeholder.svg",
+    rating: 3.8,
+    specialties: ["Agricultura", "PYME"],
+    type: "Caja Municipal"
+  },
+  {
+    name: "Financiera Proempresa",
+    logo: "/placeholder.svg",
+    rating: 3.9,
+    specialties: ["PYME", "Microfinanzas"],
+    type: "Financiera"
+  },
+  {
+    name: "Financiera Efectiva",
+    logo: "/placeholder.svg",
+    rating: 3.7,
+    specialties: ["Créditos de Consumo", "Préstamos"],
+    type: "Financiera"
   }
 ];
 
 export const SBSEntitiesCarousel = () => {
   return (
-    <div className="bg-neza-blue-800 text-white py-12">
+    <div className="bg-white text-gray-800 py-12">
       <div className="container mx-auto px-4 max-w-6xl">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <Shield className="w-6 h-6 text-neza-blue-400" />
+            <Shield className="w-6 h-6 text-neza-blue-600" />
             <h3 className="text-2xl font-bold">Entidades Supervisadas por la SBS y SMV</h3>
           </div>
-          <p className="text-neza-blue-200 max-w-2xl mx-auto">
+          <p className="text-neza-blue-700 max-w-2xl mx-auto">
             Más de 30 entidades financieras autorizadas compiten para ofrecerte las mejores condiciones
           </p>
-          <p className="text-neza-blue-300 text-sm mt-2">
-            No todas las entidades están supervisadas por la Superintendencia de Banca, Seguros y AFP (SBS) ni por la Superintendencia del Mercado de Valores (SMV).
+          <p className="text-neza-blue-800 text-sm mt-2 font-medium">
+            Todos nuestros aliados están supervisados por la Superintendencia de Banca, Seguros y AFP (SBS) y por la Superintendencia del Mercado de Valores (SMV).
           </p>
         </div>
 
@@ -96,9 +257,9 @@ export const SBSEntitiesCarousel = () => {
           <CarouselContent className="-ml-1">
             {sbsEntitiesData.map((entity, index) => (
               <CarouselItem key={index} className="pl-1 md:basis-1/3 lg:basis-1/4">
-                <Card className="bg-white/10 backdrop-blur-sm border-neza-blue-600 hover:bg-white/20 transition-all duration-200">
+                <Card className="bg-white border-gray-200 hover:bg-gray-50 transition-all duration-200 shadow-sm hover:shadow-md">
                   <CardContent className="p-4 text-center">
-                    <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-3">
                       <img
                         src={entity.logo}
                         alt={entity.name}
@@ -114,7 +275,7 @@ export const SBSEntitiesCarousel = () => {
                       </div>
                     </div>
                     
-                    <h4 className="font-semibold text-white text-sm mb-2 leading-tight">
+                    <h4 className="font-semibold text-gray-800 text-sm mb-2 leading-tight">
                       {entity.name}
                     </h4>
                     
@@ -129,12 +290,12 @@ export const SBSEntitiesCarousel = () => {
                           }`}
                         />
                       ))}
-                      <span className="text-xs text-neza-blue-200 ml-1">
+                      <span className="text-xs text-gray-600 ml-1">
                         {entity.rating.toFixed(1)}
                       </span>
                     </div>
                     
-                    <p className="text-xs text-neza-blue-300 mb-2">
+                    <p className="text-xs text-gray-600 mb-2">
                       {entity.specialties.join(", ")}
                     </p>
                     
@@ -142,10 +303,14 @@ export const SBSEntitiesCarousel = () => {
                       <span className={`
                         inline-block px-2 py-1 rounded-full text-xs font-medium
                         ${entity.type === 'Banco' 
-                          ? 'bg-neza-blue-500 text-white' 
+                          ? 'bg-neza-blue-100 text-neza-blue-700' 
                           : entity.type === 'Cooperativa'
-                          ? 'bg-green-500 text-white'
-                          : 'bg-purple-500 text-white'
+                          ? 'bg-green-100 text-green-700'
+                          : entity.type === 'Caja Municipal'
+                          ? 'bg-orange-100 text-orange-700'
+                          : entity.type === 'Caja Rural'
+                          ? 'bg-yellow-100 text-yellow-700'
+                          : 'bg-purple-100 text-purple-700'
                         }
                       `}>
                         {entity.type}
@@ -156,8 +321,8 @@ export const SBSEntitiesCarousel = () => {
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="text-white border-white hover:bg-white/20" />
-          <CarouselNext className="text-white border-white hover:bg-white/20" />
+          <CarouselPrevious className="text-gray-600 border-gray-300 hover:bg-gray-100" />
+          <CarouselNext className="text-gray-600 border-gray-300 hover:bg-gray-100" />
         </Carousel>
       </div>
     </div>
