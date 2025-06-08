@@ -9,8 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AsesorIAChat } from "@/components/AsesorIAChat";
 import { useAsesorIA } from "@/hooks/useAsesorIA";
 import { userTrackingService } from "@/services/userTracking";
-import { motion } from "framer-motion";
-import { Sparkles, FileText, TrendingUp, Shield, Users, Zap, AlertTriangle, Clock, Brain, Trophy, Target, MessageCircle, X } from "lucide-react";
+import { Sparkles, FileText, TrendingUp, Shield, Users, Zap, AlertTriangle, Clock, Brain, Trophy, Target, MessageCircle, X, Filter, CheckCircle } from "lucide-react";
 
 const NezaRoute = () => {
   const [currentView, setCurrentView] = useState<'home' | 'catalog' | 'onboarding'>('home');
@@ -59,7 +58,7 @@ const NezaRoute = () => {
   };
 
   const nextTutorialStep = () => {
-    if (tutorialStep < 4) {
+    if (tutorialStep < 6) { // Aumentado a 7 pasos
       setTutorialStep(tutorialStep + 1);
     } else {
       setShowTutorial(false);
@@ -69,28 +68,38 @@ const NezaRoute = () => {
   const tutorialSteps = [
     {
       target: "#products-section",
-      title: "Ver Productos",
-      description: "Aquí puedes explorar todos nuestros productos financieros disponibles"
+      title: "Catálogo de Productos",
+      description: "Explora todos nuestros productos financieros disponibles con información detallada"
     },
     {
       target: "#interactive-experience",
-      title: "Revisar Ofertas",
-      description: "En esta sección inicias el proceso para recibir ofertas personalizadas"
+      title: "Subasta Financiera",
+      description: "Aquí inicias el proceso donde las entidades compiten por ofrecerte las mejores condiciones"
     },
     {
       target: "#why-system",
-      title: "Cómo Calificar",
-      description: "Conoce las ventajas de nuestro sistema de subasta financiera"
+      title: "Evaluación en Tiempo Real",
+      description: "Conoce cómo funciona nuestro sistema inteligente de evaluación automática"
     },
     {
       target: "#sbs-entities",
-      title: "Comparar Entidades",
-      description: "Todas estas entidades pueden participar en tu subasta financiera"
+      title: "Entidades Reguladas",
+      description: "Todas estas entidades supervisadas por la SBS pueden participar en tu subasta"
     },
     {
       target: "#chat-button",
-      title: "Contactar Asesor",
+      title: "Chatbot Interactivo",
       description: "Usa este chat para obtener asesoría personalizada en cualquier momento"
+    },
+    {
+      target: "#faq-section",
+      title: "Preguntas Frecuentes",
+      description: "Encuentra respuestas a las consultas más comunes sobre nuestro sistema"
+    },
+    {
+      target: "#filter-section",
+      title: "Filtros Inteligentes",
+      description: "El sistema filtra automáticamente las mejores opciones según tu perfil"
     }
   ];
 
@@ -144,7 +153,7 @@ const NezaRoute = () => {
         </div>
       )}
 
-      {/* Popup de Tutorial - Simplificado sin animaciones complejas */}
+      {/* Popup de Tutorial */}
       {showTutorialPopup && (
         <div className="fixed bottom-24 right-6 z-40">
           <Card className="bg-white border-2 border-blue-200 shadow-xl max-w-sm">
@@ -180,7 +189,7 @@ const NezaRoute = () => {
         </div>
       )}
 
-      {/* Mensaje de Bienvenida - Solo se muestra una vez */}
+      {/* Mensaje de Bienvenida */}
       {showWelcomeMessage && (
         <div className="bg-gradient-to-r from-neza-blue-700 to-neza-blue-600 text-white py-6 px-4 relative">
           <div className="container mx-auto max-w-6xl">
@@ -219,7 +228,7 @@ const NezaRoute = () => {
 
       {/* Contenido Principal Centrado */}
       <div className="w-full max-w-6xl mx-auto px-4 py-8">
-        {/* Header con nueva identidad - Sin animaciones complejas */}
+        {/* Header con nueva identidad */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-6xl font-bold text-neza-blue-800 mb-4">
             NEZA
@@ -233,7 +242,7 @@ const NezaRoute = () => {
           </div>
         </div>
 
-        {/* Experiencia Interactiva - Bloque Principal */}
+        {/* Experiencia Interactiva - Bloque Principal con ícono animado */}
         <div 
           id="interactive-experience"
           className="max-w-4xl mx-auto mb-16"
@@ -246,23 +255,23 @@ const NezaRoute = () => {
             }}
           >
             <CardHeader className="text-center pb-4">
-              <div className="w-20 h-20 bg-gradient-to-r from-neza-blue-500 to-neza-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <FileText className="w-10 h-10 text-white" />
+              <div className="w-20 h-20 bg-gradient-to-r from-neza-blue-500 to-neza-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg animate-pulse">
+                <FileText className="w-10 h-10 text-white animate-bounce" />
               </div>
               <CardTitle className="text-3xl text-neza-blue-800 flex items-center justify-center gap-2 mb-4">
                 ✓ Experiencia Interactiva
               </CardTitle>
               <CardDescription className="text-lg text-neza-silver-600 mb-6">
-                Que los bancos compitan por ti - Sistema automático
+                Proceso 100% digital y transparente
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="bg-neza-blue-50 rounded-lg p-4 text-center">
-                <div className="text-neza-blue-700 font-semibold text-lg">🎯 Sistema de Subasta Financiera</div>
-                <div className="text-sm text-neza-blue-600">Evaluación en tiempo real</div>
+                <div className="text-neza-blue-700 font-semibold text-lg">🎯 Evaluación en tiempo real</div>
+                <div className="text-sm text-neza-blue-600">Sistema inteligente de análisis</div>
               </div>
               
-              {/* Mensajes horizontales fijos */}
+              {/* Mensajes horizontales */}
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-lg p-4">
                   <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
@@ -299,7 +308,7 @@ const NezaRoute = () => {
           <ProductsCarousel onViewCatalog={() => setCurrentView('catalog')} />
         </div>
 
-        {/* Features Section actualizada */}
+        {/* Features Section - 4 pilares restaurados */}
         <div 
           id="why-system"
           className="mb-16"
@@ -307,7 +316,7 @@ const NezaRoute = () => {
           <h3 className="text-2xl font-bold text-center text-neza-blue-800 mb-8">
             ¿Por qué usar nuestro Sistema de Subasta?
           </h3>
-          <div className="grid gap-6 md:grid-cols-3 max-w-4xl mx-auto">
+          <div className="grid gap-6 md:grid-cols-4 max-w-6xl mx-auto">
             <div className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-lg border border-neza-blue-200 hover:scale-105 transition-transform duration-200">
               <div className="w-16 h-16 bg-neza-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Shield className="w-8 h-8 text-neza-blue-600" />
@@ -334,9 +343,50 @@ const NezaRoute = () => {
               </div>
               <h4 className="font-semibold text-neza-blue-800 text-lg mb-2">⚡ Tiempo Real</h4>
               <p className="text-sm text-neza-silver-600">
-                Las mejores ofertas se actualizan automáticamente cada minuto.
+                Las mejores ofertas se actualizan automáticamente cada minuto
               </p>
             </div>
+
+            <div 
+              id="filter-section"
+              className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-lg border border-neza-blue-200 hover:scale-105 transition-transform duration-200"
+            >
+              <div className="w-16 h-16 bg-neza-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Filter className="w-8 h-8 text-neza-blue-600" />
+              </div>
+              <h4 className="font-semibold text-neza-blue-800 text-lg mb-2">🔍 Filtros Inteligentes</h4>
+              <p className="text-sm text-neza-silver-600">
+                Encuentra automáticamente tu mejor opción según tu perfil
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Sección FAQ */}
+        <div 
+          id="faq-section"
+          className="mb-16 max-w-4xl mx-auto"
+        >
+          <h3 className="text-2xl font-bold text-center text-neza-blue-800 mb-8">
+            Preguntas Frecuentes
+          </h3>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card className="bg-white/60 backdrop-blur-sm border border-neza-blue-200">
+              <CardContent className="p-4">
+                <h4 className="font-semibold text-neza-blue-800 mb-2">¿Cómo funciona la subasta?</h4>
+                <p className="text-sm text-neza-silver-600">
+                  Las entidades financieras compiten automáticamente para ofrecerte las mejores condiciones según tu perfil.
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="bg-white/60 backdrop-blur-sm border border-neza-blue-200">
+              <CardContent className="p-4">
+                <h4 className="font-semibold text-neza-blue-800 mb-2">¿Es seguro el proceso?</h4>
+                <p className="text-sm text-neza-silver-600">
+                  Sí, todas las entidades están reguladas y supervisadas por la SBS del Perú.
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
@@ -346,12 +396,12 @@ const NezaRoute = () => {
         <SBSEntitiesCarousel />
       </div>
 
-      {/* Footer actualizado con nueva identidad */}
+      {/* Footer actualizado */}
       <div className="bg-neza-blue-800 text-white py-8 mt-12">
         <div className="container mx-auto px-4 text-center max-w-6xl">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <Shield className="w-5 h-5 text-neza-blue-400" />
-            <span className="text-neza-blue-400 font-semibold">Sistema de Subasta Certificado SBS</span>
+            <CheckCircle className="w-5 h-5 text-neza-blue-400" />
+            <span className="text-neza-blue-400 font-semibold">Te conectamos con todas las entidades reguladas por la SBS</span>
           </div>
           <p className="text-neza-silver-300 text-sm max-w-2xl mx-auto">
             NEZA es un sistema de subasta financiera donde las entidades autorizadas y supervisadas 

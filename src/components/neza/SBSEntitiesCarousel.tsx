@@ -33,19 +33,19 @@ const sbsEntities: SBSEntity[] = [
   { id: "19", name: "Santander Consumer", type: "banco", logo: "🏪", sbsCode: "B-01019" },
   { id: "20", name: "Scotiabank Perú", type: "banco", logo: "🏛️", sbsCode: "B-01020" },
   
-  // Financieras (solo las más importantes para optimizar)
+  // Financieras
   { id: "21", name: "Financiera Confianza", type: "financiera", logo: "💼", sbsCode: "F-03001" },
   { id: "22", name: "Financiera Efectiva", type: "financiera", logo: "💼", sbsCode: "F-03002" },
   { id: "23", name: "Financiera Proempresa", type: "financiera", logo: "💼", sbsCode: "F-03004" },
   
-  // Cajas Municipales (las más relevantes)
+  // Cajas Municipales
   { id: "27", name: "Caja Municipal Cusco", type: "caja-municipal", logo: "🏛️", sbsCode: "C-02001" },
   { id: "28", name: "Caja Municipal Arequipa", type: "caja-municipal", logo: "🏛️", sbsCode: "C-02002" },
   { id: "29", name: "Caja Municipal Huancayo", type: "caja-municipal", logo: "🏛️", sbsCode: "C-02004" },
   { id: "30", name: "Caja Municipal Piura", type: "caja-municipal", logo: "🏛️", sbsCode: "C-02008" },
   { id: "31", name: "Caja Municipal Trujillo", type: "caja-municipal", logo: "🏛️", sbsCode: "C-02010" },
   
-  // Cajas Rurales (principales)
+  // Cajas Rurales
   { id: "38", name: "Caja Rural Los Andes", type: "caja-rural", logo: "🏪", sbsCode: "R-04002" },
   { id: "39", name: "Caja Rural del Centro", type: "caja-rural", logo: "🏪", sbsCode: "R-04003" }
 ];
@@ -61,7 +61,7 @@ const getTypeLabel = (type: string) => {
 };
 
 export const SBSEntitiesCarousel = () => {
-  // Solo duplicamos una vez para mejor rendimiento
+  // Duplicamos las entidades para crear efecto continuo
   const duplicatedEntities = [...sbsEntities, ...sbsEntities];
 
   return (
@@ -80,10 +80,10 @@ export const SBSEntitiesCarousel = () => {
           </p>
         </div>
 
-        {/* Carrusel Continuo optimizado */}
+        {/* Carrusel Continuo con movimiento reactivado */}
         <div className="relative overflow-hidden bg-white/50 backdrop-blur-sm rounded-xl py-6">
           <div
-            className="flex gap-4 animate-[scroll_40s_linear_infinite]"
+            className="flex gap-4 animate-[scroll_60s_linear_infinite]"
             style={{ width: "calc(200% + 2rem)" }}
           >
             {duplicatedEntities.map((entity, index) => (
