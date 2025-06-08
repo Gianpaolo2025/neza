@@ -88,20 +88,21 @@ export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialP
       const element = document.querySelector(currentStepData.target);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        element.classList.add('tutorial-highlight');
+        // Aplicar resaltado más pronunciado en azul marino
+        element.classList.add('tutorial-highlight-strong');
       }
       
       const timer = setTimeout(() => {
         setIsHighlighting(false);
         if (element) {
-          element.classList.remove('tutorial-highlight');
+          element.classList.remove('tutorial-highlight-strong');
         }
-      }, 2500);
+      }, 3000);
       
       return () => {
         clearTimeout(timer);
         if (element) {
-          element.classList.remove('tutorial-highlight');
+          element.classList.remove('tutorial-highlight-strong');
         }
       };
     }
@@ -140,67 +141,80 @@ export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialP
 
   return (
     <>
-      {/* Overlay sutil detrás del tutorial */}
-      <div className="fixed inset-0 bg-black/20 z-[60] pointer-events-none" />
-      
-      {/* Tutorial Card - Posicionado a la derecha con z-index muy alto */}
-      <div className="fixed top-1/2 right-6 transform -translate-y-1/2 z-[80]">
-        <Card className="bg-white max-w-sm w-80 shadow-2xl border-2 border-neza-blue-500 animate-in fade-in slide-in-from-right duration-300">
+      {/* Tutorial Card - Posicionado en la parte superior central sin overlay */}
+      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[90] max-w-2xl w-full mx-4">
+        <Card className="bg-white shadow-2xl border-4 border-blue-900 animate-in fade-in slide-in-from-top duration-300">
           <CardContent className="p-6">
             <div className="flex justify-between items-start mb-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-r from-neza-blue-500 to-neza-blue-600 rounded-full flex items-center justify-center animate-pulse">
-                  <Sparkles className="w-4 h-4 text-white" />
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-900 to-blue-800 rounded-full flex items-center justify-center animate-pulse">
+                  <Sparkles className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-sm text-neza-blue-600 font-medium">
-                  Paso {currentStep + 1} de {tutorialSteps.length}
-                </span>
+                <div>
+                  <span className="text-sm text-blue-900 font-bold block">
+                    Tutorial NEZA - Paso {currentStep + 1} de {tutorialSteps.length}
+                  </span>
+                  <span className="text-xs text-blue-700">Aprende a usar la plataforma</span>
+                </div>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleClose}
-                className="p-1 h-auto hover:bg-neza-blue-100"
+                className="p-2 h-auto hover:bg-blue-100 text-blue-900"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </Button>
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Target className="w-5 h-5 text-neza-blue-600" />
-                <h3 className="text-lg font-bold text-gray-800">
-                  {currentStepData.title}
-                </h3>
+              <div className="flex items-start gap-3 mb-3">
+                <Target className="w-6 h-6 text-blue-900 mt-1 flex-shrink-0" />
+                <div>
+                  <h3 className="text-lg font-bold text-blue-900 mb-2">
+                    {currentStepData.title}
+                  </h3>
+                  <p className="text-gray-700 leading-relaxed">
+                    {currentStepData.description}
+                  </p>
+                </div>
               </div>
-              
-              <p className="text-gray-600 leading-relaxed">
-                {currentStepData.description}
-              </p>
 
               {isHighlighting && (
-                <div className="bg-neza-blue-50 border border-neza-blue-200 rounded-lg p-3 animate-pulse">
-                  <p className="text-neza-blue-800 text-sm font-medium">
-                    ✨ Observa el elemento resaltado en la página
+                <div className="bg-blue-900 text-white rounded-lg p-4 animate-pulse border-2 border-blue-700">
+                  <p className="text-sm font-medium flex items-center gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    ✨ Observa el elemento resaltado en azul marino en la página
                   </p>
                 </div>
               )}
             </div>
 
-            <div className="flex justify-between items-center mt-6">
+            <div className="flex justify-between items-center mt-6 pt-4 border-t border-blue-200">
               <Button
                 variant="outline"
                 onClick={handlePrev}
                 disabled={currentStep === 0}
-                className="flex items-center gap-2 border-neza-blue-300 text-neza-blue-600 hover:bg-neza-blue-50"
+                className="flex items-center gap-2 border-blue-900 text-blue-900 hover:bg-blue-50"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Anterior
               </Button>
               
+              <div className="flex gap-1">
+                {tutorialSteps.map((_, index) => (
+                  <div
+                    key={index}
+                    className={`w-2 h-2 rounded-full ${
+                      index === currentStep ? 'bg-blue-900' : 'bg-blue-300'
+                    }`}
+                  />
+                ))}
+              </div>
+              
               <Button
                 onClick={handleNext}
-                className="bg-neza-blue-600 hover:bg-neza-blue-700 flex items-center gap-2"
+                className="bg-blue-900 hover:bg-blue-800 flex items-center gap-2 text-white"
               >
                 {currentStep === tutorialSteps.length - 1 ? 'Finalizar' : 'Siguiente'}
                 <ArrowRight className="w-4 h-4" />
@@ -209,6 +223,40 @@ export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialP
           </CardContent>
         </Card>
       </div>
+
+      {/* Estilos CSS para el resaltado fuerte */}
+      <style jsx global>{`
+        .tutorial-highlight-strong {
+          position: relative;
+          z-index: 60;
+        }
+        
+        .tutorial-highlight-strong::before {
+          content: '';
+          position: absolute;
+          top: -8px;
+          left: -8px;
+          right: -8px;
+          bottom: -8px;
+          border: 4px solid #1e3a8a;
+          border-radius: 12px;
+          background: rgba(30, 58, 138, 0.1);
+          z-index: -1;
+          animation: tutorial-pulse 2s infinite;
+          box-shadow: 0 0 20px rgba(30, 58, 138, 0.5);
+        }
+        
+        @keyframes tutorial-pulse {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 0.8;
+          }
+          50% {
+            transform: scale(1.02);
+            opacity: 1;
+          }
+        }
+      `}</style>
     </>
   );
 };

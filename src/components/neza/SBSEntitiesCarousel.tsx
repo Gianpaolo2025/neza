@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { 
   Carousel,
@@ -308,7 +307,7 @@ export const SBSEntitiesCarousel = () => {
           <Carousel
             plugins={[
               Autoplay({
-                delay: 4000,
+                delay: 0,
                 stopOnInteraction: false,
                 stopOnMouseEnter: true,
               }),
@@ -317,7 +316,8 @@ export const SBSEntitiesCarousel = () => {
               align: "start",
               loop: true,
               dragFree: true,
-              slidesToScroll: 1,
+              slidesToScroll: "auto",
+              duration: 20,
             }}
             className="w-full max-w-full"
           >
@@ -348,6 +348,13 @@ export const SBSEntitiesCarousel = () => {
                           }
                         `}>
                           {entity.type}
+                        </span>
+                      </div>
+
+                      {/* Especialidades */}
+                      <div className="text-xs text-blue-600 mb-2 min-h-[2rem] flex items-center justify-center">
+                        <span className="bg-blue-50 px-2 py-1 rounded-md border border-blue-200">
+                          {entity.specialties[0]}
                         </span>
                       </div>
 
