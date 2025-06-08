@@ -5,6 +5,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UserData } from "@/types/user";
+import { SecurityUtils, SecurityLogger } from "@/services/securityUtils";
+import { Shield } from "lucide-react";
 
 interface UserRegistrationProps {
   onSubmit: (userData: UserData) => void;
@@ -28,17 +30,107 @@ export const UserRegistration = ({ onSubmit }: UserRegistrationProps) => {
     preferredBank: ""
   });
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    // DNI validation
+    if (!SecurityUtils.validateDNI(formData.dni)) {
+      newErrors.dni = "DNI debe tener 8 dígitos";
+    }
+
+    // Email validation
+    if (!SecurityUtils.validateEmail(formData.email)) {
+      newErrors.email = "Formato de email inválido";
+    }
+
+    // Phone validation
+    if (!SecurityUtils.validatePhone(formData.phone)) {
+      newErrors.phone = "Teléfono debe tener formato válido (9 dígitos comenzando con 9)";
+    }
+
+    // Name validation
+    if (formData.firstName.length < 2) {
+      newErrors.firstName = "Nombres debe tener al menos 2 caracteres";
+    }
+
+    if (formData.lastName.length < 2) {
+      newErrors.lastName = "Apellidos debe tener al menos 2 caracteres";
+    }
+
+    // Income validation
+    const income = Number(formData.monthlyIncome);
+    if (isNaN(income) || income < 500 || income > 1000000) {
+      newErrors.monthlyIncome = "Ingreso debe estar entre S/ 500 y S/ 1,000,000";
+    }
+
+    // Requested amount validation
+    const amount = Number(formData.requestedAmount);
+    if (isNaN(amount) || amount < 1000 || amount > 5000000) {
+      newErrors.requestedAmount = "Monto solicitado debe estar entre S/ 1,000 y S/ 5,000,000";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({
-      ...formData,
+    
+    // Rate limiting check
+    const identifier = formData.email || 'anonymous';
+    if (!SecurityUtils.checkRateLimit(`registration_${identifier}`, 3, 300000)) {
+      alert('Demasiados intentos de registro. Espera 5 minutos antes de intentar de nuevo.');
+      SecurityLogger.logEvent('Registration rate limit exceeded', { identifier }, 'medium');
+      return;
+    }
+
+    // Validate form
+    if (!validateForm()) {
+      SecurityLogger.logEvent('Form validation failed', { 
+        errors: Object.keys(errors),
+        email: SecurityUtils.sanitizeInput(formData.email)
+      }, 'low');
+      return;
+    }
+
+    // Sanitize all inputs
+    const sanitizedData = {
+      dni: SecurityUtils.sanitizeInput(formData.dni.replace(/\D/g, '')),
+      firstName: SecurityUtils.sanitizeInput(formData.firstName),
+      lastName: SecurityUtils.sanitizeInput(formData.lastName),
+      email: SecurityUtils.sanitizeInput(formData.email.toLowerCase()),
+      phone: SecurityUtils.sanitizeInput(formData.phone.replace(/\D/g, '')),
       monthlyIncome: Number(formData.monthlyIncome),
-      requestedAmount: Number(formData.requestedAmount)
-    });
+      requestedAmount: Number(formData.requestedAmount),
+      employmentType: SecurityUtils.sanitizeInput(formData.employmentType),
+      creditHistory: SecurityUtils.sanitizeInput(formData.creditHistory),
+      productType: SecurityUtils.sanitizeInput(formData.productType),
+      hasOtherDebts: SecurityUtils.sanitizeInput(formData.hasOtherDebts),
+      bankingRelationship: SecurityUtils.sanitizeInput(formData.bankingRelationship),
+      urgencyLevel: SecurityUtils.sanitizeInput(formData.urgencyLevel),
+      preferredBank: SecurityUtils.sanitizeInput(formData.preferredBank)
+    };
+
+    SecurityLogger.logEvent('User registration submitted', { 
+      email: sanitizedData.email,
+      productType: sanitizedData.productType,
+      requestedAmount: sanitizedData.requestedAmount
+    }, 'low');
+
+    onSubmit(sanitizedData);
   };
 
   const handleChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    // Real-time input sanitization
+    const sanitizedValue = SecurityUtils.sanitizeInput(value);
+    setFormData(prev => ({ ...prev, [field]: sanitizedValue }));
+    
+    // Clear error when user starts fixing it
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
   };
 
   return (
@@ -51,6 +143,10 @@ export const UserRegistration = ({ onSubmit }: UserRegistrationProps) => {
           <CardDescription>
             Completa tu perfil y recibe ofertas personalizadas de múltiples entidades financieras
           </CardDescription>
+          <div className="flex items-center justify-center gap-2 mt-2 text-sm text-green-600">
+            <Shield className="w-4 h-4" />
+            <span>Formulario protegido con validación de seguridad</span>
+          </div>
         </CardHeader>
         
         <CardContent>
@@ -72,7 +168,7 @@ export const UserRegistration = ({ onSubmit }: UserRegistrationProps) => {
               </Select>
             </div>
 
-            {/* Sección: Datos Personales */}
+            {/* Sección: Datos Personales with enhanced validation */}
             <div>
               <h3 className="text-lg font-semibold mb-4">Datos Personales</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -83,8 +179,11 @@ export const UserRegistration = ({ onSubmit }: UserRegistrationProps) => {
                     value={formData.dni}
                     onChange={(e) => handleChange("dni", e.target.value)}
                     placeholder="12345678"
+                    maxLength={8}
+                    className={errors.dni ? "border-red-500" : ""}
                     required
                   />
+                  {errors.dni && <p className="text-sm text-red-500 mt-1">{errors.dni}</p>}
                 </div>
                 
                 <div>
@@ -93,9 +192,12 @@ export const UserRegistration = ({ onSubmit }: UserRegistrationProps) => {
                     id="phone"
                     value={formData.phone}
                     onChange={(e) => handleChange("phone", e.target.value)}
-                    placeholder="999 888 777"
+                    placeholder="999888777"
+                    maxLength={9}
+                    className={errors.phone ? "border-red-500" : ""}
                     required
                   />
+                  {errors.phone && <p className="text-sm text-red-500 mt-1">{errors.phone}</p>}
                 </div>
 
                 <div>
@@ -105,8 +207,11 @@ export const UserRegistration = ({ onSubmit }: UserRegistrationProps) => {
                     value={formData.firstName}
                     onChange={(e) => handleChange("firstName", e.target.value)}
                     placeholder="Juan Carlos"
+                    maxLength={50}
+                    className={errors.firstName ? "border-red-500" : ""}
                     required
                   />
+                  {errors.firstName && <p className="text-sm text-red-500 mt-1">{errors.firstName}</p>}
                 </div>
                 
                 <div>
@@ -116,8 +221,11 @@ export const UserRegistration = ({ onSubmit }: UserRegistrationProps) => {
                     value={formData.lastName}
                     onChange={(e) => handleChange("lastName", e.target.value)}
                     placeholder="García López"
+                    maxLength={50}
+                    className={errors.lastName ? "border-red-500" : ""}
                     required
                   />
+                  {errors.lastName && <p className="text-sm text-red-500 mt-1">{errors.lastName}</p>}
                 </div>
               </div>
 
@@ -129,8 +237,11 @@ export const UserRegistration = ({ onSubmit }: UserRegistrationProps) => {
                   value={formData.email}
                   onChange={(e) => handleChange("email", e.target.value)}
                   placeholder="juan@email.com"
+                  maxLength={254}
+                  className={errors.email ? "border-red-500" : ""}
                   required
                 />
+                {errors.email && <p className="text-sm text-red-500 mt-1">{errors.email}</p>}
               </div>
             </div>
 
@@ -146,8 +257,12 @@ export const UserRegistration = ({ onSubmit }: UserRegistrationProps) => {
                     value={formData.monthlyIncome}
                     onChange={(e) => handleChange("monthlyIncome", e.target.value)}
                     placeholder="3000"
+                    min="500"
+                    max="1000000"
+                    className={errors.monthlyIncome ? "border-red-500" : ""}
                     required
                   />
+                  {errors.monthlyIncome && <p className="text-sm text-red-500 mt-1">{errors.monthlyIncome}</p>}
                 </div>
                 
                 <div>
@@ -158,8 +273,12 @@ export const UserRegistration = ({ onSubmit }: UserRegistrationProps) => {
                     value={formData.requestedAmount}
                     onChange={(e) => handleChange("requestedAmount", e.target.value)}
                     placeholder="10000"
+                    min="1000"
+                    max="5000000"
+                    className={errors.requestedAmount ? "border-red-500" : ""}
                     required
                   />
+                  {errors.requestedAmount && <p className="text-sm text-red-500 mt-1">{errors.requestedAmount}</p>}
                 </div>
 
                 <div>

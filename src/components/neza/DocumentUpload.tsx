@@ -1,10 +1,11 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, CheckCircle, AlertCircle, FileText, Loader2, Eye, Download } from "lucide-react";
+import { Upload, CheckCircle, AlertCircle, FileText, Loader2, Eye, Download, Shield } from "lucide-react";
 import { DocumentAnalyzer, DocumentAnalysis } from "@/services/documentAnalyzer";
 import { fileStorageService } from "@/services/fileStorage";
 import { userTrackingService } from "@/services/userTracking";
+import { SecurityUtils, SecurityLogger } from "@/services/securityUtils";
 
 interface DocumentUploadProps {
   title: string;
@@ -29,47 +30,128 @@ export const DocumentUpload = ({
   const [analysis, setAnalysis] = useState<DocumentAnalysis | null>(null);
   const [fileId, setFileId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [securityCheck, setSecurityCheck] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = async (file: File) => {
-    if (file && (file.type.includes('pdf') || file.type.includes('image'))) {
-      setUploading(true);
-      setUploadedFile(file);
-      setAnalyzing(true);
-      
-      try {
-        // Almacenar archivo real
-        const storedFileId = await fileStorageService.storeFile(file, documentType);
-        setFileId(storedFileId);
-        
-        // Trackear subida de archivo
-        userTrackingService.trackFileUpload(
-          file.name, 
-          file.type, 
-          file.size, 
-          documentType
-        );
-        
-        // Analizar documento
-        const documentAnalysis = await DocumentAnalyzer.analyzeDocument(file, documentType);
-        setAnalysis(documentAnalysis);
-        
-        // Actualizar análisis en el almacenamiento
-        const storedFile = fileStorageService.getFile(storedFileId);
-        if (storedFile) {
-          storedFile.metadata.analysisResult = documentAnalysis;
-        }
-        
-        onUpload(file, documentAnalysis, storedFileId);
-      } catch (error) {
-        console.error('Error uploading file:', error);
-        alert('Error al subir el archivo. Por favor, inténtalo de nuevo.');
-      } finally {
-        setAnalyzing(false);
-        setUploading(false);
+  const validateFileSecurely = async (file: File): Promise<{ isValid: boolean; reason?: string }> => {
+    try {
+      // Check rate limiting
+      const userId = userTrackingService['currentSessionId'] || 'anonymous';
+      if (!SecurityUtils.checkRateLimit(`upload_${userId}`, 10, 300000)) { // 10 uploads per 5 minutes
+        SecurityLogger.logEvent('Rate limit exceeded for file upload', { userId, documentType }, 'medium');
+        return { isValid: false, reason: 'Demasiados intentos de subida. Espera unos minutos.' };
       }
-    } else {
-      alert('Por favor selecciona un archivo PDF o imagen (JPG, PNG)');
+
+      // Validate file type
+      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+      if (!SecurityUtils.isAllowedFileType(file, allowedTypes)) {
+        SecurityLogger.logEvent('Invalid file type upload attempt', { 
+          fileName: file.name, 
+          fileType: file.type,
+          documentType 
+        }, 'medium');
+        return { isValid: false, reason: 'Tipo de archivo no permitido. Solo se aceptan PDF, JPG y PNG.' };
+      }
+
+      // Validate file size (10MB limit)
+      if (!SecurityUtils.validateFileSize(file, 10)) {
+        SecurityLogger.logEvent('File size exceeded', { 
+          fileName: file.name, 
+          fileSize: file.size,
+          documentType 
+        }, 'low');
+        return { isValid: false, reason: 'El archivo excede el tamaño máximo de 10MB.' };
+      }
+
+      // Validate file content
+      const isContentSafe = await SecurityUtils.validateFileContent(file);
+      if (!isContentSafe) {
+        SecurityLogger.logEvent('Suspicious file content detected', { 
+          fileName: file.name,
+          documentType 
+        }, 'high');
+        return { isValid: false, reason: 'El archivo contiene contenido sospechoso.' };
+      }
+
+      // Log successful validation
+      SecurityLogger.logEvent('File validation passed', { 
+        fileName: SecurityUtils.sanitizeFileName(file.name),
+        fileSize: file.size,
+        documentType 
+      }, 'low');
+
+      return { isValid: true };
+    } catch (error) {
+      SecurityLogger.logEvent('File validation error', { 
+        error: error instanceof Error ? error.message : 'Unknown error',
+        documentType 
+      }, 'medium');
+      return { isValid: false, reason: 'Error validando el archivo. Inténtalo de nuevo.' };
+    }
+  };
+
+  const handleFileSelect = async (file: File) => {
+    setSecurityCheck(true);
+    
+    // Security validation
+    const validation = await validateFileSecurely(file);
+    if (!validation.isValid) {
+      setSecurityCheck(false);
+      alert(validation.reason);
+      return;
+    }
+
+    setSecurityCheck(false);
+    setUploading(true);
+    setUploadedFile(file);
+    setAnalyzing(true);
+    
+    try {
+      // Sanitize file name before storage
+      const sanitizedFile = new File([file], SecurityUtils.sanitizeFileName(file.name), {
+        type: file.type,
+        lastModified: file.lastModified
+      });
+
+      // Store file with security measures
+      const storedFileId = await fileStorageService.storeFile(sanitizedFile, documentType);
+      setFileId(storedFileId);
+      
+      // Track upload with security context
+      userTrackingService.trackFileUpload(
+        SecurityUtils.sanitizeInput(sanitizedFile.name), 
+        sanitizedFile.type, 
+        sanitizedFile.size, 
+        SecurityUtils.sanitizeInput(documentType)
+      );
+      
+      // Analyze document
+      const documentAnalysis = await DocumentAnalyzer.analyzeDocument(sanitizedFile, documentType);
+      setAnalysis(documentAnalysis);
+      
+      // Update analysis in storage
+      const storedFile = fileStorageService.getFile(storedFileId);
+      if (storedFile) {
+        storedFile.metadata.analysisResult = documentAnalysis;
+      }
+      
+      SecurityLogger.logEvent('File uploaded successfully', { 
+        fileId: storedFileId,
+        documentType,
+        analysisConfidence: documentAnalysis.confidence 
+      }, 'low');
+      
+      onUpload(sanitizedFile, documentAnalysis, storedFileId);
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      SecurityLogger.logEvent('File upload failed', { 
+        error: error instanceof Error ? error.message : 'Unknown error',
+        documentType 
+      }, 'medium');
+      alert('Error al subir el archivo. Por favor, inténtalo de nuevo.');
+    } finally {
+      setAnalyzing(false);
+      setUploading(false);
     }
   };
 
@@ -101,6 +183,9 @@ export const DocumentUpload = ({
   };
 
   const getStatusIcon = () => {
+    if (securityCheck) {
+      return <Shield className="w-5 h-5 text-yellow-500 animate-pulse" />;
+    }
     if (uploading || analyzing) {
       return <Loader2 className="w-5 h-5 text-neza-blue-500 animate-spin" />;
     }
@@ -118,6 +203,7 @@ export const DocumentUpload = ({
   };
 
   const getStatusText = () => {
+    if (securityCheck) return 'Verificando seguridad...';
     if (uploading) return 'Subiendo archivo...';
     if (analyzing) return 'Analizando documento...';
     
@@ -164,7 +250,7 @@ export const DocumentUpload = ({
         </div>
       </CardHeader>
       <CardContent>
-        {(status === 'pending' || status === 'rejected') && !analyzing && !uploading ? (
+        {(status === 'pending' || status === 'rejected') && !analyzing && !uploading && !securityCheck ? (
           <div
             className={`
               border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors
@@ -185,6 +271,10 @@ export const DocumentUpload = ({
             <p className="text-xs text-neza-silver-500">
               Formatos aceptados: PDF, JPG, PNG (máx. 10MB)
             </p>
+            <div className="flex items-center justify-center gap-1 mt-2 text-xs text-green-600">
+              <Shield className="w-3 h-3" />
+              <span>Verificación de seguridad automática</span>
+            </div>
             <input
               ref={fileInputRef}
               type="file"
