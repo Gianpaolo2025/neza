@@ -31,12 +31,13 @@ const NezaRoute = () => {
     userTrackingService.startSession(tempEmail, 'direct', 'Visita directa a página principal');
     userTrackingService.trackActivity('page_visit', { page: 'home' }, 'Usuario visitó la página principal');
 
-    // Mostrar popup de tutorial después de 3 segundos, solo una vez
+    // Mostrar popup de tutorial después de 2 segundos, verificando si no se ha mostrado antes
     const timer = setTimeout(() => {
-      if (!localStorage.getItem('nezaTutorialShown')) {
+      const hasSeenTutorial = localStorage.getItem('nezaTutorialShown');
+      if (!hasSeenTutorial) {
         setShowTutorialPopup(true);
       }
-    }, 3000);
+    }, 2000);
 
     // Cleanup al salir
     return () => {
@@ -108,31 +109,32 @@ const NezaRoute = () => {
         onClose={() => setShowTutorial(false)} 
       />
 
-      {/* Popup de Tutorial */}
+      {/* Popup de Tutorial - Mejorado para mayor visibilidad */}
       {showTutorialPopup && (
-        <div className="fixed bottom-24 right-6 z-40">
-          <Card className="bg-white border-2 border-blue-200 shadow-xl max-w-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                  <MessageCircle className="w-5 h-5 text-white" />
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <Card className="bg-white border-2 border-blue-200 shadow-2xl max-w-md w-full">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                  <MessageCircle className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-800">Tutorial Interactivo</h4>
-                  <p className="text-sm text-gray-600">Conoce cómo funciona la plataforma paso a paso.</p>
+                  <h4 className="font-bold text-lg text-gray-800">🎯 ¡Bienvenido a NEZA!</h4>
+                  <p className="text-sm text-gray-600">¿Te gustaría hacer un recorrido guiado?</p>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <p className="text-gray-700 mb-4">
+                Te mostraré paso a paso cómo funciona nuestra plataforma de subasta financiera y cómo obtener las mejores ofertas.
+              </p>
+              <div className="flex gap-3">
                 <Button
                   onClick={handleStartTutorial}
-                  size="sm"
                   className="bg-blue-600 hover:bg-blue-700 text-white flex-1"
                 >
-                  ✅ Iniciar Tour
+                  ✅ Iniciar Tour Guiado
                 </Button>
                 <Button
                   onClick={handleSkipTutorial}
-                  size="sm"
                   variant="outline"
                   className="border-gray-300 text-gray-600 hover:bg-gray-50 flex-1"
                 >

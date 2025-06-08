@@ -7,24 +7,24 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 10% 3.9%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
@@ -32,50 +32,50 @@
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
 
-    /* Neza Color Palette */
-    --neza-blue-50: 239 100% 97%;
-    --neza-blue-100: 237 100% 93%;
-    --neza-blue-200: 237 100% 87%;
-    --neza-blue-300: 237 100% 78%;
-    --neza-blue-400: 237 100% 67%;
-    --neza-blue-500: 237 100% 55%;
-    --neza-blue-600: 237 100% 45%;
-    --neza-blue-700: 237 100% 35%;
-    --neza-blue-800: 237 100% 25%;
-    --neza-blue-900: 237 100% 15%;
-    
-    --neza-silver-50: 210 20% 98%;
-    --neza-silver-100: 210 20% 95%;
-    --neza-silver-200: 210 20% 90%;
-    --neza-silver-300: 210 20% 80%;
-    --neza-silver-400: 210 20% 65%;
-    --neza-silver-500: 210 20% 50%;
-    --neza-silver-600: 210 20% 40%;
-    --neza-silver-700: 210 20% 30%;
-    --neza-silver-800: 210 20% 20%;
-    --neza-silver-900: 210 20% 10%;
+    /* Neza Colors */
+    --neza-blue-50: 219 100% 96%;
+    --neza-blue-100: 218 100% 91%;
+    --neza-blue-200: 221 85% 82%;
+    --neza-blue-300: 221 70% 70%;
+    --neza-blue-400: 221 70% 58%;
+    --neza-blue-500: 221 83% 53%;
+    --neza-blue-600: 221 83% 45%;
+    --neza-blue-700: 221 83% 38%;
+    --neza-blue-800: 221 83% 31%;
+    --neza-blue-900: 221 70% 20%;
+
+    --neza-silver-50: 210 40% 98%;
+    --neza-silver-100: 210 40% 96%;
+    --neza-silver-200: 214 32% 91%;
+    --neza-silver-300: 213 27% 84%;
+    --neza-silver-400: 215 20% 65%;
+    --neza-silver-500: 215 16% 47%;
+    --neza-silver-600: 215 19% 35%;
+    --neza-silver-700: 215 25% 27%;
+    --neza-silver-800: 217 33% 17%;
+    --neza-silver-900: 222 84% 5%;
   }
 
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
@@ -94,38 +94,88 @@
   }
 }
 
-/* Tutorial highlight styles */
-.tutorial-highlight {
-  position: relative;
-  z-index: 30;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5), 0 0 20px rgba(59, 130, 246, 0.3);
-  border-radius: 8px;
-  animation: tutorial-pulse 2s infinite;
-}
-
-@keyframes tutorial-pulse {
-  0%, 100% {
-    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5), 0 0 20px rgba(59, 130, 246, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.3), 0 0 30px rgba(59, 130, 246, 0.2);
+@layer components {
+  .tutorial-highlight {
+    @apply ring-4 ring-yellow-400 ring-opacity-60 bg-yellow-50 transition-all duration-1000;
   }
 }
 
-/* SBS Carousel smooth animation */
-@keyframes scroll-left {
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Animaciones para carrusel */
+@keyframes scroll {
   0% {
     transform: translateX(0);
   }
   100% {
-    transform: translateX(-50%);
+    transform: translateX(-33.333%);
   }
 }
 
-.sbs-carousel-scroll {
-  animation: scroll-left 60s linear infinite;
+.animate-scroll {
+  animation: scroll 90s linear infinite;
 }
 
-.sbs-carousel-scroll:hover {
+.animate-scroll:hover {
   animation-play-state: paused;
 }
+
+/* Clases adicionales para el sistema de colores Neza */
+.bg-neza-blue-50 { background-color: hsl(var(--neza-blue-50)); }
+.bg-neza-blue-100 { background-color: hsl(var(--neza-blue-100)); }
+.bg-neza-blue-200 { background-color: hsl(var(--neza-blue-200)); }
+.bg-neza-blue-300 { background-color: hsl(var(--neza-blue-300)); }
+.bg-neza-blue-400 { background-color: hsl(var(--neza-blue-400)); }
+.bg-neza-blue-500 { background-color: hsl(var(--neza-blue-500)); }
+.bg-neza-blue-600 { background-color: hsl(var(--neza-blue-600)); }
+.bg-neza-blue-700 { background-color: hsl(var(--neza-blue-700)); }
+.bg-neza-blue-800 { background-color: hsl(var(--neza-blue-800)); }
+.bg-neza-blue-900 { background-color: hsl(var(--neza-blue-900)); }
+
+.text-neza-blue-50 { color: hsl(var(--neza-blue-50)); }
+.text-neza-blue-100 { color: hsl(var(--neza-blue-100)); }
+.text-neza-blue-200 { color: hsl(var(--neza-blue-200)); }
+.text-neza-blue-300 { color: hsl(var(--neza-blue-300)); }
+.text-neza-blue-400 { color: hsl(var(--neza-blue-400)); }
+.text-neza-blue-500 { color: hsl(var(--neza-blue-500)); }
+.text-neza-blue-600 { color: hsl(var(--neza-blue-600)); }
+.text-neza-blue-700 { color: hsl(var(--neza-blue-700)); }
+.text-neza-blue-800 { color: hsl(var(--neza-blue-800)); }
+.text-neza-blue-900 { color: hsl(var(--neza-blue-900)); }
+
+.bg-neza-silver-50 { background-color: hsl(var(--neza-silver-50)); }
+.bg-neza-silver-100 { background-color: hsl(var(--neza-silver-100)); }
+.bg-neza-silver-200 { background-color: hsl(var(--neza-silver-200)); }
+.bg-neza-silver-300 { background-color: hsl(var(--neza-silver-300)); }
+.bg-neza-silver-400 { background-color: hsl(var(--neza-silver-400)); }
+.bg-neza-silver-500 { background-color: hsl(var(--neza-silver-500)); }
+.bg-neza-silver-600 { background-color: hsl(var(--neza-silver-600)); }
+.bg-neza-silver-700 { background-color: hsl(var(--neza-silver-700)); }
+.bg-neza-silver-800 { background-color: hsl(var(--neza-silver-800)); }
+.bg-neza-silver-900 { background-color: hsl(var(--neza-silver-900)); }
+
+.text-neza-silver-50 { color: hsl(var(--neza-silver-50)); }
+.text-neza-silver-100 { color: hsl(var(--neza-silver-100)); }
+.text-neza-silver-200 { color: hsl(var(--neza-silver-200)); }
+.text-neza-silver-300 { color: hsl(var(--neza-silver-300)); }
+.text-neza-silver-400 { color: hsl(var(--neza-silver-400)); }
+.text-neza-silver-500 { color: hsl(var(--neza-silver-500)); }
+.text-neza-silver-600 { color: hsl(var(--neza-silver-600)); }
+.text-neza-silver-700 { color: hsl(var(--neza-silver-700)); }
+.text-neza-silver-800 { color: hsl(var(--neza-silver-800)); }
+.text-neza-silver-900 { color: hsl(var(--neza-silver-900)); }
+
+.border-neza-blue-50 { border-color: hsl(var(--neza-blue-50)); }
+.border-neza-blue-100 { border-color: hsl(var(--neza-blue-100)); }
+.border-neza-blue-200 { border-color: hsl(var(--neza-blue-200)); }
+.border-neza-blue-300 { border-color: hsl(var(--neza-blue-300)); }
+.border-neza-blue-400 { border-color: hsl(var(--neza-blue-400)); }
+.border-neza-blue-500 { border-color: hsl(var(--neza-blue-500)); }
+.border-neza-blue-600 { border-color: hsl(var(--neza-blue-600)); }
+.border-neza-blue-700 { border-color: hsl(var(--neza-blue-700)); }
+.border-neza-blue-800 { border-color: hsl(var(--neza-blue-800)); }
+.border-neza-blue-900 { border-color: hsl(var(--neza-blue-900)); }

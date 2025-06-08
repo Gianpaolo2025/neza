@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,7 @@ export const AsesorIAChat = ({ isVisible = false, onToggle }: AsesorIAChatProps)
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: '¡Hola! Soy AsesorIA, tu asistente financiero personal. ¿En qué puedo ayudarte hoy? Puedo ayudarte con información sobre productos financieros, tasas de interés, requisitos y mucho más.',
+      text: '¡Hola! Soy AsesorIA, tu asistente financiero personal. ¿En qué puedo ayudarte hoy? Puedo ayudarte con información sobre productos financieros, tasas de interés, requisitos y mucho más.\n\n⚠️ Nota: Soy una herramienta informativa y no reemplazo el consejo financiero profesional.',
       isUser: false,
       timestamp: new Date()
     }
@@ -44,39 +45,107 @@ export const AsesorIAChat = ({ isVisible = false, onToggle }: AsesorIAChatProps)
   const getAsesorIAResponse = (userMessage: string): string => {
     const lowerMessage = userMessage.toLowerCase();
     
-    if (lowerMessage.includes('crédito') || lowerMessage.includes('préstamo')) {
-      return '💰 Te puedo ayudar con información sobre créditos! Tenemos créditos personales, hipotecarios, vehiculares y para empresas. ¿Qué tipo de crédito te interesa? También puedo explicarte las tasas y requisitos.';
+    // Seguridad: No permitir consultas sobre datos sensibles
+    if (lowerMessage.includes('contraseña') || lowerMessage.includes('password') || 
+        lowerMessage.includes('clave') || lowerMessage.includes('pin') || 
+        lowerMessage.includes('cuenta bancaria') || lowerMessage.includes('número de cuenta')) {
+      return '🚫 Por seguridad, no puedo ayudarte con información sensible como contraseñas o números de cuenta. Te recomiendo contactar directamente con tu entidad financiera para estos temas.';
     }
-    
-    if (lowerMessage.includes('tasa') || lowerMessage.includes('interés')) {
-      return '📊 Las tasas de interés varían según el producto financiero:\n• Créditos personales: desde 18% anual\n• Créditos hipotecarios: desde 8.5% anual\n• Tarjetas de crédito: desde 35% anual\n¿Te interesa algún producto en particular?';
+
+    // Consultas sobre NEZA y subasta financiera
+    if (lowerMessage.includes('neza') || lowerMessage.includes('subasta financiera') || lowerMessage.includes('cómo funciona')) {
+      return '🏛️ **¿Qué es NEZA?**\n\nNEZA es un sistema de subasta financiera donde los bancos y entidades reguladas por la SBS compiten para ofrecerte las mejores condiciones.\n\n**¿Cómo funciona?**\n1. Completas un formulario de 8 preguntas\n2. Las entidades financieras reciben tu perfil\n3. Compiten automáticamente para darte la mejor oferta\n4. Tú eliges la propuesta ganadora\n\n✅ Es 100% transparente y seguro.';
     }
-    
-    if (lowerMessage.includes('requisitos') || lowerMessage.includes('documentos')) {
-      return '📋 Los requisitos básicos suelen ser:\n• DNI vigente\n• Boletas de pago (3 últimas)\n• Declaración jurada de ingresos\n• Referencias personales\n¿Para qué producto necesitas los requisitos específicos?';
+
+    // Consultas sobre productos financieros específicos
+    if (lowerMessage.includes('crédito personal') || lowerMessage.includes('préstamo personal')) {
+      return '💰 **Crédito Personal**\n\n• **Monto:** S/. 1,000 - S/. 50,000\n• **Plazo:** 6 meses a 5 años\n• **Tasa:** Desde 18% anual\n• **Uso:** Gastos personales, emergencias, proyectos\n\n**Requisitos básicos:**\n✓ DNI vigente\n✓ Ingresos demostrables\n✓ Historial crediticio\n\n¿Te interesa conocer más detalles?';
     }
-    
-    if (lowerMessage.includes('depósito') || lowerMessage.includes('ahorro')) {
-      return '🏦 Tenemos varios productos de ahorro:\n• Cuentas de ahorros (desde 0% comisión)\n• Depósitos a plazo (hasta 7% anual)\n• Depósitos CTS\n¿Te gustaría conocer más detalles de alguno?';
+
+    if (lowerMessage.includes('crédito hipotecario') || lowerMessage.includes('casa') || lowerMessage.includes('vivienda')) {
+      return '🏠 **Crédito Hipotecario**\n\n• **Monto:** S/. 50,000 - S/. 500,000\n• **Plazo:** 5 a 30 años\n• **Financiamiento:** Hasta 90% del valor\n• **Tasa:** Desde 8.5% anual\n\n**Requisitos:**\n✓ Cuota inicial (mínimo 10%)\n✓ Ingresos estables\n✓ Evaluación de la propiedad\n✓ Seguro de desgravamen\n\n¿Necesitas más información sobre algún aspecto?';
     }
-    
-    if (lowerMessage.includes('tarjeta')) {
-      return '💳 Ofrecemos tarjetas de crédito con beneficios especiales:\n• Sin cuota de manejo el primer año\n• Cashback en compras\n• Programa de puntos\n¿Qué tipo de tarjeta buscas?';
+
+    if (lowerMessage.includes('crédito vehicular') || lowerMessage.includes('auto') || lowerMessage.includes('vehículo')) {
+      return '🚗 **Crédito Vehicular**\n\n• **Monto:** S/. 10,000 - S/. 150,000\n• **Plazo:** 2 a 7 años\n• **Tasa:** Desde 12% anual\n• **Tipo:** Vehículos nuevos y usados\n\n**Beneficios:**\n✓ Financiamiento hasta 80% del valor\n✓ Seguro vehicular incluido\n✓ Trámites simplificados\n\n¿Qué tipo de vehículo te interesa?';
     }
-    
-    if (lowerMessage.includes('banco') || lowerMessage.includes('entidad')) {
-      return '🏛️ Trabajamos con las principales entidades financieras del Perú supervisadas por la SBS. Comparamos ofertas de bancos, cajas y financieras para encontrar la mejor opción para tu perfil.';
+
+    if (lowerMessage.includes('tarjeta de crédito') || lowerMessage.includes('tarjeta')) {
+      return '💳 **Tarjeta de Crédito**\n\n• **Línea:** S/. 500 - S/. 50,000\n• **Tasa:** Desde 35% anual\n• **Beneficios:** Cashback, puntos, promociones\n\n**Tipos disponibles:**\n✓ Clásica\n✓ Gold\n✓ Platinum\n✓ Corporativa\n\n**Requisitos:**\n• Ingresos mínimos S/. 1,500\n• Historial crediticio positivo\n\n¿Te interesa algún tipo específico?';
     }
-    
-    if (lowerMessage.includes('ayuda') || lowerMessage.includes('help')) {
-      return '🤝 Estoy aquí para ayudarte con:\n• Información sobre productos financieros\n• Comparación de tasas y beneficios\n• Requisitos y documentación\n• Proceso de solicitud\n• Resolución de dudas\n¿Qué necesitas saber?';
+
+    if (lowerMessage.includes('cuenta de ahorros') || lowerMessage.includes('ahorros')) {
+      return '🏦 **Cuenta de Ahorros**\n\n• **Saldo mínimo:** S/. 0\n• **Rentabilidad:** Hasta 4% anual\n• **Mantenimiento:** Generalmente gratuito\n\n**Beneficios:**\n✓ Acceso 24/7 a cajeros\n✓ Banca por internet\n✓ Tarjeta de débito gratuita\n✓ Transferencias sin costo\n\n¿Quieres conocer las mejores opciones del mercado?';
     }
-    
-    if (lowerMessage.includes('gracias')) {
-      return '😊 ¡De nada! Es un placer ayudarte. Si tienes más preguntas sobre productos financieros, no dudes en consultarme. ¡Estoy aquí para ayudarte a encontrar la mejor opción!';
+
+    if (lowerMessage.includes('depósito a plazo') || lowerMessage.includes('plazo fijo')) {
+      return '📈 **Depósito a Plazo**\n\n• **Monto mínimo:** S/. 1,000\n• **Plazo:** 30 días a 5 años\n• **Tasa:** Hasta 6% anual\n• **Renovación:** Automática u opcional\n\n**Ventajas:**\n✓ Tasa fija garantizada\n✓ Mayor rentabilidad que ahorros\n✓ Seguridad del capital\n\n¿Qué plazo te interesa más?';
     }
-    
-    return '🤖 Entiendo tu consulta. Como tu asesora financiera, puedo ayudarte con información sobre créditos, depósitos, tarjetas, tasas de interés y requisitos. ¿Podrías ser más específico sobre qué producto financiero te interesa?';
+
+    // Consultas sobre tasas e intereses
+    if (lowerMessage.includes('tasa') || lowerMessage.includes('interés') || lowerMessage.includes('cuánto cuesta')) {
+      return '📊 **Tasas de Interés Aproximadas:**\n\n• **Crédito Personal:** 18% - 45% anual\n• **Crédito Hipotecario:** 8.5% - 12% anual\n• **Crédito Vehicular:** 12% - 18% anual\n• **Tarjeta de Crédito:** 35% - 80% anual\n• **Depósito a Plazo:** 2% - 6% anual\n\n*Las tasas varían según tu perfil crediticio y la entidad financiera.*\n\n¿Te interesa algún producto específico?';
+    }
+
+    // Consultas sobre requisitos
+    if (lowerMessage.includes('requisitos') || lowerMessage.includes('documentos') || lowerMessage.includes('qué necesito')) {
+      return '📋 **Requisitos Generales:**\n\n**Documentos básicos:**\n✓ DNI vigente\n✓ Recibo de servicios (domicilio)\n✓ Últimas 3 boletas de pago\n✓ Declaración jurada de ingresos\n\n**Para independientes:**\n✓ RUC activo\n✓ Declaraciones de impuestos\n✓ Estados financieros\n\n**Adicionales según producto:**\n• Garantías (hipotecario/vehicular)\n• Referencias comerciales/personales\n\n¿Para qué producto necesitas los requisitos específicos?';
+    }
+
+    // Consultas sobre ingresos específicos
+    if (lowerMessage.includes('gano') || lowerMessage.includes('ingreso') || lowerMessage.includes('sueldo')) {
+      const salaryMatch = userMessage.match(/(\d+)/);
+      if (salaryMatch) {
+        const salary = parseInt(salaryMatch[1]);
+        let response = `💼 **Con ingresos de S/. ${salary.toLocaleString()}:**\n\n`;
+        
+        if (salary >= 5000) {
+          response += '✅ **Puedes acceder a:**\n• Créditos hipotecarios\n• Créditos vehiculares\n• Tarjetas premium\n• Depósitos a plazo altos\n• Seguros completos';
+        } else if (salary >= 2000) {
+          response += '✅ **Puedes acceder a:**\n• Créditos personales\n• Tarjetas de crédito básicas\n• Créditos vehiculares (usados)\n• Cuentas de ahorros con beneficios';
+        } else if (salary >= 1000) {
+          response += '✅ **Puedes acceder a:**\n• Créditos personales menores\n• Cuentas de ahorros\n• Tarjetas de débito\n• Micro créditos';
+        } else {
+          response += '📝 **Recomendaciones:**\n• Enfócate en productos de ahorro\n• Considera micro créditos\n• Trabaja en mejorar tu perfil crediticio';
+        }
+        
+        response += '\n\n💡 En NEZA, las entidades compiten por darte la mejor oferta según tu perfil. ¡Solicita y compara!';
+        return response;
+      }
+    }
+
+    // Consultas sobre seguros
+    if (lowerMessage.includes('seguro')) {
+      return '🛡️ **Seguros Disponibles:**\n\n**Seguro de Vida:**\n• Cobertura: S/. 50,000 - S/. 1,000,000\n• Prima mensual desde S/. 50\n\n**Seguro Vehicular:**\n• Todo riesgo o contra terceros\n• Prima anual: 2-4% del valor del vehículo\n\n**Seguro SOAT:**\n• Obligatorio para todos los vehículos\n• Cobertura básica por accidentes\n\n**Seguro del Hogar:**\n• Protección contra incendio, robo, sismos\n• Prima anual desde S/. 200\n\n¿Te interesa algún tipo específico?';
+    }
+
+    // Consultas sobre comparación
+    if (lowerMessage.includes('mejor') || lowerMessage.includes('comparar') || lowerMessage.includes('recomienda')) {
+      return '🏆 **Para elegir la mejor opción:**\n\n**Compara siempre:**\n✓ Tasa de interés efectiva anual (TEA)\n✓ Comisiones y gastos\n✓ Plazo de pago\n✓ Requisitos de aprobación\n✓ Beneficios adicionales\n\n**En NEZA te ayudamos:**\n• Las entidades compiten automáticamente\n• Recibes múltiples ofertas\n• Comparas fácilmente las opciones\n• Eliges la mejor para tu perfil\n\n¿Quieres iniciar tu solicitud ahora?';
+    }
+
+    // Consultas sobre el proceso
+    if (lowerMessage.includes('proceso') || lowerMessage.includes('pasos') || lowerMessage.includes('solicitar')) {
+      return '📝 **Proceso en NEZA:**\n\n**Paso 1:** Completa el formulario (8 preguntas)\n**Paso 2:** Tu perfil llega a las entidades\n**Paso 3:** Recibe ofertas en tiempo real\n**Paso 4:** Compara y elige la mejor\n**Paso 5:** Contacto directo con la entidad\n\n⏱️ **Tiempo total:** 5-10 minutos\n🔒 **Seguridad:** 100% confidencial\n💰 **Costo:** Totalmente gratuito\n\n¿Listo para comenzar tu solicitud?';
+    }
+
+    // Ayuda general
+    if (lowerMessage.includes('ayuda') || lowerMessage.includes('help') || lowerMessage.includes('opciones')) {
+      return '🤝 **¿En qué puedo ayudarte?**\n\n**Puedo informarte sobre:**\n• Productos financieros y sus características\n• Tasas de interés y costos\n• Requisitos y documentación\n• Proceso de solicitud en NEZA\n• Comparación de opciones\n• Consejos financieros básicos\n\n**Ejemplos de preguntas:**\n• "¿Qué es un crédito hipotecario?"\n• "¿Cuánto cuesta una tarjeta de crédito?"\n• "Gano 3000 soles, ¿qué puedo solicitar?"\n\n¿Qué te gustaría saber?';
+    }
+
+    // Agradecimientos
+    if (lowerMessage.includes('gracias') || lowerMessage.includes('thank')) {
+      return '😊 ¡De nada! Me alegra poder ayudarte. Recuerda que:\n\n• Estoy aquí para resolver tus dudas financieras\n• Puedes preguntarme sobre cualquier producto\n• En NEZA las entidades compiten por darte lo mejor\n\n¿Hay algo más en lo que pueda asistirte?';
+    }
+
+    // Consultas sobre tiempo o urgencia
+    if (lowerMessage.includes('urgente') || lowerMessage.includes('rápido') || lowerMessage.includes('cuánto demora')) {
+      return '⚡ **Tiempos de Respuesta:**\n\n**En NEZA:**\n• Formulario: 5 minutos\n• Ofertas: Inmediatas\n• Comparación: Tiempo real\n\n**Aprobación por entidad:**\n• Tarjetas: 24-48 horas\n• Créditos personales: 2-5 días\n• Créditos vehiculares: 5-10 días\n• Créditos hipotecarios: 15-30 días\n\n💡 **Para mayor velocidad:** Ten tus documentos listos y completa toda la información solicitada.\n\n¿Necesitas algo urgente?';
+    }
+
+    // Respuesta por defecto con IA simulada
+    return '🤖 Entiendo tu consulta sobre temas financieros. Como tu asesora IA, puedo ayudarte con:\n\n• **Productos:** Créditos, tarjetas, seguros, ahorros\n• **Información:** Tasas, requisitos, procesos\n• **Comparación:** Ventajas y características\n• **NEZA:** Cómo funciona nuestra plataforma\n\n💡 **Consejo:** Sé más específico en tu pregunta. Por ejemplo:\n"¿Qué documentos necesito para un crédito personal?"\n"¿Cuál es la mejor tarjeta de crédito para mis ingresos?"\n\n¿En qué puedo ayudarte específicamente?';
   };
 
   const handleSendMessage = async () => {
@@ -93,6 +162,7 @@ export const AsesorIAChat = ({ isVisible = false, onToggle }: AsesorIAChatProps)
     setInputValue('');
     setIsTyping(true);
 
+    // Simular tiempo de respuesta de IA
     setTimeout(() => {
       const response = getAsesorIAResponse(inputValue);
       const botMessage: Message = {
@@ -104,7 +174,7 @@ export const AsesorIAChat = ({ isVisible = false, onToggle }: AsesorIAChatProps)
       
       setMessages(prev => [...prev, botMessage]);
       setIsTyping(false);
-    }, 1000 + Math.random() * 1000);
+    }, 1500 + Math.random() * 1000); // Tiempo realista de IA
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -118,7 +188,7 @@ export const AsesorIAChat = ({ isVisible = false, onToggle }: AsesorIAChatProps)
     onToggle?.();
   };
 
-  // Ícono flotante DISCRETO cuando está cerrado
+  // Ícono flotante cuando está cerrado
   if (!isOpen) {
     return (
       <motion.div
@@ -179,7 +249,7 @@ export const AsesorIAChat = ({ isVisible = false, onToggle }: AsesorIAChatProps)
                 </div>
                 <div>
                   <h3 className="font-bold text-blue-800">AsesorIA</h3>
-                  <p className="text-xs text-slate-600">Tu asesora financiera</p>
+                  <p className="text-xs text-slate-600">Tu asesora financiera IA</p>
                 </div>
               </div>
               <div className="flex gap-1">
@@ -231,7 +301,7 @@ export const AsesorIAChat = ({ isVisible = false, onToggle }: AsesorIAChatProps)
                 <h3 className="font-bold text-lg">AsesorIA</h3>
                 <div className="flex items-center gap-2 text-blue-100">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                  <span className="text-sm">En línea • Lista para ayudarte</span>
+                  <span className="text-sm">En línea • Asesoría financiera IA</span>
                 </div>
               </div>
             </div>
@@ -267,7 +337,7 @@ export const AsesorIAChat = ({ isVisible = false, onToggle }: AsesorIAChatProps)
                 className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
               >
                 <div className={`
-                  max-w-[80%] p-3 rounded-lg text-sm
+                  max-w-[85%] p-3 rounded-lg text-sm
                   ${message.isUser 
                     ? 'bg-blue-500 text-white rounded-br-none' 
                     : 'bg-slate-100 text-slate-800 rounded-bl-none'
@@ -326,7 +396,7 @@ export const AsesorIAChat = ({ isVisible = false, onToggle }: AsesorIAChatProps)
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Escribe tu consulta financiera..."
+              placeholder="Pregúntame sobre productos financieros..."
               className="flex-1 border-blue-200 focus:border-blue-400"
               disabled={isTyping}
             />
@@ -339,7 +409,7 @@ export const AsesorIAChat = ({ isVisible = false, onToggle }: AsesorIAChatProps)
             </Button>
           </div>
           <p className="text-xs text-slate-500 mt-2 text-center">
-            AsesorIA está aquí para ayudarte con productos financieros
+            🤖 AsesorIA - Herramienta informativa, no sustituye asesoría profesional
           </p>
         </div>
       </Card>

@@ -61,8 +61,8 @@ const getTypeLabel = (type: string) => {
 };
 
 export const SBSEntitiesCarousel = () => {
-  // Duplicamos las entidades para crear efecto continuo
-  const duplicatedEntities = [...sbsEntities, ...sbsEntities];
+  // Triplicamos las entidades para crear efecto continuo suave
+  const triplicatedEntities = [...sbsEntities, ...sbsEntities, ...sbsEntities];
 
   return (
     <div className="w-full bg-gradient-to-r from-blue-50 to-cyan-50 py-8 px-4">
@@ -80,13 +80,13 @@ export const SBSEntitiesCarousel = () => {
           </p>
         </div>
 
-        {/* Carrusel Continuo con movimiento reactivado */}
+        {/* Carrusel Continuo con movimiento optimizado */}
         <div className="relative overflow-hidden bg-white/50 backdrop-blur-sm rounded-xl py-6">
           <div
-            className="flex gap-4 animate-[scroll_60s_linear_infinite]"
-            style={{ width: "calc(200% + 2rem)" }}
+            className="flex gap-4 animate-[scroll_90s_linear_infinite] hover:animate-[scroll_90s_linear_infinite_paused]"
+            style={{ width: "calc(300% + 3rem)" }}
           >
-            {duplicatedEntities.map((entity, index) => (
+            {triplicatedEntities.map((entity, index) => (
               <div
                 key={`${entity.id}-${index}`}
                 className="flex-shrink-0 hover:scale-105 transition-transform duration-200"
