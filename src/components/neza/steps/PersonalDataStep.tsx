@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -185,12 +186,12 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
           {isReturningUser ? "Actualiza tus datos si es necesario" : "Necesitamos conocerte mejor para encontrar las mejores opciones financieras"}
         </p>
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800">
-          <strong>📍 Importante:</strong> No nos mientas. Mientras más precisa sea tu información, más rápido podremos ofrecerte tu mejor alternativa bancaria.
+          <strong>📍 Importante:</strong> Todos los campos son editables. Puedes modificar cualquier información previamente ingresada.
         </div>
       </motion.div>
 
       <div className="grid gap-4 md:gap-6 md:grid-cols-2">
-        {/* Nombres */}
+        {/* Nombres - SIEMPRE EDITABLE */}
         <Card className="border-blue-200 bg-white/80">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -211,7 +212,7 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
           </CardContent>
         </Card>
 
-        {/* Apellidos */}
+        {/* Apellidos - SIEMPRE EDITABLE */}
         <Card className="border-blue-200 bg-white/80">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -232,7 +233,7 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
           </CardContent>
         </Card>
 
-        {/* DNI */}
+        {/* DNI - SIEMPRE EDITABLE */}
         <Card className="border-blue-200 bg-white/80">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -276,7 +277,7 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
           </CardContent>
         </Card>
 
-        {/* Email */}
+        {/* Email - SIEMPRE EDITABLE */}
         <Card className="border-blue-200 bg-white/80">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -298,7 +299,7 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
           </CardContent>
         </Card>
 
-        {/* Teléfono */}
+        {/* Teléfono - SIEMPRE EDITABLE */}
         <Card className="border-blue-200 bg-white/80">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -329,7 +330,7 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
                 Ocupación *
               </Label>
             </div>
-            <Select onValueChange={(value) => onUpdate({ ...data, occupation: value })}>
+            <Select value={data.occupation} onValueChange={(value) => onUpdate({ ...data, occupation: value })}>
               <SelectTrigger className={`text-base md:text-lg py-4 md:py-6 ${errors.occupation ? 'border-red-500' : 'border-blue-300'} focus:border-blue-500`}>
                 <SelectValue placeholder="Selecciona tu ocupación" />
               </SelectTrigger>
@@ -397,7 +398,7 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
                 Moneda Preferida *
               </Label>
             </div>
-            <Select onValueChange={(value) => onUpdate({ ...data, preferredCurrency: value })}>
+            <Select value={data.preferredCurrency} onValueChange={(value) => onUpdate({ ...data, preferredCurrency: value })}>
               <SelectTrigger className={`text-base md:text-lg py-4 md:py-6 ${errors.preferredCurrency ? 'border-red-500' : 'border-blue-300'} focus:border-blue-500`}>
                 <SelectValue placeholder="Selecciona la moneda" />
               </SelectTrigger>
