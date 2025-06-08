@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { ProductCatalog } from "@/components/neza/ProductCatalog";
 import { UserOnboarding } from "@/components/neza/UserOnboarding";
@@ -89,13 +88,13 @@ const NezaRoute = () => {
         />
         
         {/* Chatbot arriba */}
-        <div className="fixed bottom-28 right-4 z-40">
+        <div className="fixed bottom-32 right-4 z-50">
           <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
         </div>
         
         {/* Botón de tutorial debajo */}
         {!isChatOpen && !showTutorial && (
-          <div className="fixed bottom-4 right-4 z-50">
+          <div className="fixed bottom-4 right-4 z-40">
             <Button
               onClick={handleStartTutorial}
               variant="outline"
@@ -132,13 +131,13 @@ const NezaRoute = () => {
         />
         
         {/* Chatbot arriba */}
-        <div className="fixed bottom-28 right-4 z-40">
+        <div className="fixed bottom-32 right-4 z-50">
           <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
         </div>
         
         {/* Botón de tutorial debajo */}
         {!isChatOpen && !showTutorial && (
-          <div className="fixed bottom-4 right-4 z-50">
+          <div className="fixed bottom-4 right-4 z-40">
             <Button
               onClick={handleStartTutorial}
               variant="outline"
@@ -344,8 +343,7 @@ const NezaRoute = () => {
             <span className="text-neza-blue-400 font-semibold">Evaluación en tiempo real</span>
           </div>
           <p className="text-neza-silver-300 text-sm max-w-2xl mx-auto">
-            NEZA es un sistema de subasta financiera donde las entidades autorizadas y supervisadas 
-            por la Superintendencia de Banca, Seguros y AFP (SBS) y la Superintendencia del Mercado de Valores (SMV) del Perú compiten para ofrecerte las mejores condiciones.
+            NEZA es un sistema de subasta financiera donde las entidades autorizadas y supervisadas por la Superintendencia de Banca, Seguros y AFP (SBS) y la Superintendencia del Mercado de Valores (SMV) del Perú compiten para ofrecerte las mejores condiciones.
           </p>
           <p className="text-neza-silver-400 text-xs mt-2">
             Todos nuestros aliados están supervisados por la Superintendencia de Banca, Seguros y AFP (SBS) y por la Superintendencia del Mercado de Valores (SMV).
@@ -353,8 +351,8 @@ const NezaRoute = () => {
         </div>
       </div>
 
-      {/* Chatbot - Arriba del tutorial */}
-      <div className="fixed bottom-20 right-4 z-50">
+      {/* Chatbot - Más arriba para evitar superposición */}
+      <div className="fixed bottom-32 right-4 z-50">
         <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
       </div>
       
