@@ -1,6 +1,13 @@
-
 import { Card, CardContent } from "@/components/ui/card";
+import { 
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 import { Shield, Building2 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 // Lista de 41 entidades financieras supervisadas por la SBS
 const sbsEntitiesData = [
@@ -273,67 +280,86 @@ const shuffleArray = (array: any[]) => {
 };
 
 export const SBSEntitiesCarousel = () => {
-  // Aleatorizar las entidades
-  const shuffledEntities = shuffleArray(sbsEntitiesData);
+  const [shuffledEntities, setShuffledEntities] = useState(sbsEntitiesData);
+
+  useEffect(() => {
+    // Aleatorizar las entidades al cargar el componente
+    setShuffledEntities(shuffleArray(sbsEntitiesData));
+  }, []);
 
   return (
     <div className="bg-white text-gray-800 py-12">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-2 mb-6">
-            <Shield className="w-8 h-8 text-blue-600" />
-            <h3 className="text-3xl font-bold text-gray-800">Entidades Financieras Reguladas SBS</h3>
+            <Shield className="w-8 h-8 text-blue-900" />
+            <h3 className="text-3xl font-bold text-blue-900">Entidades Financieras Reguladas</h3>
           </div>
-          <p className="text-gray-600 max-w-2xl mx-auto text-lg mb-6">
-            Todas las entidades están supervisadas por la Superintendencia de Banca, Seguros y AFP del Perú
+          <p className="text-blue-800 max-w-3xl mx-auto text-lg mb-6 leading-relaxed">
+            Más de 40 entidades están supervisadas por la Superintendencia de Banca, Seguros y AFP (SBS) 
+            y la Superintendencia del Mercado de Valores (SMV) del Perú, garantizando tu seguridad financiera
           </p>
         </div>
 
-        {/* Grid de entidades */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
-          {shuffledEntities.slice(0, 12).map((entity, index) => (
-            <div key={index} className="flex flex-col items-center">
-              <Card className="w-full bg-white border border-gray-200 hover:border-blue-300 transition-all duration-200 shadow-sm hover:shadow-md">
-                <CardContent className="p-4 text-center">
-                  {/* Ícono de edificio */}
-                  <div className="w-16 h-16 bg-blue-50 rounded-lg flex items-center justify-center mx-auto mb-3">
-                    <Building2 className="w-8 h-8 text-blue-600" />
-                  </div>
-                  
-                  <h4 className="font-semibold text-gray-800 text-sm mb-2 leading-tight min-h-[2.5rem] flex items-center justify-center">
-                    {entity.name}
-                  </h4>
-                  
-                  <div className="flex justify-center mb-3">
-                    <span className={`
-                      inline-block px-2 py-1 rounded-full text-xs font-medium
-                      ${entity.type === 'Banco' 
-                        ? 'bg-blue-100 text-blue-700' 
-                        : entity.type === 'Caja Municipal'
-                        ? 'bg-orange-100 text-orange-700'
-                        : entity.type === 'Caja Rural'
-                        ? 'bg-yellow-100 text-yellow-700'
-                        : 'bg-purple-100 text-purple-700'
-                      }
-                    `}>
-                      {entity.type}
-                    </span>
-                  </div>
+        {/* Carrusel de entidades */}
+        <div className="relative">
+          <Carousel
+            opts={{
+              align: "start",
+              loop: true,
+              dragFree: true,
+              slidesToScroll: 1,
+            }}
+            className="w-full max-w-full"
+          >
+            <CarouselContent className="-ml-2 md:-ml-4">
+              {shuffledEntities.map((entity, index) => (
+                <CarouselItem key={index} className="pl-2 md:pl-4 basis-1/2 md:basis-1/4 lg:basis-1/6">
+                  <Card className="w-full bg-white border border-blue-200 hover:border-blue-400 transition-all duration-200 shadow-sm hover:shadow-md">
+                    <CardContent className="p-4 text-center">
+                      {/* Ícono de edificio */}
+                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                        <Building2 className="w-6 h-6 text-blue-900" />
+                      </div>
+                      
+                      <h4 className="font-semibold text-blue-900 text-xs mb-2 leading-tight min-h-[2rem] flex items-center justify-center">
+                        {entity.name}
+                      </h4>
+                      
+                      <div className="flex justify-center mb-2">
+                        <span className={`
+                          inline-block px-2 py-1 rounded-full text-xs font-medium
+                          ${entity.type === 'Banco' 
+                            ? 'bg-blue-100 text-blue-800' 
+                            : entity.type === 'Caja Municipal'
+                            ? 'bg-blue-50 text-blue-700'
+                            : entity.type === 'Caja Rural'
+                            ? 'bg-blue-50 text-blue-600'
+                            : 'bg-blue-100 text-blue-800'
+                          }
+                        `}>
+                          {entity.type}
+                        </span>
+                      </div>
 
-                  <div className="text-xs text-gray-500 font-mono">
-                    {entity.code}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          ))}
+                      <div className="text-xs text-blue-600 font-mono">
+                        {entity.code}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="hidden md:flex -left-12 border-blue-300 text-blue-800 hover:bg-blue-50" />
+            <CarouselNext className="hidden md:flex -right-12 border-blue-300 text-blue-800 hover:bg-blue-50" />
+          </Carousel>
         </div>
 
         {/* Mensaje de certificación */}
-        <div className="text-center">
-          <div className="inline-flex items-center gap-2 bg-blue-50 px-6 py-3 rounded-full">
-            <Shield className="w-5 h-5 text-blue-600" />
-            <span className="text-blue-800 font-medium">100% Supervisadas por la SBS - Gobierno del Perú</span>
+        <div className="text-center mt-8">
+          <div className="inline-flex items-center gap-2 bg-blue-50 px-6 py-3 rounded-full border border-blue-200">
+            <Shield className="w-5 h-5 text-blue-900" />
+            <span className="text-blue-900 font-medium">100% Supervisadas por la SBS y SMV - Gobierno del Perú</span>
           </div>
         </div>
       </div>
