@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Home, Car, CreditCard, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface ProductsCarouselProps {
   onViewCatalog: () => void;
@@ -17,7 +17,7 @@ export const ProductsCarousel = ({ onViewCatalog }: ProductsCarouselProps) => {
       id: 'credito-hipotecario',
       name: 'Crédito Hipotecario',
       description: 'Compra tu casa propia con las mejores condiciones del mercado',
-      icon: Home,
+      emoji: '🏠',
       estimatedRate: '6.5% - 12%',
       minAmount: 'S/. 50,000',
       maxAmount: 'S/. 500,000',
@@ -28,7 +28,7 @@ export const ProductsCarousel = ({ onViewCatalog }: ProductsCarouselProps) => {
       id: 'credito-vehicular',
       name: 'Crédito Vehicular',
       description: 'Financia tu vehículo nuevo o usado con tasas preferenciales',
-      icon: Car,
+      emoji: '🚗',
       estimatedRate: '8% - 15%',
       minAmount: 'S/. 10,000',
       maxAmount: 'S/. 150,000',
@@ -39,12 +39,100 @@ export const ProductsCarousel = ({ onViewCatalog }: ProductsCarouselProps) => {
       id: 'credito-personal',
       name: 'Crédito Personal',
       description: 'Dinero rápido para tus proyectos personales sin garantías',
-      icon: CreditCard,
+      emoji: '💰',
       estimatedRate: '12% - 35%',
       minAmount: 'S/. 1,000',
       maxAmount: 'S/. 50,000',
       term: '6 meses - 5 años',
       category: 'Express'
+    },
+    {
+      id: 'credito-microempresa',
+      name: 'Crédito Microempresa',
+      description: 'Capital de trabajo para hacer crecer tu negocio',
+      emoji: '🏪',
+      estimatedRate: '10% - 25%',
+      minAmount: 'S/. 5,000',
+      maxAmount: 'S/. 100,000',
+      term: '1-5 años',
+      category: 'Empresarial'
+    },
+    {
+      id: 'tarjeta-credito',
+      name: 'Tarjeta de Crédito',
+      description: 'Flexibilidad de pago y beneficios exclusivos',
+      emoji: '💳',
+      estimatedRate: '35% - 90%',
+      minAmount: 'S/. 500',
+      maxAmount: 'S/. 20,000',
+      term: 'Renovable',
+      category: 'Flexible'
+    },
+    {
+      id: 'credito-educativo',
+      name: 'Crédito Educativo',
+      description: 'Invierte en tu futuro académico y profesional',
+      emoji: '🎓',
+      estimatedRate: '8% - 18%',
+      minAmount: 'S/. 2,000',
+      maxAmount: 'S/. 80,000',
+      term: '2-10 años',
+      category: 'Educación'
+    },
+    {
+      id: 'credito-consumo',
+      name: 'Crédito de Consumo',
+      description: 'Para todas tus necesidades de compra',
+      emoji: '🛒',
+      estimatedRate: '15% - 40%',
+      minAmount: 'S/. 1,000',
+      maxAmount: 'S/. 30,000',
+      term: '1-4 años',
+      category: 'Consumo'
+    },
+    {
+      id: 'credito-construccion',
+      name: 'Crédito Construcción',
+      description: 'Construye o mejora tu vivienda',
+      emoji: '🏗️',
+      estimatedRate: '7% - 15%',
+      minAmount: 'S/. 20,000',
+      maxAmount: 'S/. 300,000',
+      term: '3-20 años',
+      category: 'Construcción'
+    },
+    {
+      id: 'credito-agricola',
+      name: 'Crédito Agrícola',
+      description: 'Financiamiento para actividades agropecuarias',
+      emoji: '🌾',
+      estimatedRate: '8% - 20%',
+      minAmount: 'S/. 3,000',
+      maxAmount: 'S/. 50,000',
+      term: '6 meses - 3 años',
+      category: 'Agropecuario'
+    },
+    {
+      id: 'credito-comercial',
+      name: 'Crédito Comercial',
+      description: 'Para empresas y comerciantes establecidos',
+      emoji: '🏢',
+      estimatedRate: '9% - 22%',
+      minAmount: 'S/. 10,000',
+      maxAmount: 'S/. 500,000',
+      term: '1-7 años',
+      category: 'Comercial'
+    },
+    {
+      id: 'refinanciamiento',
+      name: 'Refinanciamiento',
+      description: 'Mejora las condiciones de tus deudas actuales',
+      emoji: '🔄',
+      estimatedRate: '6% - 30%',
+      minAmount: 'S/. 5,000',
+      maxAmount: 'S/. 200,000',
+      term: '1-25 años',
+      category: 'Refinanciamiento'
     }
   ];
 
@@ -64,6 +152,14 @@ export const ProductsCarousel = ({ onViewCatalog }: ProductsCarouselProps) => {
       case 'Más Popular': return 'bg-green-100 text-green-800';
       case 'Recomendado': return 'bg-blue-100 text-blue-800';
       case 'Express': return 'bg-orange-100 text-orange-800';
+      case 'Empresarial': return 'bg-purple-100 text-purple-800';
+      case 'Flexible': return 'bg-pink-100 text-pink-800';
+      case 'Educación': return 'bg-indigo-100 text-indigo-800';
+      case 'Consumo': return 'bg-cyan-100 text-cyan-800';
+      case 'Construcción': return 'bg-amber-100 text-amber-800';
+      case 'Agropecuario': return 'bg-lime-100 text-lime-800';
+      case 'Comercial': return 'bg-slate-100 text-slate-800';
+      case 'Refinanciamiento': return 'bg-teal-100 text-teal-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -77,7 +173,6 @@ export const ProductsCarousel = ({ onViewCatalog }: ProductsCarouselProps) => {
   };
 
   const currentProduct = featuredProducts[currentIndex];
-  const IconComponent = currentProduct.icon;
 
   return (
     <div className="space-y-8">
@@ -108,36 +203,61 @@ export const ProductsCarousel = ({ onViewCatalog }: ProductsCarouselProps) => {
         </button>
 
         {/* Product Card */}
-        <Card className="hover:shadow-xl transition-all duration-300 border-neza-blue-200 bg-white/80 backdrop-blur-sm mx-8">
+        <Card className="hover:shadow-xl transition-all duration-300 border-neza-blue-200 bg-white/80 backdrop-blur-sm mx-8 border-2">
           <CardHeader className="pb-4">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-16 h-16 bg-neza-blue-100 rounded-lg flex items-center justify-center">
-                <IconComponent className="w-8 h-8 text-neza-blue-600" />
+            <div className="flex flex-col items-center mb-4">
+              {/* Emoji centrado */}
+              <div className="w-20 h-20 bg-neza-blue-50 rounded-full flex items-center justify-center mb-4">
+                <span className="text-4xl">{currentProduct.emoji}</span>
               </div>
               <Badge className={getCategoryColor(currentProduct.category)}>
                 {currentProduct.category}
               </Badge>
             </div>
-            <CardTitle className="text-xl text-neza-blue-800">{currentProduct.name}</CardTitle>
-            <CardDescription className="text-neza-silver-600">
+            <CardTitle className="text-xl text-neza-blue-800 text-center">{currentProduct.name}</CardTitle>
+            <CardDescription className="text-neza-silver-600 text-center">
               {currentProduct.description}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <div>
+              <div className="text-center">
                 <span className="font-medium text-neza-blue-700">Tasa estimada:</span>
                 <div className="text-neza-silver-600">{currentProduct.estimatedRate}</div>
               </div>
-              <div>
+              <div className="text-center">
                 <span className="font-medium text-neza-blue-700">Plazo:</span>
                 <div className="text-neza-silver-600">{currentProduct.term}</div>
               </div>
             </div>
             
-            <div>
+            <div className="text-center">
               <span className="font-medium text-neza-blue-700 text-sm">Rango:</span>
               <div className="text-neza-silver-600">{currentProduct.minAmount} - {currentProduct.maxAmount}</div>
+            </div>
+
+            {/* Botones dentro del cuadro */}
+            <div className="flex flex-col gap-3 pt-4">
+              <Button 
+                className="w-full bg-neza-blue-600 hover:bg-neza-blue-700 text-white"
+                onClick={() => {
+                  const interactiveSection = document.getElementById('interactive-experience');
+                  if (interactiveSection) {
+                    interactiveSection.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
+              >
+                Solicitar {currentProduct.name}
+              </Button>
+              
+              <Button 
+                variant="outline"
+                className="w-full border-neza-blue-300 text-neza-blue-600 hover:bg-neza-blue-50"
+                onClick={onViewCatalog}
+              >
+                Ver Catálogo Completo
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -156,40 +276,6 @@ export const ProductsCarousel = ({ onViewCatalog }: ProductsCarouselProps) => {
             />
           ))}
         </div>
-      </div>
-
-      {/* Centered Buttons in Aesthetic Box */}
-      <div className="flex justify-center pt-6">
-        <Card className="bg-gradient-to-r from-neza-blue-50 to-white border-neza-blue-200 shadow-lg">
-          <CardContent className="p-6">
-            <div className="flex flex-col sm:flex-row gap-4 items-center">
-              <Button 
-                size="lg"
-                className="bg-neza-blue-600 hover:bg-neza-blue-700 text-white px-8 py-4 text-lg font-semibold w-full sm:w-auto"
-                onClick={() => {
-                  // Scroll to the interactive experience section
-                  const interactiveSection = document.getElementById('interactive-experience');
-                  if (interactiveSection) {
-                    interactiveSection.scrollIntoView({ behavior: 'smooth' });
-                  }
-                }}
-              >
-                <Home className="w-5 h-5 mr-2" />
-                Solicitar Crédito Hipotecario
-              </Button>
-              
-              <Button 
-                variant="outline"
-                size="lg"
-                onClick={onViewCatalog}
-                className="border-neza-blue-300 text-neza-blue-600 hover:bg-neza-blue-50 px-8 py-4 text-lg font-semibold w-full sm:w-auto"
-              >
-                Ver Catálogo Completo
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
