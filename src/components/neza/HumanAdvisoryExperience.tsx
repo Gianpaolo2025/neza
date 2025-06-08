@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { ArrowRight, ArrowLeft, Home, Car, CreditCard, Heart, Target, Play, Building2, FileText, Users, Briefcase, AlertCircle, Upload, Eye, EyeOff, GraduationCap, Factory, Stethoscope, Calculator, Gavel, Edit3 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface UserData {
   goal: string;
@@ -187,7 +187,8 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
     return /^\d{8}$/.test(dni);
   };
 
-  const sendVerificationCode = () => {
+  // Updated sendVerificationCode function to use Supabase Edge Function
+  const sendVerificationCode = async () => {
     if (!validateEmail(data.personalInfo.email)) {
       setValidationErrors(prev => ({ ...prev, email: "Formato de correo inválido" }));
       return;
@@ -195,13 +196,42 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     setSentVerificationCode(code);
-    setCodeSentMessage("El código ha sido enviado. Revisa tu correo electrónico.");
-    
-    // Clear the message after 5 seconds
-    setTimeout(() => setCodeSentMessage(""), 5000);
-    
-    // Simulate sending email - in production this would be a real API call
-    console.log(`Código de verificación enviado a ${data.personalInfo.email}: ${code}`);
+    setCodeSentMessage("Enviando código de verificación...");
+
+    try {
+      const { data: result, error } = await supabase.functions.invoke('send-verification-email', {
+        body: {
+          email: data.personalInfo.email,
+          code: code
+        }
+      });
+
+      if (error) {
+        console.error('Error sending email:', error);
+        setCodeSentMessage("Error al enviar el código. Inténtalo de nuevo.");
+        // Fallback to console log for development
+        console.log(`Código de verificación (fallback): ${code}`);
+        
+        // Clear error message after 5 seconds and show fallback message
+        setTimeout(() => {
+          setCodeSentMessage("Revisa la consola del navegador para ver el código de verificación.");
+        }, 3000);
+      } else {
+        setCodeSentMessage("Código enviado a tu correo electrónico. Revisa tu bandeja de entrada.");
+        console.log('Email sent successfully');
+      }
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      setCodeSentMessage("Error de conexión. Revisa la consola para el código.");
+      console.log(`Código de verificación (fallback): ${code}`);
+      
+      setTimeout(() => {
+        setCodeSentMessage("Revisa la consola del navegador para ver el código de verificación.");
+      }, 3000);
+    }
+
+    // Clear the message after 10 seconds
+    setTimeout(() => setCodeSentMessage(""), 10000);
   };
 
   const verifyEmail = () => {
@@ -652,6 +682,9 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                         {validationErrors.verificationCode && (
                           <p className="text-red-500 text-sm mt-1">{validationErrors.verificationCode}</p>
                         )}
+                        <p className="text-xs text-gray-500 mt-1">
+                          Si no recibes el email, revisa tu carpeta de spam o la consola del navegador.
+                        </p>
                       </div>
                     )}
 
