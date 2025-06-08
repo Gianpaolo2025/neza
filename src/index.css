@@ -96,7 +96,7 @@
 
 @layer components {
   .tutorial-highlight {
-    @apply ring-4 ring-neza-blue-500 ring-opacity-80 bg-neza-blue-100 transition-all duration-1000;
+    @apply ring-4 ring-neza-blue-500 ring-opacity-80 bg-neza-blue-50 transition-all duration-1000 relative z-10;
   }
 }
 

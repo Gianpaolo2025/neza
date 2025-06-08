@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -200,7 +201,7 @@ export const ProductCatalog = ({ onBack, onProductRequest }: ProductCatalogProps
 
   if (selectedProduct) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100">
+      <div className="min-h-screen bg-gradient-to-br from-neza-blue-50 to-neza-blue-100">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center mb-6">
             <Button 
@@ -211,7 +212,7 @@ export const ProductCatalog = ({ onBack, onProductRequest }: ProductCatalogProps
               <ArrowLeft className="w-4 h-4 mr-2" />
               Volver
             </Button>
-            <h1 className="text-2xl font-bold text-emerald-800">Detalles del Producto</h1>
+            <h1 className="text-2xl font-bold text-neza-blue-800">Detalles del Producto</h1>
           </div>
 
           <Card className="max-w-2xl mx-auto">
@@ -219,7 +220,7 @@ export const ProductCatalog = ({ onBack, onProductRequest }: ProductCatalogProps
               <div className="flex items-center mb-4">
                 <span className="text-4xl mr-4">{selectedProduct.icon}</span>
                 <div>
-                  <CardTitle className="text-2xl text-emerald-800">{selectedProduct.name}</CardTitle>
+                  <CardTitle className="text-2xl text-neza-blue-800">{selectedProduct.name}</CardTitle>
                   <CardDescription className="text-lg">{selectedProduct.description}</CardDescription>
                 </div>
               </div>
@@ -230,28 +231,28 @@ export const ProductCatalog = ({ onBack, onProductRequest }: ProductCatalogProps
             <CardContent className="space-y-6">
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <h3 className="font-semibold text-emerald-800 mb-2">Montos</h3>
+                  <h3 className="font-semibold text-neza-blue-800 mb-2">Montos</h3>
                   <p className="text-sm text-gray-600">
                     Desde {formatAmount(selectedProduct.minAmount)} hasta {formatAmount(selectedProduct.maxAmount)}
                   </p>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-emerald-800 mb-2">Plazo</h3>
+                  <h3 className="font-semibold text-neza-blue-800 mb-2">Plazo</h3>
                   <p className="text-sm text-gray-600">{selectedProduct.estimatedTerm}</p>
                 </div>
               </div>
 
               <div>
-                <h3 className="font-semibold text-emerald-800 mb-2">Beneficio Principal</h3>
+                <h3 className="font-semibold text-neza-blue-800 mb-2">Beneficio Principal</h3>
                 <p className="text-gray-700">{selectedProduct.mainBenefit}</p>
               </div>
 
               <div>
-                <h3 className="font-semibold text-emerald-800 mb-2">Requisitos</h3>
+                <h3 className="font-semibold text-neza-blue-800 mb-2">Requisitos</h3>
                 <ul className="space-y-1">
                   {selectedProduct.requirements.map((req, index) => (
                     <li key={index} className="flex items-center text-sm text-gray-600">
-                      <span className="w-2 h-2 bg-emerald-500 rounded-full mr-2"></span>
+                      <span className="w-2 h-2 bg-neza-blue-500 rounded-full mr-2"></span>
                       {req}
                     </li>
                   ))}
@@ -259,7 +260,7 @@ export const ProductCatalog = ({ onBack, onProductRequest }: ProductCatalogProps
               </div>
 
               <Button 
-                className="w-full bg-emerald-600 hover:bg-emerald-700" 
+                className="w-full bg-neza-blue-600 hover:bg-neza-blue-700" 
                 size="lg"
                 onClick={() => onProductRequest?.(selectedProduct.id)}
               >
@@ -273,7 +274,7 @@ export const ProductCatalog = ({ onBack, onProductRequest }: ProductCatalogProps
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100">
+    <div className="min-h-screen bg-gradient-to-br from-neza-blue-50 to-neza-blue-100">
       <div className="container mx-auto px-4 py-6">
         {/* Header */}
         <div className="flex items-center mb-6">
@@ -282,8 +283,8 @@ export const ProductCatalog = ({ onBack, onProductRequest }: ProductCatalogProps
             Volver
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-emerald-800">Leyenda Financiera</h1>
-            <p className="text-emerald-600">Descubre todos nuestros productos</p>
+            <h1 className="text-2xl font-bold text-neza-blue-800">Leyenda Financiera</h1>
+            <p className="text-neza-blue-600">Descubre todos nuestros productos</p>
           </div>
         </div>
 
@@ -328,7 +329,7 @@ export const ProductCatalog = ({ onBack, onProductRequest }: ProductCatalogProps
                 <div className="flex items-center mb-2">
                   <span className="text-2xl mr-3">{product.icon}</span>
                   <div className="flex-1">
-                    <CardTitle className="text-lg text-emerald-800">{product.name}</CardTitle>
+                    <CardTitle className="text-lg text-neza-blue-800">{product.name}</CardTitle>
                     <Badge className={`${getRiskColor(product.risk)} mt-1`} variant="secondary">
                       {product.risk}
                     </Badge>
@@ -339,17 +340,17 @@ export const ProductCatalog = ({ onBack, onProductRequest }: ProductCatalogProps
               <CardContent className="pt-0">
                 <div className="space-y-2 text-sm">
                   <div>
-                    <span className="font-medium text-emerald-700">Monto: </span>
+                    <span className="font-medium text-neza-blue-700">Monto: </span>
                     <span className="text-gray-600">
                       {formatAmount(product.minAmount)} - {formatAmount(product.maxAmount)}
                     </span>
                   </div>
                   <div>
-                    <span className="font-medium text-emerald-700">Plazo: </span>
+                    <span className="font-medium text-neza-blue-700">Plazo: </span>
                     <span className="text-gray-600">{product.estimatedTerm}</span>
                   </div>
                   <div className="pt-2">
-                    <span className="font-medium text-emerald-700">Beneficio: </span>
+                    <span className="font-medium text-neza-blue-700">Beneficio: </span>
                     <span className="text-gray-600 text-xs">{product.mainBenefit}</span>
                   </div>
                 </div>

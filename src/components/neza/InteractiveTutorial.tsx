@@ -146,10 +146,10 @@ export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialP
   return (
     <>
       {/* Overlay parcial - solo detrás del tutorial */}
-      <div className="fixed inset-0 bg-black/30 z-40 pointer-events-none" />
+      <div className="fixed inset-0 bg-black/20 z-40 pointer-events-none" />
       
-      {/* Tutorial Card - Posicionado a la derecha */}
-      <div className="fixed top-1/2 right-6 transform -translate-y-1/2 z-50">
+      {/* Tutorial Card - Posicionado a la derecha con z-index alto */}
+      <div className="fixed top-1/2 right-6 transform -translate-y-1/2 z-[60]">
         <Card className="bg-white max-w-sm w-80 shadow-2xl border-2 border-neza-blue-500">
           <CardContent className="p-6">
             <div className="flex justify-between items-start mb-4">

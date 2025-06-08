@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { ProductCatalog } from "@/components/neza/ProductCatalog";
 import { UserOnboarding } from "@/components/neza/UserOnboarding";
@@ -82,7 +81,7 @@ const NezaRoute = () => {
 
   if (currentView === 'catalog') {
     return (
-      <>
+      <div className="relative">
         <ProductCatalog 
           onBack={() => {
             userTrackingService.trackActivity('button_click', { action: 'back_to_home', from: 'catalog' }, 'Usuario regresó del catálogo a la página principal');
@@ -90,14 +89,21 @@ const NezaRoute = () => {
           }}
           onProductRequest={handleCatalogProductRequest}
         />
+        
+        {/* Tutorial en esta vista también */}
+        <InteractiveTutorial 
+          isVisible={showTutorial} 
+          onClose={() => setShowTutorial(false)} 
+        />
+        
         <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
-      </>
+      </div>
     );
   }
 
   if (currentView === 'onboarding') {
     return (
-      <>
+      <div className="relative">
         <UserOnboarding 
           onBack={() => {
             userTrackingService.trackActivity('button_click', { 
@@ -110,14 +116,21 @@ const NezaRoute = () => {
           }}
           forceFlow={forceOnboarding}
         />
+        
+        {/* Tutorial en esta vista también */}
+        <InteractiveTutorial 
+          isVisible={showTutorial} 
+          onClose={() => setShowTutorial(false)} 
+        />
+        
         <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
-      </>
+      </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neza-blue-50 via-white to-neza-blue-50 overflow-x-hidden">
-      {/* Tutorial Interactivo */}
+    <div className="min-h-screen bg-gradient-to-br from-neza-blue-50 via-white to-neza-blue-50 overflow-x-hidden relative">
+      {/* Tutorial Interactivo - Posicionado para estar visible */}
       <InteractiveTutorial 
         isVisible={showTutorial} 
         onClose={() => setShowTutorial(false)} 
@@ -384,8 +397,8 @@ const NezaRoute = () => {
         </div>
       </div>
 
-      {/* AsesorIA Chat Global */}
-      <div id="chat-button">
+      {/* AsesorIA Chat Global - Asegurar que esté por encima del tutorial */}
+      <div id="chat-button" className="relative z-60">
         <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
       </div>
     </div>
