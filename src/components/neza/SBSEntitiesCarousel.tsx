@@ -284,7 +284,7 @@ export const SBSEntitiesCarousel = () => {
   }, []);
 
   return (
-    <div className="bg-white text-gray-800 py-12">
+    <div className="bg-white text-gray-800 py-12" id="sbs-entities">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-2 mb-6">
@@ -302,10 +302,9 @@ export const SBSEntitiesCarousel = () => {
           <Carousel
             plugins={[
               Autoplay({
-                delay: 0,
+                delay: 50,
                 stopOnInteraction: false,
                 stopOnMouseEnter: false,
-                speed: 0.5,
               }),
             ]}
             opts={{
@@ -313,7 +312,7 @@ export const SBSEntitiesCarousel = () => {
               loop: true,
               dragFree: true,
               slidesToScroll: "auto",
-              duration: 50,
+              duration: 30,
             }}
             className="w-full max-w-full"
           >
