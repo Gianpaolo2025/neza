@@ -10,12 +10,14 @@ import { AsesorIAChat } from "@/components/AsesorIAChat";
 import { useAsesorIA } from "@/hooks/useAsesorIA";
 import { userTrackingService } from "@/services/userTracking";
 import { motion } from "framer-motion";
-import { Sparkles, FileText, TrendingUp, Shield, Users, Zap, AlertTriangle, Clock, Brain, Trophy, Target, MessageCircle } from "lucide-react";
+import { Sparkles, FileText, TrendingUp, Shield, Users, Zap, AlertTriangle, Clock, Brain, Trophy, Target, MessageCircle, X } from "lucide-react";
 
 const NezaRoute = () => {
   const [currentView, setCurrentView] = useState<'home' | 'catalog' | 'onboarding'>('home');
   const [showWelcomeMessage, setShowWelcomeMessage] = useState(true);
-  const [showAssistantPopup, setShowAssistantPopup] = useState(true);
+  const [showTutorialPopup, setShowTutorialPopup] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [tutorialStep, setTutorialStep] = useState(0);
   const [userEmail, setUserEmail] = useState<string>('');
   const { isChatOpen, toggleChat, openChat } = useAsesorIA();
 
@@ -28,10 +30,12 @@ const NezaRoute = () => {
     userTrackingService.startSession(tempEmail, 'direct', 'Visita directa a página principal');
     userTrackingService.trackActivity('page_visit', { page: 'home' }, 'Usuario visitó la página principal');
 
-    // Mostrar popup de asistente después de 2 segundos
+    // Mostrar popup de tutorial después de 3 segundos, solo una vez
     const timer = setTimeout(() => {
-      setShowAssistantPopup(true);
-    }, 2000);
+      if (!localStorage.getItem('nezaTutorialShown')) {
+        setShowTutorialPopup(true);
+      }
+    }, 3000);
 
     // Cleanup al salir
     return () => {
@@ -40,16 +44,55 @@ const NezaRoute = () => {
     };
   }, []);
 
-  const handleAssistantAccept = () => {
-    userTrackingService.trackActivity('button_click', { action: 'accept_assistance' }, 'Usuario aceptó la asesoría');
-    setShowAssistantPopup(false);
-    openChat();
+  const handleStartTutorial = () => {
+    userTrackingService.trackActivity('button_click', { action: 'start_tutorial' }, 'Usuario inició el tutorial');
+    setShowTutorialPopup(false);
+    setShowTutorial(true);
+    setTutorialStep(0);
+    localStorage.setItem('nezaTutorialShown', 'true');
   };
 
-  const handleAssistantDeny = () => {
-    userTrackingService.trackActivity('button_click', { action: 'deny_assistance' }, 'Usuario rechazó la asesoría');
-    setShowAssistantPopup(false);
+  const handleSkipTutorial = () => {
+    userTrackingService.trackActivity('button_click', { action: 'skip_tutorial' }, 'Usuario omitió el tutorial');
+    setShowTutorialPopup(false);
+    localStorage.setItem('nezaTutorialShown', 'true');
   };
+
+  const nextTutorialStep = () => {
+    if (tutorialStep < 4) {
+      setTutorialStep(tutorialStep + 1);
+    } else {
+      setShowTutorial(false);
+    }
+  };
+
+  const tutorialSteps = [
+    {
+      target: "#products-section",
+      title: "Ver Productos",
+      description: "Aquí puedes explorar todos nuestros productos financieros disponibles"
+    },
+    {
+      target: "#interactive-experience",
+      title: "Revisar Ofertas",
+      description: "En esta sección inicias el proceso para recibir ofertas personalizadas"
+    },
+    {
+      target: "#why-system",
+      title: "Cómo Calificar",
+      description: "Conoce las ventajas de nuestro sistema de subasta financiera"
+    },
+    {
+      target: "#sbs-entities",
+      title: "Comparar Entidades",
+      description: "Todas estas entidades pueden participar en tu subasta financiera"
+    },
+    {
+      target: "#chat-button",
+      title: "Contactar Asesor",
+      description: "Usa este chat para obtener asesoría personalizada en cualquier momento"
+    }
+  ];
 
   if (currentView === 'catalog') {
     return (
@@ -76,40 +119,64 @@ const NezaRoute = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neza-blue-50 via-white to-neza-blue-50">
-      {/* Popup de Asistente */}
-      {showAssistantPopup && (
+    <div className="min-h-screen bg-gradient-to-br from-neza-blue-50 via-white to-neza-blue-50 overflow-x-hidden">
+      {/* Tutorial Overlay */}
+      {showTutorial && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-6 max-w-md mx-4 relative">
+            <button
+              onClick={() => setShowTutorial(false)}
+              className="absolute top-2 right-2 p-1 hover:bg-gray-100 rounded"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <h3 className="text-lg font-bold mb-2">{tutorialSteps[tutorialStep].title}</h3>
+            <p className="text-gray-600 mb-4">{tutorialSteps[tutorialStep].description}</p>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-500">
+                Paso {tutorialStep + 1} de {tutorialSteps.length}
+              </span>
+              <Button onClick={nextTutorialStep}>
+                {tutorialStep < tutorialSteps.length - 1 ? 'Siguiente' : 'Finalizar'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Popup de Tutorial */}
+      {showTutorialPopup && (
         <motion.div
           initial={{ opacity: 0, scale: 0.8, y: 50 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          className="fixed bottom-24 right-6 z-50"
+          className="fixed bottom-24 right-6 z-40"
         >
-          <Card className="bg-white border-2 border-purple-200 shadow-xl max-w-sm">
+          <Card className="bg-white border-2 border-blue-200 shadow-xl max-w-sm">
             <CardContent className="p-4">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
                   <MessageCircle className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-800">AsesorIA</h4>
-                  <p className="text-sm text-gray-600">Hola, ¿puedo ayudarte con la asesoría?</p>
+                  <h4 className="font-semibold text-gray-800">Tutorial</h4>
+                  <p className="text-sm text-gray-600">Hola. Presiona aquí para darte un tutorial de la página.</p>
                 </div>
               </div>
               <div className="flex gap-2">
                 <Button
-                  onClick={handleAssistantAccept}
+                  onClick={handleStartTutorial}
                   size="sm"
-                  className="bg-green-600 hover:bg-green-700 text-white flex-1"
+                  className="bg-blue-600 hover:bg-blue-700 text-white flex-1"
                 >
-                  ✅ Aceptar
+                  ✅ Iniciar Tutorial
                 </Button>
                 <Button
-                  onClick={handleAssistantDeny}
+                  onClick={handleSkipTutorial}
                   size="sm"
                   variant="outline"
-                  className="border-red-300 text-red-600 hover:bg-red-50 flex-1"
+                  className="border-gray-300 text-gray-600 hover:bg-gray-50 flex-1"
                 >
-                  ❌ No gracias
+                  ❌ Omitir
                 </Button>
               </div>
             </CardContent>
@@ -124,7 +191,7 @@ const NezaRoute = () => {
           animate={{ opacity: 1, y: 0 }}
           className="bg-gradient-to-r from-neza-blue-700 to-neza-blue-600 text-white py-6 px-4 relative"
         >
-          <div className="container mx-auto max-w-4xl">
+          <div className="container mx-auto max-w-6xl">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-3">
@@ -158,8 +225,8 @@ const NezaRoute = () => {
         </motion.div>
       )}
 
-      {/* Hero Section */}
-      <div className="container mx-auto px-4 py-8">
+      {/* Contenido Principal Centrado */}
+      <div className="w-full max-w-6xl mx-auto px-4 py-8">
         {/* Header con nueva identidad */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
@@ -195,6 +262,7 @@ const NezaRoute = () => {
 
         {/* Experiencia Interactiva - Bloque Principal */}
         <motion.div 
+          id="interactive-experience"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
@@ -228,7 +296,7 @@ const NezaRoute = () => {
                 <div className="text-sm text-neza-blue-600">Evaluación en tiempo real</div>
               </div>
               
-              {/* Mensajes horizontales */}
+              {/* Mensajes horizontales fijos */}
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-lg p-4">
                   <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
@@ -259,6 +327,7 @@ const NezaRoute = () => {
 
         {/* Carrusel de Productos */}
         <motion.div
+          id="products-section"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8 }}
@@ -269,6 +338,7 @@ const NezaRoute = () => {
 
         {/* Features Section actualizada */}
         <motion.div 
+          id="why-system"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1 }}
@@ -277,7 +347,7 @@ const NezaRoute = () => {
           <h3 className="text-2xl font-bold text-center text-neza-blue-800 mb-8">
             ¿Por qué usar nuestro Sistema de Subasta?
           </h3>
-          <div className="grid gap-6 md:grid-cols-4 max-w-5xl mx-auto">
+          <div className="grid gap-6 md:grid-cols-3 max-w-4xl mx-auto">
             <motion.div 
               whileHover={{ scale: 1.05 }}
               className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-lg border border-neza-blue-200"
@@ -309,19 +379,6 @@ const NezaRoute = () => {
               className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-lg border border-neza-blue-200"
             >
               <div className="w-16 h-16 bg-neza-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="w-8 h-8 text-neza-blue-600" />
-              </div>
-              <h4 className="font-semibold text-neza-blue-800 text-lg mb-2">🔒 Seguro SBS</h4>
-              <p className="text-sm text-neza-silver-600">
-                Supervisado por la SBS. Todas las entidades están reguladas.
-              </p>
-            </motion.div>
-            
-            <motion.div 
-              whileHover={{ scale: 1.05 }}
-              className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-lg border border-neza-blue-200"
-            >
-              <div className="w-16 h-16 bg-neza-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Zap className="w-8 h-8 text-neza-blue-600" />
               </div>
               <h4 className="font-semibold text-neza-blue-800 text-lg mb-2">⚡ Tiempo Real</h4>
@@ -335,6 +392,7 @@ const NezaRoute = () => {
 
       {/* Carrusel de Entidades SBS */}
       <motion.div
+        id="sbs-entities"
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1.2 }}
@@ -349,7 +407,7 @@ const NezaRoute = () => {
         transition={{ delay: 1.4 }}
         className="bg-neza-blue-800 text-white py-8 mt-12"
       >
-        <div className="container mx-auto px-4 text-center">
+        <div className="container mx-auto px-4 text-center max-w-6xl">
           <div className="flex items-center justify-center gap-2 mb-4">
             <Shield className="w-5 h-5 text-neza-blue-400" />
             <span className="text-neza-blue-400 font-semibold">Sistema de Subasta Certificado SBS</span>
@@ -365,7 +423,9 @@ const NezaRoute = () => {
       </motion.div>
 
       {/* AsesorIA Chat Global */}
-      <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
+      <div id="chat-button">
+        <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
+      </div>
     </div>
   );
 };

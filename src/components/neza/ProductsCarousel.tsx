@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -119,7 +118,7 @@ const products: Product[] = [
     name: 'Fondos Mutuos',
     description: 'Invierte en portafolios diversificados manejados por expertos',
     icon: '📊',
-    minAmount: 'S/. 100',
+    minAmount: '100',
     maxAmount: 'Sin límite',
     term: 'Flexible',
     benefit: 'Diversificación profesional',
@@ -185,7 +184,7 @@ export const ProductsCarousel = ({ onViewCatalog }: ProductsCarouselProps) => {
         </button>
 
         {/* Contenedor del carrusel */}
-        <div className="mx-12 min-h-[350px]">
+        <div className="mx-12 min-h-[280px]">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentIndex}
@@ -195,65 +194,62 @@ export const ProductsCarousel = ({ onViewCatalog }: ProductsCarouselProps) => {
               transition={{ duration: 0.5, ease: "easeInOut" }}
             >
               <Card className="bg-white/90 backdrop-blur-sm border-neza-blue-200 hover:shadow-xl transition-all duration-300">
-                <CardHeader className="text-center pb-4">
+                <CardHeader className="text-center pb-3">
                   <motion.div
                     animate={{ scale: [1, 1.1, 1] }}
                     transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                    className="text-6xl mb-4"
+                    className="text-4xl mb-3"
                   >
                     {currentProduct.icon}
                   </motion.div>
-                  <CardTitle className="text-2xl text-neza-blue-800 mb-2">
+                  <CardTitle className="text-xl text-neza-blue-800 mb-2">
                     {currentProduct.name}
                   </CardTitle>
-                  <CardDescription className="text-base text-neza-silver-600 max-w-md mx-auto">
+                  <CardDescription className="text-sm text-neza-silver-600 max-w-md mx-auto">
                     {currentProduct.description}
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-3">
                   {/* Información estructurada del producto */}
-                  <div className="grid md:grid-cols-2 gap-4 text-center">
-                    <div className="bg-neza-blue-50 rounded-lg p-3">
+                  <div className="grid md:grid-cols-2 gap-3 text-center">
+                    <div className="bg-neza-blue-50 rounded-lg p-2">
                       <div className="text-xs text-neza-blue-600 font-medium">Forma de Acceso</div>
-                      <div className="text-sm text-neza-blue-800 font-semibold">
+                      <div className="text-xs text-neza-blue-800 font-semibold">
                         {currentProduct.accessForm}
                       </div>
                     </div>
                     {currentProduct.minAmount && (
-                      <div className="bg-neza-blue-50 rounded-lg p-3">
+                      <div className="bg-neza-blue-50 rounded-lg p-2">
                         <div className="text-xs text-neza-blue-600 font-medium">Monto Estimado</div>
-                        <div className="text-sm text-neza-blue-800 font-semibold">
+                        <div className="text-xs text-neza-blue-800 font-semibold">
                           {currentProduct.minAmount} - {currentProduct.maxAmount}
                         </div>
                       </div>
                     )}
                     {currentProduct.term && (
-                      <div className="bg-neza-blue-50 rounded-lg p-3">
+                      <div className="bg-neza-blue-50 rounded-lg p-2">
                         <div className="text-xs text-neza-blue-600 font-medium">Plazo Estándar</div>
-                        <div className="text-sm text-neza-blue-800 font-semibold">
+                        <div className="text-xs text-neza-blue-800 font-semibold">
                           {currentProduct.term}
                         </div>
                       </div>
                     )}
-                    <div className="bg-neza-blue-50 rounded-lg p-3">
+                    <div className="bg-neza-blue-50 rounded-lg p-2">
                       <div className="text-xs text-neza-blue-600 font-medium">Beneficio Principal</div>
-                      <div className="text-sm text-neza-blue-800 font-semibold">
+                      <div className="text-xs text-neza-blue-800 font-semibold">
                         {currentProduct.benefit}
                       </div>
                     </div>
                   </div>
                   
-                  <div className="flex gap-3 pt-4">
+                  <div className="flex justify-center pt-3">
                     <Button
                       onClick={onViewCatalog}
                       variant="outline"
-                      className="flex-1 border-neza-blue-300 text-neza-blue-600 hover:bg-neza-blue-50"
+                      className="border-neza-blue-300 text-neza-blue-600 hover:bg-neza-blue-50"
                     >
                       <Eye className="w-4 h-4 mr-2" />
                       Ver Catálogo Completo
-                    </Button>
-                    <Button className="flex-1 bg-neza-blue-600 hover:bg-neza-blue-700">
-                      Solicitar Ahora
                     </Button>
                   </div>
                 </CardContent>
