@@ -115,8 +115,8 @@ export const ProductsCarousel = ({ onViewCatalog }: ProductsCarouselProps) => {
         ))}
       </div>
 
-      {/* Botones centrados */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-6">
+      {/* Botones alineados a la izquierda como estaba originalmente */}
+      <div className="flex flex-col sm:flex-row gap-4 pt-6">
         <Button 
           size="lg"
           className="bg-neza-blue-600 hover:bg-neza-blue-700 text-white px-8 py-4 text-lg font-semibold w-full sm:w-auto"

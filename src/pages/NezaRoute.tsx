@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { ProductCatalog } from "@/components/neza/ProductCatalog";
 import { UserOnboarding } from "@/components/neza/UserOnboarding";
@@ -87,14 +88,14 @@ const NezaRoute = () => {
           onClose={() => setShowTutorial(false)} 
         />
         
-        {/* Chatbot reubicado más arriba */}
-        <div className="fixed bottom-40 right-4 z-50">
+        {/* Chatbot en posición vertical media-alta */}
+        <div className="fixed bottom-32 right-4 z-50">
           <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
         </div>
         
-        {/* Botón de tutorial debajo */}
+        {/* Botón de tutorial en esquina inferior izquierda */}
         {!isChatOpen && !showTutorial && (
-          <div className="fixed bottom-4 right-4 z-40">
+          <div className="fixed bottom-4 left-4 z-40">
             <Button
               onClick={handleStartTutorial}
               variant="outline"
@@ -130,14 +131,14 @@ const NezaRoute = () => {
           onClose={() => setShowTutorial(false)} 
         />
         
-        {/* Chatbot reubicado más arriba */}
-        <div className="fixed bottom-40 right-4 z-50">
+        {/* Chatbot en posición vertical media-alta */}
+        <div className="fixed bottom-32 right-4 z-50">
           <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
         </div>
         
-        {/* Botón de tutorial debajo */}
+        {/* Botón de tutorial en esquina inferior izquierda */}
         {!isChatOpen && !showTutorial && (
-          <div className="fixed bottom-4 right-4 z-40">
+          <div className="fixed bottom-4 left-4 z-40">
             <Button
               onClick={handleStartTutorial}
               variant="outline"
@@ -351,14 +352,14 @@ const NezaRoute = () => {
         </div>
       </div>
 
-      {/* Chatbot reubicado más arriba (aproximadamente 100px más arriba) */}
-      <div className="fixed bottom-40 right-4 z-50">
+      {/* Chatbot reubicado más arriba para no interferir con el tutorial */}
+      <div className="fixed bottom-32 right-4 z-50">
         <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
       </div>
       
-      {/* Botón de tutorial - Debajo del chatbot */}
+      {/* Botón de tutorial - Esquina inferior izquierda */}
       {!isChatOpen && !showTutorial && (
-        <div className="fixed bottom-4 right-4 z-40">
+        <div className="fixed bottom-4 left-4 z-40">
           <Button
             onClick={handleStartTutorial}
             variant="outline"
