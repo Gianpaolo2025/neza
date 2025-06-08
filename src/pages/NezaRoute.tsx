@@ -1,21 +1,23 @@
+
 import { useState, useEffect } from "react";
 import { ProductCatalog } from "@/components/neza/ProductCatalog";
 import { UserOnboarding } from "@/components/neza/UserOnboarding";
 import { SBSEntitiesCarousel } from "@/components/neza/SBSEntitiesCarousel";
+import { ProductsCarousel } from "@/components/neza/ProductsCarousel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AsesorIAChat } from "@/components/AsesorIAChat";
 import { useAsesorIA } from "@/hooks/useAsesorIA";
 import { userTrackingService } from "@/services/userTracking";
 import { motion } from "framer-motion";
-import { Sparkles, FileText, TrendingUp, Shield, Users, Zap, AlertTriangle, Clock, Brain, Trophy, Target } from "lucide-react";
+import { Sparkles, FileText, TrendingUp, Shield, Users, Zap, AlertTriangle, Clock, Brain, Trophy, Target, MessageCircle } from "lucide-react";
 
 const NezaRoute = () => {
   const [currentView, setCurrentView] = useState<'home' | 'catalog' | 'onboarding'>('home');
   const [showWelcomeMessage, setShowWelcomeMessage] = useState(true);
-  const [tutorialMode, setTutorialMode] = useState(false);
+  const [showAssistantPopup, setShowAssistantPopup] = useState(true);
   const [userEmail, setUserEmail] = useState<string>('');
-  const { isChatOpen, toggleChat } = useAsesorIA();
+  const { isChatOpen, toggleChat, openChat } = useAsesorIA();
 
   useEffect(() => {
     // Generar email temporal para usuarios anónimos
@@ -26,11 +28,28 @@ const NezaRoute = () => {
     userTrackingService.startSession(tempEmail, 'direct', 'Visita directa a página principal');
     userTrackingService.trackActivity('page_visit', { page: 'home' }, 'Usuario visitó la página principal');
 
+    // Mostrar popup de asistente después de 2 segundos
+    const timer = setTimeout(() => {
+      setShowAssistantPopup(true);
+    }, 2000);
+
     // Cleanup al salir
     return () => {
+      clearTimeout(timer);
       userTrackingService.endSession();
     };
   }, []);
+
+  const handleAssistantAccept = () => {
+    userTrackingService.trackActivity('button_click', { action: 'accept_assistance' }, 'Usuario aceptó la asesoría');
+    setShowAssistantPopup(false);
+    openChat();
+  };
+
+  const handleAssistantDeny = () => {
+    userTrackingService.trackActivity('button_click', { action: 'deny_assistance' }, 'Usuario rechazó la asesoría');
+    setShowAssistantPopup(false);
+  };
 
   if (currentView === 'catalog') {
     return (
@@ -58,6 +77,46 @@ const NezaRoute = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neza-blue-50 via-white to-neza-blue-50">
+      {/* Popup de Asistente */}
+      {showAssistantPopup && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8, y: 50 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          className="fixed bottom-24 right-6 z-50"
+        >
+          <Card className="bg-white border-2 border-purple-200 shadow-xl max-w-sm">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                  <MessageCircle className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-800">AsesorIA</h4>
+                  <p className="text-sm text-gray-600">Hola, ¿puedo ayudarte con la asesoría?</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleAssistantAccept}
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700 text-white flex-1"
+                >
+                  ✅ Aceptar
+                </Button>
+                <Button
+                  onClick={handleAssistantDeny}
+                  size="sm"
+                  variant="outline"
+                  className="border-red-300 text-red-600 hover:bg-red-50 flex-1"
+                >
+                  ❌ No gracias
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
       {/* Mensaje de Bienvenida - Solo se muestra una vez */}
       {showWelcomeMessage && (
         <motion.div
@@ -134,128 +193,17 @@ const NezaRoute = () => {
           </motion.div>
         </motion.div>
 
-        {/* Activar Tutorial con AsesorIA */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="flex justify-center mb-8"
-        >
-          <Card className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                  <Brain className="w-8 h-8 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold text-purple-800 mb-2">
-                    🧑‍🏫 Tutorial con AsesorIA
-                  </h3>
-                  <p className="text-purple-600 text-sm mb-3">
-                    "¡Hola! Soy AsesorIA, tu pata en este proceso. No te preocupes, yo te guío paso a paso."
-                  </p>
-                  <Button
-                    onClick={() => {
-                      userTrackingService.trackActivity('button_click', { action: 'toggle_tutorial', enabled: !tutorialMode }, 
-                        `Usuario ${tutorialMode ? 'desactivó' : 'activó'} el modo tutorial`);
-                      setTutorialMode(!tutorialMode);
-                    }}
-                    className={`${tutorialMode 
-                      ? 'bg-purple-600 hover:bg-purple-700' 
-                      : 'bg-purple-500 hover:bg-purple-600'
-                    } text-white`}
-                  >
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    {tutorialMode ? '✅ AsesorIA Activada' : '🧠 Activar AsesorIA Paso a Paso'}
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Tutorial Messages - Solo si está activado */}
-        {tutorialMode && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="mb-8"
-          >
-            <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-300">
-              <CardContent className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Brain className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-orange-800 mb-2">AsesorIA te explica:</h4>
-                    <p className="text-orange-700 text-sm leading-relaxed">
-                      "¿No sabes qué es un crédito vehicular? ¡Yo te lo explico! 
-                      Escoge la opción que más se adapte a ti. Yo te diré por qué puede funcionar. 
-                      Dale clic a cualquier opción y verás lo que los bancos están dispuestos a ofrecerte."
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-
-        {/* Main Actions */}
+        {/* Experiencia Interactiva - Bloque Principal */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className="grid gap-6 md:grid-cols-2 max-w-5xl mx-auto mb-16"
+          transition={{ delay: 0.6 }}
+          className="max-w-4xl mx-auto mb-16"
         >
           <Card 
             className="hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 bg-white/80 backdrop-blur-sm border-neza-blue-200" 
             onClick={() => {
-              userTrackingService.trackActivity('button_click', { button: 'catalog', section: 'main_actions' }, 'Usuario accedió al catálogo de productos');
-              setCurrentView('catalog');
-            }}
-          >
-            <CardHeader className="text-center pb-4">
-              <motion.div
-                animate={{ rotate: [0, 5, -5, 0] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                className="w-16 h-16 bg-gradient-to-r from-neza-blue-500 to-neza-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"
-              >
-                <TrendingUp className="w-8 h-8 text-white" />
-              </motion.div>
-              <CardTitle className="text-2xl text-neza-blue-800 flex items-center justify-center gap-2">
-                📊 Catálogo de Productos
-              </CardTitle>
-              <CardDescription className="text-base text-neza-silver-600">
-                Aquí te mostramos los productos que podemos ofrecerte y te explicamos cada uno de ellos
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="bg-neza-blue-50 rounded-lg p-3 text-center">
-                <div className="text-neza-blue-700 font-semibold">🏆 Productos disponibles</div>
-                <div className="text-sm text-neza-blue-600">Créditos personalizados para tu perfil</div>
-              </div>
-              <div className="grid grid-cols-1 gap-2 text-xs">
-                <div className="flex items-center gap-1 text-neza-blue-600">
-                  <span>💰</span> Créditos Personales
-                </div>
-                <div className="flex items-center gap-1 text-neza-blue-600">
-                  <span>🚗</span> Créditos Vehiculares
-                </div>
-                <div className="flex items-center gap-1 text-neza-blue-600">
-                  <span>🏠</span> Créditos Hipotecarios
-                </div>
-              </div>
-              <Button className="w-full bg-neza-blue-600 hover:bg-neza-blue-700 text-lg py-6">
-                Ver Productos Disponibles
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card 
-            className="hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 bg-white/80 backdrop-blur-sm border-neza-blue-200" 
-            onClick={() => {
-              userTrackingService.trackActivity('button_click', { button: 'onboarding', section: 'main_actions' }, 'Usuario inició el proceso de onboarding');
+              userTrackingService.trackActivity('button_click', { button: 'onboarding', section: 'main_experience' }, 'Usuario inició el proceso de onboarding');
               setCurrentView('onboarding');
             }}
           >
@@ -263,41 +211,63 @@ const NezaRoute = () => {
               <motion.div
                 animate={{ scale: [1, 1.1, 1] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                className="w-16 h-16 bg-gradient-to-r from-neza-blue-500 to-neza-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"
+                className="w-20 h-20 bg-gradient-to-r from-neza-blue-500 to-neza-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"
               >
-                <FileText className="w-8 h-8 text-white" />
+                <FileText className="w-10 h-10 text-white" />
               </motion.div>
-              <CardTitle className="text-2xl text-neza-blue-800 flex items-center justify-center gap-2">
+              <CardTitle className="text-3xl text-neza-blue-800 flex items-center justify-center gap-2 mb-4">
                 ✓ Experiencia Interactiva
               </CardTitle>
-              <CardDescription className="text-base text-neza-silver-600">
+              <CardDescription className="text-lg text-neza-silver-600 mb-6">
                 Que los bancos compitan por ti - Sistema automático
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="bg-neza-blue-50 rounded-lg p-3 text-center">
-                <div className="text-neza-blue-700 font-semibold">🎯 Mejor propuesta actualizada</div>
+            <CardContent className="space-y-6">
+              <div className="bg-neza-blue-50 rounded-lg p-4 text-center">
+                <div className="text-neza-blue-700 font-semibold text-lg">🎯 Sistema de Subasta Financiera</div>
                 <div className="text-sm text-neza-blue-600">Evaluación en tiempo real</div>
               </div>
-              <div className="grid grid-cols-1 gap-2 text-xs">
-                <div className="flex items-center gap-1 text-neza-blue-600">
-                  <Sparkles className="w-3 h-3" /> Formulario automático (3 minutos)
+              
+              {/* Mensajes horizontales */}
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                    <Clock className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-green-800">✅ Formulario automático</div>
+                    <div className="text-sm text-green-600">En solo 3 minutos</div>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1 text-neza-blue-600">
-                  <Zap className="w-3 h-3" /> Los bancos compiten por ti
-                </div>
-                <div className="flex items-center gap-1 text-neza-blue-600">
-                  <Trophy className="w-3 h-3" /> Eliges la mejor propuesta
+                <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                    <Trophy className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-blue-800">✅ Tú eliges</div>
+                    <div className="text-sm text-blue-600">La mejor propuesta</div>
+                  </div>
                 </div>
               </div>
-              <Button className="w-full bg-neza-blue-600 hover:bg-neza-blue-700 text-lg py-6">
+
+              <Button className="w-full bg-neza-blue-600 hover:bg-neza-blue-700 text-xl py-8">
                 Comenzar Ahora
               </Button>
             </CardContent>
           </Card>
         </motion.div>
 
-        {/* Features Section actualizada con nueva identidad */}
+        {/* Carrusel de Productos */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+          className="mb-16"
+        >
+          <ProductsCarousel onViewCatalog={() => setCurrentView('catalog')} />
+        </motion.div>
+
+        {/* Features Section actualizada */}
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -307,7 +277,7 @@ const NezaRoute = () => {
           <h3 className="text-2xl font-bold text-center text-neza-blue-800 mb-8">
             ¿Por qué usar nuestro Sistema de Subasta?
           </h3>
-          <div className="grid gap-6 md:grid-cols-5 max-w-6xl mx-auto">
+          <div className="grid gap-6 md:grid-cols-4 max-w-5xl mx-auto">
             <motion.div 
               whileHover={{ scale: 1.05 }}
               className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-lg border border-neza-blue-200"
@@ -357,19 +327,6 @@ const NezaRoute = () => {
               <h4 className="font-semibold text-neza-blue-800 text-lg mb-2">⚡ Tiempo Real</h4>
               <p className="text-sm text-neza-silver-600">
                 Las mejores ofertas se actualizan automáticamente cada minuto.
-              </p>
-            </motion.div>
-            
-            <motion.div 
-              whileHover={{ scale: 1.05 }}
-              className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-lg border border-neza-blue-200"
-            >
-              <div className="w-16 h-16 bg-neza-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <TrendingUp className="w-8 h-8 text-neza-blue-600" />
-              </div>
-              <h4 className="font-semibold text-neza-blue-800 text-lg mb-2">📱 S/ Soles</h4>
-              <p className="text-sm text-neza-silver-600">
-                100% en moneda nacional. Compara en soles peruanos.
               </p>
             </motion.div>
           </div>
