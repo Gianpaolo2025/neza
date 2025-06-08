@@ -4,6 +4,8 @@ import { ProductCatalog } from "@/components/neza/ProductCatalog";
 import { UserOnboarding } from "@/components/neza/UserOnboarding";
 import { SBSEntitiesCarousel } from "@/components/neza/SBSEntitiesCarousel";
 import { ProductsCarousel } from "@/components/neza/ProductsCarousel";
+import { InteractiveFAQ } from "@/components/neza/InteractiveFAQ";
+import { InteractiveTutorial } from "@/components/neza/InteractiveTutorial";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AsesorIAChat } from "@/components/AsesorIAChat";
@@ -16,7 +18,7 @@ const NezaRoute = () => {
   const [showWelcomeMessage, setShowWelcomeMessage] = useState(true);
   const [showTutorialPopup, setShowTutorialPopup] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
-  const [tutorialStep, setTutorialStep] = useState(0);
+  const [forceOnboarding, setForceOnboarding] = useState(false);
   const [userEmail, setUserEmail] = useState<string>('');
   const { isChatOpen, toggleChat, openChat } = useAsesorIA();
 
@@ -47,7 +49,6 @@ const NezaRoute = () => {
     userTrackingService.trackActivity('button_click', { action: 'start_tutorial' }, 'Usuario inició el tutorial');
     setShowTutorialPopup(false);
     setShowTutorial(true);
-    setTutorialStep(0);
     localStorage.setItem('nezaTutorialShown', 'true');
   };
 
@@ -57,51 +58,15 @@ const NezaRoute = () => {
     localStorage.setItem('nezaTutorialShown', 'true');
   };
 
-  const nextTutorialStep = () => {
-    if (tutorialStep < 6) { // Aumentado a 7 pasos
-      setTutorialStep(tutorialStep + 1);
-    } else {
-      setShowTutorial(false);
-    }
+  const handleProductRequest = () => {
+    userTrackingService.trackActivity('button_click', { 
+      action: 'product_request', 
+      section: 'main_experience',
+      forced: true 
+    }, 'Usuario inició solicitud obligatoria de producto');
+    setForceOnboarding(true);
+    setCurrentView('onboarding');
   };
-
-  const tutorialSteps = [
-    {
-      target: "#products-section",
-      title: "Catálogo de Productos",
-      description: "Explora todos nuestros productos financieros disponibles con información detallada"
-    },
-    {
-      target: "#interactive-experience",
-      title: "Subasta Financiera",
-      description: "Aquí inicias el proceso donde las entidades compiten por ofrecerte las mejores condiciones"
-    },
-    {
-      target: "#why-system",
-      title: "Evaluación en Tiempo Real",
-      description: "Conoce cómo funciona nuestro sistema inteligente de evaluación automática"
-    },
-    {
-      target: "#sbs-entities",
-      title: "Entidades Reguladas",
-      description: "Todas estas entidades supervisadas por la SBS pueden participar en tu subasta"
-    },
-    {
-      target: "#chat-button",
-      title: "Chatbot Interactivo",
-      description: "Usa este chat para obtener asesoría personalizada en cualquier momento"
-    },
-    {
-      target: "#faq-section",
-      title: "Preguntas Frecuentes",
-      description: "Encuentra respuestas a las consultas más comunes sobre nuestro sistema"
-    },
-    {
-      target: "#filter-section",
-      title: "Filtros Inteligentes",
-      description: "El sistema filtra automáticamente las mejores opciones según tu perfil"
-    }
-  ];
 
   if (currentView === 'catalog') {
     return (
@@ -118,10 +83,18 @@ const NezaRoute = () => {
   if (currentView === 'onboarding') {
     return (
       <>
-        <UserOnboarding onBack={() => {
-          userTrackingService.trackActivity('button_click', { action: 'back_to_home', from: 'onboarding' }, 'Usuario regresó del onboarding a la página principal');
-          setCurrentView('home');
-        }} />
+        <UserOnboarding 
+          onBack={() => {
+            userTrackingService.trackActivity('button_click', { 
+              action: 'back_to_home', 
+              from: 'onboarding',
+              forced: forceOnboarding 
+            }, forceOnboarding ? 'Usuario canceló solicitud obligatoria' : 'Usuario regresó del onboarding a la página principal');
+            setForceOnboarding(false);
+            setCurrentView('home');
+          }}
+          forceFlow={forceOnboarding}
+        />
         <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
       </>
     );
@@ -129,29 +102,11 @@ const NezaRoute = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neza-blue-50 via-white to-neza-blue-50 overflow-x-hidden">
-      {/* Tutorial Overlay */}
-      {showTutorial && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-lg p-6 max-w-md mx-4 relative">
-            <button
-              onClick={() => setShowTutorial(false)}
-              className="absolute top-2 right-2 p-1 hover:bg-gray-100 rounded"
-            >
-              <X className="w-4 h-4" />
-            </button>
-            <h3 className="text-lg font-bold mb-2">{tutorialSteps[tutorialStep].title}</h3>
-            <p className="text-gray-600 mb-4">{tutorialSteps[tutorialStep].description}</p>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-500">
-                Paso {tutorialStep + 1} de {tutorialSteps.length}
-              </span>
-              <Button onClick={nextTutorialStep}>
-                {tutorialStep < tutorialSteps.length - 1 ? 'Siguiente' : 'Finalizar'}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Tutorial Interactivo */}
+      <InteractiveTutorial 
+        isVisible={showTutorial} 
+        onClose={() => setShowTutorial(false)} 
+      />
 
       {/* Popup de Tutorial */}
       {showTutorialPopup && (
@@ -163,8 +118,8 @@ const NezaRoute = () => {
                   <MessageCircle className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-800">Tutorial</h4>
-                  <p className="text-sm text-gray-600">Hola. Presiona aquí para darte un tutorial de la página.</p>
+                  <h4 className="font-semibold text-gray-800">Tutorial Interactivo</h4>
+                  <p className="text-sm text-gray-600">Conoce cómo funciona la plataforma paso a paso.</p>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -173,7 +128,7 @@ const NezaRoute = () => {
                   size="sm"
                   className="bg-blue-600 hover:bg-blue-700 text-white flex-1"
                 >
-                  ✅ Iniciar Tutorial
+                  ✅ Iniciar Tour
                 </Button>
                 <Button
                   onClick={handleSkipTutorial}
@@ -249,17 +204,14 @@ const NezaRoute = () => {
         >
           <Card 
             className="hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 bg-white/80 backdrop-blur-sm border-neza-blue-200" 
-            onClick={() => {
-              userTrackingService.trackActivity('button_click', { button: 'onboarding', section: 'main_experience' }, 'Usuario inició el proceso de onboarding');
-              setCurrentView('onboarding');
-            }}
+            onClick={handleProductRequest}
           >
             <CardHeader className="text-center pb-4">
               <div className="w-20 h-20 bg-gradient-to-r from-neza-blue-500 to-neza-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg animate-pulse">
                 <FileText className="w-10 h-10 text-white animate-bounce" />
               </div>
               <CardTitle className="text-3xl text-neza-blue-800 flex items-center justify-center gap-2 mb-4">
-                ✓ Experiencia Interactiva
+                ✓ Solicitar Producto Financiero
               </CardTitle>
               <CardDescription className="text-lg text-neza-silver-600 mb-6">
                 Proceso 100% digital y transparente
@@ -278,8 +230,8 @@ const NezaRoute = () => {
                     <Clock className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <div className="font-semibold text-green-800">✅ Formulario automático</div>
-                    <div className="text-sm text-green-600">En solo 3 minutos</div>
+                    <div className="font-semibold text-green-800">✅ Formulario obligatorio</div>
+                    <div className="text-sm text-green-600">Completa 8 preguntas</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -287,14 +239,14 @@ const NezaRoute = () => {
                     <Trophy className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <div className="font-semibold text-blue-800">✅ Tú eliges</div>
-                    <div className="text-sm text-blue-600">La mejor propuesta</div>
+                    <div className="font-semibold text-blue-800">✅ Subasta automática</div>
+                    <div className="text-sm text-blue-600">Bancos compiten por ti</div>
                   </div>
                 </div>
               </div>
 
               <Button className="w-full bg-neza-blue-600 hover:bg-neza-blue-700 text-xl py-8">
-                Comenzar Ahora
+                Comenzar Solicitud
               </Button>
             </CardContent>
           </Card>
@@ -362,7 +314,7 @@ const NezaRoute = () => {
           </div>
         </div>
 
-        {/* Sección FAQ */}
+        {/* Sección FAQ mejorada */}
         <div 
           id="faq-section"
           className="mb-16 max-w-4xl mx-auto"
@@ -370,7 +322,7 @@ const NezaRoute = () => {
           <h3 className="text-2xl font-bold text-center text-neza-blue-800 mb-8">
             Preguntas Frecuentes
           </h3>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2 mb-8">
             <Card className="bg-white/60 backdrop-blur-sm border border-neza-blue-200">
               <CardContent className="p-4">
                 <h4 className="font-semibold text-neza-blue-800 mb-2">¿Cómo funciona la subasta?</h4>
@@ -388,6 +340,9 @@ const NezaRoute = () => {
               </CardContent>
             </Card>
           </div>
+          
+          {/* FAQ Interactiva */}
+          <InteractiveFAQ />
         </div>
       </div>
 
@@ -401,14 +356,14 @@ const NezaRoute = () => {
         <div className="container mx-auto px-4 text-center max-w-6xl">
           <div className="flex items-center justify-center gap-2 mb-4">
             <CheckCircle className="w-5 h-5 text-neza-blue-400" />
-            <span className="text-neza-blue-400 font-semibold">Te conectamos con todas las entidades reguladas por la SBS</span>
+            <span className="text-neza-blue-400 font-semibold">Evaluación en tiempo real</span>
           </div>
           <p className="text-neza-silver-300 text-sm max-w-2xl mx-auto">
             NEZA es un sistema de subasta financiera donde las entidades autorizadas y supervisadas 
             por la Superintendencia de Banca, Seguros y AFP (SBS) del Perú compiten para ofrecerte las mejores condiciones.
           </p>
           <div className="mt-4 text-xs text-neza-silver-400">
-            Última actualización: {new Date().toLocaleDateString('es-PE')} • {new Date().toLocaleTimeString('es-PE')}
+            Te conectamos con todas las entidades reguladas por la SBS • Última actualización: {new Date().toLocaleDateString('es-PE')} • {new Date().toLocaleTimeString('es-PE')}
           </div>
         </div>
       </div>

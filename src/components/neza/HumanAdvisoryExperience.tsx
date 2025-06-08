@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { ArrowRight, ArrowLeft, Home, Car, CreditCard, Heart, Target, Play, Building2, FileText, Users, Briefcase } from "lucide-react";
+import { ArrowRight, ArrowLeft, Home, Car, CreditCard, Heart, Target, Play, Building2, FileText, Users, Briefcase, AlertCircle } from "lucide-react";
 
 interface UserData {
   goal: string;
@@ -28,9 +27,10 @@ interface UserData {
 interface HumanAdvisoryExperienceProps {
   onBack: () => void;
   onComplete: (data: UserData) => void;
+  forceFlow?: boolean;
 }
 
-export const HumanAdvisoryExperience = ({ onBack, onComplete }: HumanAdvisoryExperienceProps) => {
+export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false }: HumanAdvisoryExperienceProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [showVideo, setShowVideo] = useState(false);
   const [data, setData] = useState<UserData>({
@@ -52,8 +52,8 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete }: HumanAdvisoryExp
   const steps = [
     {
       id: "intro",
-      title: "Hola, empecemos por conocerte",
-      subtitle: "Te voy a hacer unas preguntas sencillas para entender qué necesitas"
+      title: forceFlow ? "Completa tu solicitud" : "Hola, empecemos por conocerte",
+      subtitle: forceFlow ? "Para solicitar este producto, necesitamos conocer tu perfil financiero" : "Te voy a hacer unas preguntas sencillas para entender qué necesitas"
     },
     {
       id: "goal",
@@ -99,7 +99,6 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete }: HumanAdvisoryExp
     if (currentStep < steps.length - 1) {
       setCurrentStep(prev => prev + 1);
     } else {
-      // Pass the original data object directly
       onComplete(data);
     }
   };
@@ -107,6 +106,10 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete }: HumanAdvisoryExp
   const handlePrev = () => {
     if (currentStep > 0) {
       setCurrentStep(prev => prev - 1);
+    } else if (forceFlow) {
+      if (confirm('¿Estás seguro de que quieres salir? Debes completar este formulario para solicitar el producto.')) {
+        onBack();
+      }
     }
   };
 
@@ -134,36 +137,47 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete }: HumanAdvisoryExp
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-blue-800">NEZA</h1>
-              <p className="text-sm text-blue-600">Tu aliado financiero de confianza</p>
+              <p className="text-sm text-blue-600">
+                {forceFlow ? 'Formulario obligatorio para solicitud' : 'Tu aliado financiero de confianza'}
+              </p>
             </div>
             
-            <div className="flex gap-4 text-xs">
-              <div className="text-center">
-                <div className="flex items-center gap-1 text-blue-700 font-medium">
-                  <Heart className="w-3 h-3" />
-                  <span>Misión</span>
-                </div>
-                <p className="text-blue-600 max-w-[120px]">Ayudarte a cumplir tus metas sin estrés ni letras pequeñas</p>
+            {forceFlow && (
+              <div className="flex items-center gap-2 bg-orange-50 px-3 py-2 rounded-lg">
+                <AlertCircle className="w-4 h-4 text-orange-600" />
+                <span className="text-sm text-orange-700 font-medium">Completar es obligatorio</span>
               </div>
-              
-              <div className="text-center">
-                <div className="flex items-center gap-1 text-blue-700 font-medium">
-                  <Target className="w-3 h-3" />
-                  <span>Visión</span>
+            )}
+            
+            {!forceFlow && (
+              <div className="flex gap-4 text-xs">
+                <div className="text-center">
+                  <div className="flex items-center gap-1 text-blue-700 font-medium">
+                    <Heart className="w-3 h-3" />
+                    <span>Misión</span>
+                  </div>
+                  <p className="text-blue-600 max-w-[120px]">Ayudarte a cumplir tus metas sin estrés ni letras pequeñas</p>
                 </div>
-                <p className="text-blue-600 max-w-[120px]">Ser tu aliado con soluciones reales y cercanas</p>
+                
+                <div className="text-center">
+                  <div className="flex items-center gap-1 text-blue-700 font-medium">
+                    <Target className="w-3 h-3" />
+                    <span>Visión</span>
+                  </div>
+                  <p className="text-blue-600 max-w-[120px]">Ser tu aliado con soluciones reales y cercanas</p>
+                </div>
+                
+                <Button
+                  onClick={() => setShowVideo(true)}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-1 text-xs"
+                >
+                  <Play className="w-3 h-3" />
+                  Tutorial (1 min)
+                </Button>
               </div>
-              
-              <Button
-                onClick={() => setShowVideo(true)}
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-1 text-xs"
-              >
-                <Play className="w-3 h-3" />
-                Tutorial (1 min)
-              </Button>
-            </div>
+            )}
           </div>
         </div>
       </div>
@@ -202,11 +216,16 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete }: HumanAdvisoryExp
                   <div className="text-center space-y-4">
                     <div className="text-6xl mb-4">👋</div>
                     <p className="text-lg text-gray-700">
-                      Soy tu asesor financiero personal. Te voy a acompañar para encontrar 
-                      la mejor opción para ti entre todos los bancos disponibles.
+                      {forceFlow ? 
+                        "Para procesar tu solicitud, necesitamos conocer tu perfil financiero. Este proceso es obligatorio y toma menos de 3 minutos." :
+                        "Soy tu asesor financiero personal. Te voy a acompañar para encontrar la mejor opción para ti entre todos los bancos disponibles."
+                      }
                     </p>
                     <p className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
-                      Todo el proceso toma menos de 3 minutos y es completamente gratuito.
+                      {forceFlow ? 
+                        "Al completar este formulario, las entidades financieras podrán hacer ofertas personalizadas para ti." :
+                        "Todo el proceso toma menos de 3 minutos y es completamente gratuito."
+                      }
                     </p>
                   </div>
                 )}
@@ -507,7 +526,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete }: HumanAdvisoryExp
             className="flex items-center gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
-            {currentStep === 0 ? 'Volver' : 'Anterior'}
+            {currentStep === 0 ? (forceFlow ? 'Cancelar' : 'Volver') : 'Anterior'}
           </Button>
           
           <Button
@@ -515,7 +534,10 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete }: HumanAdvisoryExp
             disabled={!canProceed()}
             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
           >
-            {currentStep === steps.length - 1 ? 'Ver mis opciones' : 'Siguiente'}
+            {currentStep === steps.length - 1 ? 
+              (forceFlow ? 'Proceder a la subasta' : 'Ver mis opciones') : 
+              'Siguiente'
+            }
             <ArrowRight className="w-4 h-4" />
           </Button>
         </div>

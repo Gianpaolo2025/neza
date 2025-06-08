@@ -1,17 +1,18 @@
 
 import { useState } from "react";
-import { DynamicOnboarding } from "./DynamicOnboarding";
 import { HumanAdvisoryExperience } from "./HumanAdvisoryExperience";
+import { AuctionValidator } from "./AuctionValidator";
 import { OffersDashboard } from "@/components/OffersDashboard";
 import { UserData } from "@/types/user";
 import { userTrackingService } from "@/services/userTracking";
 
 interface UserOnboardingProps {
   onBack: () => void;
+  forceFlow?: boolean; // Nueva prop para flujo obligatorio
 }
 
-export const UserOnboarding = ({ onBack }: UserOnboardingProps) => {
-  const [currentView, setCurrentView] = useState<'advisory' | 'offers'>('advisory');
+export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProps) => {
+  const [currentView, setCurrentView] = useState<'advisory' | 'validation' | 'offers'>('advisory');
   const [userData, setUserData] = useState<UserData | null>(null);
 
   const handleComplete = (data: any) => {
@@ -26,7 +27,9 @@ export const UserOnboarding = ({ onBack }: UserOnboardingProps) => {
       requestedAmount: data.amount,
       productType: data.goal === 'casa' ? 'credito-hipotecario' : 
                    data.goal === 'auto' ? 'credito-vehicular' : 'credito-personal',
-      employmentType: data.employmentType,
+      employmentType: data.workSituation === 'empleado' ? 'dependiente' : 
+                     data.workSituation === 'independiente' ? 'independiente' :
+                     data.workSituation === 'empresario' ? 'empresario' : 'pensionista',
       hasOtherDebts: 'no',
       bankingRelationship: data.preferredBank || 'ninguno',
       urgencyLevel: 'normal',
@@ -38,7 +41,7 @@ export const UserOnboarding = ({ onBack }: UserOnboardingProps) => {
     if (!userTrackingService['currentSessionId']) {
       userTrackingService.startSession(
         convertedData.email, 
-        'onboarding', 
+        forceFlow ? 'product_request' : 'onboarding', 
         `Solicitud de ${convertedData.productType} por S/ ${convertedData.requestedAmount.toLocaleString()}`
       );
     }
@@ -46,7 +49,7 @@ export const UserOnboarding = ({ onBack }: UserOnboardingProps) => {
     // Registrar la finalización del onboarding
     userTrackingService.trackActivity(
       'form_submit',
-      convertedData,
+      { ...convertedData, forceFlow },
       `Onboarding completado - Solicitud de ${convertedData.productType}`,
       convertedData.productType
     );
@@ -59,7 +62,7 @@ export const UserOnboarding = ({ onBack }: UserOnboardingProps) => {
       phone: convertedData.phone,
       monthlyIncome: convertedData.monthlyIncome,
       currentRequest: `${convertedData.productType} - S/ ${convertedData.requestedAmount.toLocaleString()}`,
-      currentStatus: 'applying',
+      currentStatus: 'validating',
       tags: [convertedData.productType, convertedData.employmentType, convertedData.urgencyLevel]
     }, 'Onboarding completado con información completa');
 
@@ -73,20 +76,29 @@ export const UserOnboarding = ({ onBack }: UserOnboardingProps) => {
         productType: convertedData.productType,
         requestedAmount: convertedData.requestedAmount,
         monthlyIncome: convertedData.monthlyIncome,
-        urgencyLevel: convertedData.urgencyLevel
+        urgencyLevel: convertedData.urgencyLevel,
+        forceFlow
       },
       true
     );
-
-    // Cambiar estado a evaluando ofertas
-    userTrackingService.updateUserStatus(
-      convertedData.email,
-      'pending',
-      'Usuario está evaluando ofertas disponibles'
-    );
     
     setUserData(convertedData);
-    setCurrentView('offers');
+    setCurrentView('validation'); // Ir a validación antes de ofertas
+  };
+
+  const handleValidationSuccess = () => {
+    if (userData) {
+      userTrackingService.updateUserStatus(
+        userData.email,
+        'qualified',
+        'Usuario calificó para subasta y está evaluando ofertas'
+      );
+      setCurrentView('offers');
+    }
+  };
+
+  const handleValidationRetry = () => {
+    setCurrentView('advisory');
   };
 
   if (currentView === 'offers' && userData) {
@@ -94,14 +106,31 @@ export const UserOnboarding = ({ onBack }: UserOnboardingProps) => {
       <OffersDashboard 
         user={userData}
         onBack={() => {
-          // Registrar el regreso al onboarding
           userTrackingService.trackActivity(
             'button_click',
-            { action: 'back_to_onboarding' },
-            'Usuario regresó del dashboard de ofertas al onboarding'
+            { action: 'back_to_validation', forceFlow },
+            'Usuario regresó del dashboard de ofertas a la validación'
+          );
+          setCurrentView('validation');
+        }}
+      />
+    );
+  }
+
+  if (currentView === 'validation' && userData) {
+    return (
+      <AuctionValidator
+        userData={userData}
+        onRetry={handleValidationRetry}
+        onBack={() => {
+          userTrackingService.trackActivity(
+            'button_click',
+            { action: 'back_to_onboarding_from_validation', forceFlow },
+            'Usuario regresó de validación al onboarding'
           );
           setCurrentView('advisory');
         }}
+        onProceedToAuction={handleValidationSuccess}
       />
     );
   }
@@ -112,12 +141,13 @@ export const UserOnboarding = ({ onBack }: UserOnboardingProps) => {
         // Registrar abandono del onboarding
         userTrackingService.trackActivity(
           'form_abandon',
-          { step: 'advisory', reason: 'user_back_button' },
-          'Usuario abandonó el proceso de onboarding'
+          { step: 'advisory', reason: 'user_back_button', forceFlow },
+          forceFlow ? 'Usuario abandonó el flujo obligatorio de solicitud' : 'Usuario abandonó el proceso de onboarding'
         );
         onBack();
       }}
       onComplete={handleComplete}
+      forceFlow={forceFlow}
     />
   );
 };
