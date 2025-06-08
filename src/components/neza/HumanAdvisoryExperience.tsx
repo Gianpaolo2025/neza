@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { ArrowRight, ArrowLeft, Home, Car, CreditCard, Heart, Target, Play, Building2, FileText, Users, Briefcase, AlertCircle, Upload, Eye, EyeOff, GraduationCap, Factory, Stethoscope, Calculator, Gavel } from "lucide-react";
+import { ArrowRight, ArrowLeft, Home, Car, CreditCard, Heart, Target, Play, Building2, FileText, Users, Briefcase, AlertCircle, Upload, Eye, EyeOff, GraduationCap, Factory, Stethoscope, Calculator, Gavel, Edit3 } from "lucide-react";
 
 interface UserData {
   goal: string;
@@ -57,6 +56,8 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
   const [emailVerifiedMessage, setEmailVerifiedMessage] = useState("");
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [uploadedPayslips, setUploadedPayslips] = useState<File[]>([]);
+  const [isReturningUser, setIsReturningUser] = useState(false);
+  const [fieldsEditable, setFieldsEditable] = useState(false);
   
   const [data, setData] = useState<UserData>({
     goal: "",
@@ -81,6 +82,44 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
       others: null
     }
   });
+
+  // Load previous data on component mount
+  useEffect(() => {
+    const savedData = localStorage.getItem('nezaUserData');
+    if (savedData) {
+      try {
+        const parsedData = JSON.parse(savedData);
+        if (parsedData.personalInfo && 
+            (parsedData.personalInfo.dni || parsedData.personalInfo.firstName || 
+             parsedData.personalInfo.lastName || parsedData.personalInfo.email)) {
+          setData(prev => ({
+            ...prev,
+            personalInfo: {
+              ...prev.personalInfo,
+              ...parsedData.personalInfo
+            },
+            // Restore other saved data
+            goal: parsedData.goal || prev.goal,
+            amount: parsedData.amount || prev.amount,
+            workSituation: parsedData.workSituation || prev.workSituation,
+            monthlyIncome: parsedData.monthlyIncome || prev.monthlyIncome,
+            hasPayslips: parsedData.hasPayslips || prev.hasPayslips
+          }));
+          setIsReturningUser(true);
+          setFieldsEditable(false);
+        }
+      } catch (error) {
+        console.log('Error loading saved data:', error);
+      }
+    }
+  }, []);
+
+  // Save data to localStorage whenever data changes
+  useEffect(() => {
+    if (data.personalInfo.dni || data.personalInfo.firstName || data.personalInfo.email) {
+      localStorage.setItem('nezaUserData', JSON.stringify(data));
+    }
+  }, [data]);
 
   const steps = [
     {
@@ -435,26 +474,54 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                 {/* Paso 1: Datos Personales */}
                 {currentStep === 1 && (
                   <div className="space-y-4">
+                    {isReturningUser && (
+                      <div className="bg-[#0050b3] border border-blue-300 rounded-lg p-3 mb-4">
+                        <div className="flex items-center justify-between">
+                          <p className="text-white text-sm">
+                            ¡Hola {data.personalInfo.firstName}! Ya tenemos tus datos cargados. 
+                            {fieldsEditable ? " Puedes editarlos si necesitas." : " Si deseas cambiarlos, haz clic en 'Editar datos'."}
+                          </p>
+                          {!fieldsEditable && (
+                            <Button
+                              onClick={() => setFieldsEditable(true)}
+                              variant="outline"
+                              size="sm"
+                              className="ml-2 bg-white text-blue-700 hover:bg-blue-50"
+                            >
+                              <Edit3 className="w-3 h-3 mr-1" />
+                              Editar datos
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
                     <div>
                       <Label>DNI *</Label>
                       <Input
                         placeholder="12345678"
                         value={data.personalInfo.dni}
                         onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, '').slice(0, 8);
-                          setData(prev => ({ 
-                            ...prev, 
-                            personalInfo: { ...prev.personalInfo, dni: value }
-                          }));
-                          if (validationErrors.dni) {
-                            setValidationErrors(prev => ({ ...prev, dni: "" }));
+                          if (fieldsEditable || !isReturningUser) {
+                            const value = e.target.value.replace(/\D/g, '').slice(0, 8);
+                            setData(prev => ({ 
+                              ...prev, 
+                              personalInfo: { ...prev.personalInfo, dni: value }
+                            }));
+                            if (validationErrors.dni) {
+                              setValidationErrors(prev => ({ ...prev, dni: "" }));
+                            }
                           }
                         }}
                         maxLength={8}
                         className={validationErrors.dni ? "border-red-500" : ""}
+                        disabled={isReturningUser && !fieldsEditable}
                       />
                       {validationErrors.dni && (
                         <p className="text-red-500 text-sm mt-1">{validationErrors.dni}</p>
+                      )}
+                      {isReturningUser && !fieldsEditable && (
+                        <p className="text-xs text-gray-500 mt-1">Este dato ya fue ingresado previamente.</p>
                       )}
                     </div>
                     
@@ -465,19 +532,25 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                           placeholder="Tu nombre"
                           value={data.personalInfo.firstName}
                           onChange={(e) => {
-                            const value = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
-                            setData(prev => ({ 
-                              ...prev, 
-                              personalInfo: { ...prev.personalInfo, firstName: value }
-                            }));
-                            if (validationErrors.firstName) {
-                              setValidationErrors(prev => ({ ...prev, firstName: "" }));
+                            if (fieldsEditable || !isReturningUser) {
+                              const value = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+                              setData(prev => ({ 
+                                ...prev, 
+                                personalInfo: { ...prev.personalInfo, firstName: value }
+                              }));
+                              if (validationErrors.firstName) {
+                                setValidationErrors(prev => ({ ...prev, firstName: "" }));
+                              }
                             }
                           }}
                           className={validationErrors.firstName ? "border-red-500" : ""}
+                          disabled={isReturningUser && !fieldsEditable}
                         />
                         {validationErrors.firstName && (
                           <p className="text-red-500 text-sm mt-1">{validationErrors.firstName}</p>
+                        )}
+                        {isReturningUser && !fieldsEditable && (
+                          <p className="text-xs text-gray-500 mt-1">Este dato ya fue ingresado previamente.</p>
                         )}
                       </div>
                       
@@ -487,19 +560,25 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                           placeholder="Tus apellidos"
                           value={data.personalInfo.lastName}
                           onChange={(e) => {
-                            const value = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
-                            setData(prev => ({ 
-                              ...prev, 
-                              personalInfo: { ...prev.personalInfo, lastName: value }
-                            }));
-                            if (validationErrors.lastName) {
-                              setValidationErrors(prev => ({ ...prev, lastName: "" }));
+                            if (fieldsEditable || !isReturningUser) {
+                              const value = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+                              setData(prev => ({ 
+                                ...prev, 
+                                personalInfo: { ...prev.personalInfo, lastName: value }
+                              }));
+                              if (validationErrors.lastName) {
+                                setValidationErrors(prev => ({ ...prev, lastName: "" }));
+                              }
                             }
                           }}
                           className={validationErrors.lastName ? "border-red-500" : ""}
+                          disabled={isReturningUser && !fieldsEditable}
                         />
                         {validationErrors.lastName && (
                           <p className="text-red-500 text-sm mt-1">{validationErrors.lastName}</p>
+                        )}
+                        {isReturningUser && !fieldsEditable && (
+                          <p className="text-xs text-gray-500 mt-1">Este dato ya fue ingresado previamente.</p>
                         )}
                       </div>
                     </div>
@@ -512,19 +591,22 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                           placeholder="tu@email.com"
                           value={data.personalInfo.email}
                           onChange={(e) => {
-                            setData(prev => ({ 
-                              ...prev, 
-                              personalInfo: { ...prev.personalInfo, email: e.target.value }
-                            }));
-                            if (validationErrors.email) {
-                              setValidationErrors(prev => ({ ...prev, email: "" }));
+                            if (fieldsEditable || !isReturningUser) {
+                              setData(prev => ({ 
+                                ...prev, 
+                                personalInfo: { ...prev.personalInfo, email: e.target.value }
+                              }));
+                              if (validationErrors.email) {
+                                setValidationErrors(prev => ({ ...prev, email: "" }));
+                              }
                             }
                           }}
                           className={`flex-1 ${validationErrors.email ? "border-red-500" : ""}`}
+                          disabled={isReturningUser && !fieldsEditable}
                         />
                         <Button 
                           onClick={sendVerificationCode}
-                          disabled={!data.personalInfo.email || data.personalInfo.emailVerified}
+                          disabled={!data.personalInfo.email || data.personalInfo.emailVerified || (isReturningUser && !fieldsEditable)}
                           variant="outline"
                         >
                           Enviar código
@@ -532,6 +614,9 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                       </div>
                       {validationErrors.email && (
                         <p className="text-red-500 text-sm mt-1">{validationErrors.email}</p>
+                      )}
+                      {isReturningUser && !fieldsEditable && (
+                        <p className="text-xs text-gray-500 mt-1">Este dato ya fue ingresado previamente.</p>
                       )}
                     </div>
 
@@ -581,20 +666,26 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                         placeholder="987654321"
                         value={data.personalInfo.phone}
                         onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, '').slice(0, 9);
-                          setData(prev => ({ 
-                            ...prev, 
-                            personalInfo: { ...prev.personalInfo, phone: value }
-                          }));
-                          if (validationErrors.phone) {
-                            setValidationErrors(prev => ({ ...prev, phone: "" }));
+                          if (fieldsEditable || !isReturningUser) {
+                            const value = e.target.value.replace(/\D/g, '').slice(0, 9);
+                            setData(prev => ({ 
+                              ...prev, 
+                              personalInfo: { ...prev.personalInfo, phone: value }
+                            }));
+                            if (validationErrors.phone) {
+                              setValidationErrors(prev => ({ ...prev, phone: "" }));
+                            }
                           }
                         }}
                         maxLength={9}
                         className={validationErrors.phone ? "border-red-500" : ""}
+                        disabled={isReturningUser && !fieldsEditable}
                       />
                       {validationErrors.phone && (
                         <p className="text-red-500 text-sm mt-1">{validationErrors.phone}</p>
+                      )}
+                      {isReturningUser && !fieldsEditable && (
+                        <p className="text-xs text-gray-500 mt-1">Este dato ya fue ingresado previamente.</p>
                       )}
                     </div>
                   </div>
@@ -898,8 +989,8 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                 {/* Paso 7: Documentos */}
                 {currentStep === 7 && (
                   <div className="space-y-4">
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                      <p className="text-blue-800 text-sm">
+                    <div className="bg-[#0050b3] border border-blue-300 rounded-lg p-4 mb-4">
+                      <p className="text-white text-sm">
                         <strong>Importante:</strong> Subir documentos no es obligatorio para ir a la subasta, pero sí para cerrar con un banco.
                       </p>
                     </div>
