@@ -7,262 +7,233 @@ const sbsEntitiesData = [
   // Bancos
   {
     name: "ALFIN BANCO",
-    logo: "🏦",
     specialties: ["Créditos PYME", "Financiamiento"],
     type: "Banco"
   },
   {
     name: "BBVA",
-    logo: "🏦", 
     specialties: ["Créditos Vehiculares", "Empresariales"],
     type: "Banco"
   },
   {
     name: "BANCO BCI",
-    logo: "🏦",
     specialties: ["Banca Empresarial", "Corporativa"],
     type: "Banco"
   },
   {
     name: "BANCOM",
-    logo: "🏦",
     specialties: ["Microfinanzas", "PYME"],
     type: "Banco"
   },
   {
     name: "BANCO DE CRÉDITO",
-    logo: "🏦",
     specialties: ["Préstamos Personales", "Hipotecarios"],
     type: "Banco"
   },
   {
     name: "BANCO DE LA NACIÓN",
-    logo: "🏦",
     specialties: ["Servicios Públicos", "Inclusión Financiera"],
     type: "Banco"
   },
   {
     name: "BANCO FALABELLA",
-    logo: "🏦",
     specialties: ["Tarjetas", "Créditos de Consumo"],
     type: "Banco"
   },
   {
     name: "BANCO GNB",
-    logo: "🏦",
     specialties: ["Banca Personal", "Empresarial"],
     type: "Banco"
   },
   {
     name: "BANBIF",
-    logo: "🏦",
     specialties: ["Financiamiento", "Inversión"],
     type: "Banco"
   },
   {
     name: "INTERBANK",
-    logo: "🏦",
     specialties: ["Tarjetas de Crédito", "Préstamos"],
     type: "Banco"
   },
   {
     name: "BANCO PICHINCHA",
-    logo: "🏦",
     specialties: ["Banca Personal", "PYME"],
     type: "Banco"
   },
   {
     name: "BANCO RIPLEY",
-    logo: "🏦",
     specialties: ["Tarjetas", "Préstamos Personales"],
     type: "Banco"
   },
   {
     name: "SANTANDER PERÚ",
-    logo: "🏦",
     specialties: ["Créditos", "Inversiones"],
     type: "Banco"
   },
   {
     name: "BANK OF CHINA (PERÚ)",
-    logo: "🏦",
     specialties: ["Comercio Internacional", "Corporativo"],
     type: "Banco"
   },
   {
     name: "CITIBANK DEL PERÚ",
-    logo: "🏦",
     specialties: ["Banca Privada", "Corporativa"],
     type: "Banco"
   },
   {
     name: "COMPARTAMOS BANCO",
-    logo: "🏦",
     specialties: ["Microfinanzas", "Inclusión"],
     type: "Banco"
   },
   {
     name: "ICBC PERU BANK S.A.",
-    logo: "🏦",
     specialties: ["Comercio", "Inversión"],
     type: "Banco"
   },
   {
     name: "MIBANCO",
-    logo: "🏦",
     specialties: ["Microcréditos", "PYME"],
     type: "Banco"
   },
   {
     name: "BANCO SANTANDER CONSUMO",
-    logo: "🏦",
     specialties: ["Créditos Consumo", "Tarjetas"],
     type: "Banco"
   },
   {
     name: "SCOTIABANK PERÚ",
-    logo: "🏦",
     specialties: ["Créditos Hipotecarios", "Empresariales"],
     type: "Banco"
   },
   // Financieras
   {
     name: "FINANCIERA CONFIANZA",
-    logo: "💼",
     specialties: ["Préstamos Personales", "Vehiculares"],
     type: "Financiera"
   },
   {
     name: "FINANCIERA EFECTIVA",
-    logo: "💼",
     specialties: ["Microcréditos", "PYME"],
     type: "Financiera"
   },
   {
     name: "FINANCIERA OH",
-    logo: "💼",
     specialties: ["Créditos Personales", "Consumo"],
     type: "Financiera"
   },
   {
     name: "FINANCIERA PROEMPRESA",
-    logo: "💼",
     specialties: ["PYME", "Empresariales"],
     type: "Financiera"
   },
   {
     name: "FINANCIERA QAPAQ",
-    logo: "💼",
     specialties: ["Microfinanzas", "Inclusión"],
     type: "Financiera"
   },
   {
     name: "FINANCIERA SURGIR",
-    logo: "💼",
     specialties: ["Microcréditos", "Rural"],
     type: "Financiera"
   },
-  // Cajas Municipales
+  // Cajas Municipales (cambiado CMAC por Caja Municipal)
   {
-    name: "CMAC CUSCO",
-    logo: "🏛️",
+    name: "Caja Municipal CUSCO",
     specialties: ["Créditos PYME", "Ahorro"],
     type: "Caja Municipal"
   },
   {
-    name: "CMAC AREQUIPA",
-    logo: "🏛️",
+    name: "Caja Municipal AREQUIPA",
     specialties: ["Microcréditos", "Ahorro"],
     type: "Caja Municipal"
   },
   {
-    name: "CMAC DEL SANTA",
-    logo: "🏛️",
+    name: "Caja Municipal DEL SANTA",
     specialties: ["PYME", "Microfinanzas"],
     type: "Caja Municipal"
   },
   {
-    name: "CMAC HUANCAYO",
-    logo: "🏛️",
+    name: "Caja Municipal HUANCAYO",
     specialties: ["Créditos", "Ahorro"],
     type: "Caja Municipal"
   },
   {
-    name: "CMAC ICA",
-    logo: "🏛️",
+    name: "Caja Municipal ICA",
     specialties: ["PYME", "Consumo"],
     type: "Caja Municipal"
   },
   {
-    name: "CMAC MAYNAS",
-    logo: "🏛️",
+    name: "Caja Municipal MAYNAS",
     specialties: ["Microcréditos", "Rural"],
     type: "Caja Municipal"
   },
   {
-    name: "CMAC PAITA",
-    logo: "🏛️",
+    name: "Caja Municipal PAITA",
     specialties: ["PYME", "Pesquero"],
     type: "Caja Municipal"
   },
   {
-    name: "CMAC PIURA",
-    logo: "🏛️",
+    name: "Caja Municipal PIURA",
     specialties: ["Agropecuario", "PYME"],
     type: "Caja Municipal"
   },
   {
-    name: "CMAC TACNA",
-    logo: "🏛️",
+    name: "Caja Municipal TACNA",
     specialties: ["Comercio", "Frontera"],
     type: "Caja Municipal"
   },
   {
-    name: "CMAC TRUJILLO",
-    logo: "🏛️",
+    name: "Caja Municipal TRUJILLO",
     specialties: ["PYME", "Agroindustria"],
     type: "Caja Municipal"
   },
   {
-    name: "CMCP LIMA",
-    logo: "🏛️",
+    name: "Caja Municipal LIMA",
     specialties: ["Microfinanzas", "Urbano"],
     type: "Caja Municipal"
   },
   // Cajas Rurales
   {
     name: "CRAC CENCOSUD SCOTIA",
-    logo: "🌾",
     specialties: ["Retail", "Consumo"],
     type: "Caja Rural"
   },
   {
     name: "CRAC LOS ANDES",
-    logo: "🌾",
     specialties: ["Agropecuario", "Rural"],
     type: "Caja Rural"
   },
   {
     name: "CRAC DEL CENTRO",
-    logo: "🌾",
     specialties: ["Agrícola", "PYME Rural"],
     type: "Caja Rural"
   },
   {
     name: "CRAC PRYMERA",
-    logo: "🌾",
     specialties: ["Microfinanzas", "Rural"],
     type: "Caja Rural"
   },
   {
     name: "CRAC INCASUR",
-    logo: "🌾",
     specialties: ["Agropecuario", "Sur"],
     type: "Caja Rural"
   }
 ];
 
+// Función para aleatorizar el orden
+const shuffleArray = (array: any[]) => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
 export const SBSEntitiesCarousel = () => {
+  // Aleatorizar las entidades
+  const shuffledEntities = shuffleArray(sbsEntitiesData);
+
   return (
     <div className="bg-white text-gray-800 py-12">
       <div className="container mx-auto px-4 max-w-6xl">
@@ -285,12 +256,13 @@ export const SBSEntitiesCarousel = () => {
         <div className="relative overflow-hidden">
           <div className="flex animate-scroll gap-4" style={{ width: 'calc(300px * 82)' }}>
             {/* Duplicamos las entidades para hacer el scroll infinito */}
-            {[...sbsEntitiesData, ...sbsEntitiesData].map((entity, index) => (
+            {[...shuffledEntities, ...shuffledEntities].map((entity, index) => (
               <div key={index} className="flex-shrink-0 w-72">
                 <Card className="bg-white border-gray-200 hover:bg-gray-50 transition-all duration-200 shadow-sm hover:shadow-md h-full">
                   <CardContent className="p-6 text-center">
-                    <div className="w-20 h-20 bg-gray-50 rounded-lg flex items-center justify-center mx-auto mb-4">
-                      <span className="text-4xl">{entity.logo}</span>
+                    {/* Cuadro gris neutro en lugar de emoji */}
+                    <div className="w-20 h-20 bg-gray-200 rounded-lg flex items-center justify-center mx-auto mb-4">
+                      <div className="w-12 h-12 bg-gray-300 rounded"></div>
                     </div>
                     
                     <h4 className="font-semibold text-gray-800 text-base mb-3 leading-tight">
