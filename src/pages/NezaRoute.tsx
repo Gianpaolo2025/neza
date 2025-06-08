@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { ProductCatalog } from "@/components/neza/ProductCatalog";
 import { UserOnboarding } from "@/components/neza/UserOnboarding";
@@ -30,7 +31,7 @@ const NezaRoute = () => {
     userTrackingService.startSession(tempEmail, 'direct', 'Visita directa a página principal');
     userTrackingService.trackActivity('page_visit', { page: 'home' }, 'Usuario visitó la página principal');
 
-    // Mostrar popup de tutorial después de 2 segundos, verificando si no se ha mostrado antes
+    // Mostrar popup de tutorial después de 2 segundos
     const timer = setTimeout(() => {
       const hasSeenTutorial = localStorage.getItem('nezaTutorialShown');
       if (!hasSeenTutorial) {
@@ -38,7 +39,6 @@ const NezaRoute = () => {
       }
     }, 2000);
 
-    // Cleanup al salir
     return () => {
       clearTimeout(timer);
       userTrackingService.endSession();
@@ -68,7 +68,6 @@ const NezaRoute = () => {
     setCurrentView('onboarding');
   };
 
-  // Función para manejar solicitud desde el catálogo
   const handleCatalogProductRequest = (productId?: string) => {
     userTrackingService.trackActivity('button_click', { 
       action: 'product_catalog_request',
@@ -90,7 +89,6 @@ const NezaRoute = () => {
           onProductRequest={handleCatalogProductRequest}
         />
         
-        {/* Tutorial en esta vista también */}
         <InteractiveTutorial 
           isVisible={showTutorial} 
           onClose={() => setShowTutorial(false)} 
@@ -117,7 +115,6 @@ const NezaRoute = () => {
           forceFlow={forceOnboarding}
         />
         
-        {/* Tutorial en esta vista también */}
         <InteractiveTutorial 
           isVisible={showTutorial} 
           onClose={() => setShowTutorial(false)} 
@@ -130,13 +127,8 @@ const NezaRoute = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-neza-blue-50 via-white to-neza-blue-50 overflow-x-hidden relative">
-      {/* Tutorial Interactivo - Posicionado para estar visible */}
-      <InteractiveTutorial 
-        isVisible={showTutorial} 
-        onClose={() => setShowTutorial(false)} 
-      />
-
-      {/* Popup de Tutorial - Mejorado para mayor visibilidad */}
+      
+      {/* Popup de Tutorial */}
       {showTutorialPopup && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <Card className="bg-white border-2 border-neza-blue-200 shadow-2xl max-w-md w-full">
@@ -210,9 +202,9 @@ const NezaRoute = () => {
         </div>
       )}
 
-      {/* Contenido Principal Centrado */}
+      {/* Contenido Principal */}
       <div className="w-full max-w-6xl mx-auto px-4 py-8">
-        {/* Header con nueva identidad */}
+        {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-6xl font-bold text-neza-blue-800 mb-4">
             NEZA
@@ -226,7 +218,7 @@ const NezaRoute = () => {
           </div>
         </div>
 
-        {/* Experiencia Interactiva - Bloque Principal con ícono animado */}
+        {/* Experiencia Interactiva - Solicitud OBLIGATORIA */}
         <div 
           id="interactive-experience"
           className="max-w-4xl mx-auto mb-16"
@@ -252,15 +244,14 @@ const NezaRoute = () => {
                 <div className="text-sm text-neza-blue-600">Sistema inteligente de análisis</div>
               </div>
               
-              {/* Mensajes horizontales */}
               <div className="grid md:grid-cols-2 gap-4">
-                <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-lg p-4">
-                  <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                <div className="flex items-center gap-3 bg-neza-blue-50 border border-neza-blue-200 rounded-lg p-4">
+                  <div className="w-8 h-8 bg-neza-blue-500 rounded-full flex items-center justify-center">
                     <Clock className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <div className="font-semibold text-green-800">✅ Formulario obligatorio</div>
-                    <div className="text-sm text-green-600">Completa 8 preguntas</div>
+                    <div className="font-semibold text-neza-blue-800">✅ Formulario obligatorio</div>
+                    <div className="text-sm text-neza-blue-600">Completa 8 preguntas</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 bg-neza-blue-50 border border-neza-blue-200 rounded-lg p-4">
@@ -282,18 +273,12 @@ const NezaRoute = () => {
         </div>
 
         {/* Carrusel de Productos */}
-        <div
-          id="products-section"
-          className="mb-16"
-        >
+        <div id="products-section" className="mb-16">
           <ProductsCarousel onViewCatalog={() => setCurrentView('catalog')} />
         </div>
 
-        {/* Features Section - 4 pilares restaurados */}
-        <div 
-          id="why-system"
-          className="mb-16"
-        >
+        {/* Features Section */}
+        <div id="why-system" className="mb-16">
           <h3 className="text-2xl font-bold text-center text-neza-blue-800 mb-8">
             ¿Por qué usar nuestro Sistema de Subasta?
           </h3>
@@ -328,10 +313,7 @@ const NezaRoute = () => {
               </p>
             </div>
 
-            <div 
-              id="filter-section"
-              className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-lg border border-neza-blue-200 hover:scale-105 transition-transform duration-200"
-            >
+            <div className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-lg border border-neza-blue-200 hover:scale-105 transition-transform duration-200">
               <div className="w-16 h-16 bg-neza-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Filter className="w-8 h-8 text-neza-blue-600" />
               </div>
@@ -343,34 +325,11 @@ const NezaRoute = () => {
           </div>
         </div>
 
-        {/* Sección FAQ mejorada */}
-        <div 
-          id="faq-section"
-          className="mb-16 max-w-4xl mx-auto"
-        >
+        {/* FAQ */}
+        <div id="faq-section" className="mb-16 max-w-4xl mx-auto">
           <h3 className="text-2xl font-bold text-center text-neza-blue-800 mb-8">
             Preguntas Frecuentes
           </h3>
-          <div className="grid gap-4 md:grid-cols-2 mb-8">
-            <Card className="bg-white/60 backdrop-blur-sm border border-neza-blue-200">
-              <CardContent className="p-4">
-                <h4 className="font-semibold text-neza-blue-800 mb-2">¿Cómo funciona la subasta?</h4>
-                <p className="text-sm text-neza-silver-600">
-                  Las entidades financieras compiten automáticamente para ofrecerte las mejores condiciones según tu perfil.
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="bg-white/60 backdrop-blur-sm border border-neza-blue-200">
-              <CardContent className="p-4">
-                <h4 className="font-semibold text-neza-blue-800 mb-2">¿Es seguro el proceso?</h4>
-                <p className="text-sm text-neza-silver-600">
-                  Sí, todas las entidades están reguladas y supervisadas por la SBS del Perú.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-          
-          {/* FAQ Interactiva */}
           <InteractiveFAQ />
         </div>
       </div>
@@ -380,7 +339,7 @@ const NezaRoute = () => {
         <SBSEntitiesCarousel />
       </div>
 
-      {/* Footer actualizado */}
+      {/* Footer */}
       <div className="bg-neza-blue-800 text-white py-8 mt-12">
         <div className="container mx-auto px-4 text-center max-w-6xl">
           <div className="flex items-center justify-center gap-2 mb-4">
@@ -391,14 +350,17 @@ const NezaRoute = () => {
             NEZA es un sistema de subasta financiera donde las entidades autorizadas y supervisadas 
             por la Superintendencia de Banca, Seguros y AFP (SBS) del Perú compiten para ofrecerte las mejores condiciones.
           </p>
-          <div className="mt-4 text-xs text-neza-silver-400">
-            Te conectamos con todas las entidades reguladas por la SBS • Última actualización: {new Date().toLocaleDateString('es-PE')} • {new Date().toLocaleTimeString('es-PE')}
-          </div>
         </div>
       </div>
 
-      {/* AsesorIA Chat Global - Asegurar que esté por encima del tutorial */}
-      <div id="chat-button" className="relative z-60">
+      {/* Tutorial Interactivo - Posicionado a la derecha */}
+      <InteractiveTutorial 
+        isVisible={showTutorial} 
+        onClose={() => setShowTutorial(false)} 
+      />
+
+      {/* AsesorIA Chat - Con z-index menor al tutorial */}
+      <div id="chat-button" className="relative z-40">
         <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
       </div>
     </div>

@@ -97,12 +97,26 @@
 @layer components {
   .tutorial-highlight {
     @apply ring-4 ring-neza-blue-500 ring-opacity-80 bg-neza-blue-50 transition-all duration-1000 relative z-10;
+    animation: pulse-highlight 2s ease-in-out;
   }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+}
+
+/* Animación para el resaltado del tutorial */
+@keyframes pulse-highlight {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0.1);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
   }
 }
 
@@ -124,7 +138,7 @@
   animation-play-state: paused;
 }
 
-/* Clases adicionales para el sistema de colores Neza */
+/* Clases para el sistema de colores Neza */
 .bg-neza-blue-50 { background-color: hsl(var(--neza-blue-50)); }
 .bg-neza-blue-100 { background-color: hsl(var(--neza-blue-100)); }
 .bg-neza-blue-200 { background-color: hsl(var(--neza-blue-200)); }
