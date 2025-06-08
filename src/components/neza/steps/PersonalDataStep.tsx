@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { User, Mail, Phone, MapPin, Calendar, Briefcase } from "lucide-react";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 interface PersonalData {
   firstName: string;
@@ -34,6 +34,8 @@ interface PersonalDataStepProps {
 
 export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUser }: PersonalDataStepProps) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [currentStep, setCurrentStep] = useState<'form' | 'verification'>('form');
+  const [otpCode, setOtpCode] = useState("");
 
   const occupationOptions = [
     "Empleado público",
@@ -72,12 +74,95 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleNext = () => {
+  const handleFormSubmit = () => {
     if (validateForm()) {
+      setCurrentStep('verification');
+    }
+  };
+
+  const handleOtpComplete = (value: string) => {
+    setOtpCode(value);
+    // Si el código tiene 6 dígitos, automáticamente continuar
+    if (value.length === 6) {
       onUpdate({ ...data, isValidated: true, otpVerified: true });
       onNext();
     }
   };
+
+  const handleBackToForm = () => {
+    setCurrentStep('form');
+    setOtpCode("");
+  };
+
+  if (currentStep === 'verification') {
+    return (
+      <div className="max-w-2xl mx-auto px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-8"
+        >
+          <motion.div
+            animate={{ scale: [1, 1.1, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="text-4xl mb-4"
+          >
+            📧
+          </motion.div>
+          <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-800 to-slate-600 bg-clip-text text-transparent mb-4">
+            Verificación de Email
+          </h2>
+          <p className="text-base md:text-lg text-slate-700 mb-4">
+            Ingresa cualquier código de 6 dígitos para continuar
+          </p>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800">
+            <strong>📱 Código:</strong> Ingresa cualquier secuencia de 6 números (ej: 123456)
+          </div>
+        </motion.div>
+
+        <Card className="border-blue-200 bg-white/80">
+          <CardContent className="p-6 md:p-8">
+            <div className="text-center space-y-6">
+              <div>
+                <Label className="text-base font-medium text-slate-700 mb-4 block">
+                  Código de verificación
+                </Label>
+                <div className="flex justify-center">
+                  <InputOTP
+                    maxLength={6}
+                    value={otpCode}
+                    onChange={handleOtpComplete}
+                  >
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
+                <p className="text-sm text-gray-500 mt-2">
+                  Ingresa 6 dígitos para continuar
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="flex flex-col md:flex-row gap-4 mt-6">
+          <Button 
+            variant="outline" 
+            onClick={handleBackToForm}
+            className="w-full md:flex-1 border-blue-300 text-blue-700 hover:bg-blue-50 py-3"
+          >
+            Volver al Formulario
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4">
@@ -361,7 +446,7 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
           </Button>
         )}
         <Button 
-          onClick={handleNext} 
+          onClick={handleFormSubmit} 
           className="w-full md:flex-1 bg-blue-600 hover:bg-blue-700 py-3 md:py-4 text-base md:text-lg"
         >
           Continuar
