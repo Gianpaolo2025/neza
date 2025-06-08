@@ -140,52 +140,43 @@ export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialP
 
   return (
     <>
-      {/* Tutorial Card - Posicionado en la parte superior central, más delgado */}
-      <div className="fixed top-2 left-1/2 transform -translate-x-1/2 z-[90] max-w-4xl w-full mx-4">
-        <Card className="bg-white shadow-xl border-2 border-blue-900 animate-in fade-in slide-in-from-top duration-300">
-          <CardContent className="p-4">
-            <div className="flex justify-between items-start mb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-900 to-blue-800 rounded-full flex items-center justify-center">
-                  <Sparkles className="w-4 h-4 text-white" />
-                </div>
+      {/* Tutorial Card - Barra delgada fija en la parte superior */}
+      <div className="fixed top-0 left-0 right-0 z-[90] w-full bg-white border-b-2 border-blue-900 shadow-lg">
+        <div className="container mx-auto max-w-6xl px-4 py-2">
+          <div className="flex items-center justify-between">
+            {/* Información del tutorial - Más compacta */}
+            <div className="flex items-center gap-3 flex-1">
+              <div className="w-6 h-6 bg-gradient-to-r from-blue-900 to-blue-800 rounded-full flex items-center justify-center flex-shrink-0">
+                <Sparkles className="w-3 h-3 text-white" />
+              </div>
+              <div className="flex items-center gap-4 flex-1">
                 <div>
-                  <span className="text-sm text-blue-900 font-bold block">
+                  <span className="text-sm text-blue-900 font-bold">
                     Tutorial NEZA - Paso {currentStep + 1} de {tutorialSteps.length}
                   </span>
-                  <span className="text-xs text-blue-700">Aprende a usar la plataforma</span>
+                  <span className="text-xs text-blue-700 ml-2">Aprende a usar la plataforma</span>
                 </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleClose}
-                className="p-1 h-auto hover:bg-blue-100 text-blue-900"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-start gap-2 mb-2">
-                <Target className="w-5 h-5 text-blue-900 mt-1 flex-shrink-0" />
-                <div>
-                  <h3 className="text-base font-bold text-blue-900 mb-1">
-                    {currentStepData.title}
-                  </h3>
-                  <p className="text-gray-700 leading-relaxed text-sm">
-                    {currentStepData.description}
-                  </p>
+                <div className="flex items-center gap-2 flex-1">
+                  <Target className="w-4 h-4 text-blue-900 flex-shrink-0" />
+                  <div className="flex-1">
+                    <span className="text-sm font-semibold text-blue-900">
+                      {currentStepData.title}
+                    </span>
+                    <span className="text-xs text-gray-700 ml-2">
+                      {currentStepData.description}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex justify-between items-center mt-4 pt-3 border-t border-blue-200">
+            {/* Controles del tutorial */}
+            <div className="flex items-center gap-3">
               <Button
                 variant="outline"
                 onClick={handlePrev}
                 disabled={currentStep === 0}
-                className="flex items-center gap-1 border-blue-900 text-blue-900 hover:bg-blue-50 text-xs px-3 py-1 h-8"
+                className="flex items-center gap-1 border-blue-900 text-blue-900 hover:bg-blue-50 text-xs px-2 py-1 h-7"
               >
                 <ArrowLeft className="w-3 h-3" />
                 Anterior
@@ -195,7 +186,7 @@ export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialP
                 {tutorialSteps.map((_, index) => (
                   <div
                     key={index}
-                    className={`w-2 h-2 rounded-full ${
+                    className={`w-1.5 h-1.5 rounded-full ${
                       index === currentStep ? 'bg-blue-900' : 'bg-blue-300'
                     }`}
                   />
@@ -204,14 +195,23 @@ export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialP
               
               <Button
                 onClick={handleNext}
-                className="bg-blue-900 hover:bg-blue-800 flex items-center gap-1 text-white text-xs px-3 py-1 h-8"
+                className="bg-blue-900 hover:bg-blue-800 flex items-center gap-1 text-white text-xs px-2 py-1 h-7"
               >
                 {currentStep === tutorialSteps.length - 1 ? 'Finalizar' : 'Siguiente'}
                 <ArrowRight className="w-3 h-3" />
               </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClose}
+                className="p-1 h-7 w-7 hover:bg-blue-100 text-blue-900"
+              >
+                <X className="w-3 h-3" />
+              </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Estilos CSS para el resaltado fuerte */}
