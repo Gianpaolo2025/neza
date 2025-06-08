@@ -99,25 +99,8 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete }: HumanAdvisoryExp
     if (currentStep < steps.length - 1) {
       setCurrentStep(prev => prev + 1);
     } else {
-      // Convertir datos al formato esperado
-      const convertedData = {
-        firstName: data.personalInfo.firstName,
-        lastName: data.personalInfo.lastName,
-        dni: data.personalInfo.dni,
-        email: data.personalInfo.email,
-        phone: data.personalInfo.phone,
-        monthlyIncome: data.monthlyIncome,
-        requestedAmount: data.amount,
-        productType: data.goal === 'casa' ? 'credito-hipotecario' : 
-                     data.goal === 'auto' ? 'credito-vehicular' : 'credito-personal',
-        employmentType: data.workSituation,
-        hasOtherDebts: 'no',
-        bankingRelationship: data.preferredBank || 'ninguno',
-        urgencyLevel: 'normal',
-        creditHistory: data.hasPayslips === 'si' ? 'bueno' : 'nuevo',
-        preferredBank: data.preferredBank || ''
-      };
-      onComplete(convertedData);
+      // Pass the original data object directly
+      onComplete(data);
     }
   };
 
