@@ -7,7 +7,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { sbsEntities } from "@/data/sbsEntities";
 import { Shield, Star } from "lucide-react";
 
 // Mock data for display since sbsEntities only has entities without the display properties
