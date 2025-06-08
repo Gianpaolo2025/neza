@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -194,7 +195,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     setSentVerificationCode(code);
-    setCodeSentMessage("Código enviado. Revisa tu correo electrónico para continuar.");
+    setCodeSentMessage("El código ha sido enviado. Revisa tu correo electrónico.");
     
     // Clear the message after 5 seconds
     setTimeout(() => setCodeSentMessage(""), 5000);
@@ -209,7 +210,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
         ...prev,
         personalInfo: { ...prev.personalInfo, emailVerified: true }
       }));
-      setEmailVerifiedMessage("Correo verificado correctamente.");
+      setEmailVerifiedMessage("El email ha sido verificado correctamente.");
       setValidationErrors(prev => ({ ...prev, verificationCode: "" }));
       
       // Auto-advance if all fields are complete
@@ -475,7 +476,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                 {currentStep === 1 && (
                   <div className="space-y-4">
                     {isReturningUser && (
-                      <div className="bg-[#0050b3] border border-blue-300 rounded-lg p-3 mb-4">
+                      <div className="bg-blue-600 border border-blue-300 rounded-lg p-3 mb-4">
                         <div className="flex items-center justify-between">
                           <p className="text-white text-sm">
                             ¡Hola {data.personalInfo.firstName}! Ya tenemos tus datos cargados. 
@@ -621,7 +622,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                     </div>
 
                     {codeSentMessage && (
-                      <div className="bg-[#0050b3] border border-blue-300 rounded-lg p-3">
+                      <div className="bg-blue-600 border border-blue-300 rounded-lg p-3">
                         <p className="text-white text-sm">{codeSentMessage}</p>
                       </div>
                     )}
@@ -655,7 +656,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                     )}
 
                     {emailVerifiedMessage && (
-                      <div className="bg-[#0050b3] border border-blue-300 rounded-lg p-3">
+                      <div className="bg-blue-600 border border-blue-300 rounded-lg p-3">
                         <p className="text-white text-sm">✅ {emailVerifiedMessage}</p>
                       </div>
                     )}
@@ -811,7 +812,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                         </div>
                         {data.hacePracticas === 'si' && (
                           <div>
-                            <Label>Empresa donde realiza prácticas *</Label>
+                            <Label>¿Dónde las realiza? *</Label>
                             <Input
                               placeholder="Nombre de la empresa"
                               value={data.empresaPracticas || ""}
@@ -841,7 +842,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                           )}
                         </div>
                         <div>
-                          <Label>Empresa (si aplica) *</Label>
+                          <Label>¿En qué empresa? *</Label>
                           <Input
                             placeholder="Nombre de la empresa o N/A"
                             value={data.empresaTrabajo || ""}
@@ -870,7 +871,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                           )}
                         </div>
                         <div>
-                          <Label>Nombre de la empresa *</Label>
+                          <Label>¿En qué empresa? *</Label>
                           <Input
                             placeholder="Empresa donde trabajas"
                             value={data.empresaTrabajo || ""}
@@ -911,7 +912,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                           )}
                         </div>
                         <div>
-                          <Label>Actividad principal *</Label>
+                          <Label>Actividad *</Label>
                           <Input
                             placeholder="Describe la actividad principal"
                             value={data.actividadPrincipal || ""}
@@ -989,7 +990,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                 {/* Paso 7: Documentos */}
                 {currentStep === 7 && (
                   <div className="space-y-4">
-                    <div className="bg-[#0050b3] border border-blue-300 rounded-lg p-4 mb-4">
+                    <div className="bg-blue-600 border border-blue-300 rounded-lg p-4 mb-4">
                       <p className="text-white text-sm">
                         <strong>Importante:</strong> Subir documentos no es obligatorio para ir a la subasta, pero sí para cerrar con un banco.
                       </p>
@@ -1026,6 +1027,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
 
                       <div>
                         <Label>Adjunta tus 3 últimas boletas de pago como requisito mínimo *</Label>
+                        <p className="text-sm text-blue-600 mb-2">Se requieren las últimas 3 boletas de pago mínimo</p>
                         <div className="mt-2 p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
                           <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
                           <input
@@ -1116,7 +1118,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
           <Button
             onClick={handleNext}
             disabled={!canProceed()}
-            className="flex items-center gap-2 bg-[#0050b3] hover:bg-[#003d8f]"
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
           >
             {currentStep === steps.length - 1 ? 
               (forceFlow ? 'Proceder a la subasta' : 'Ver mis opciones') : 
