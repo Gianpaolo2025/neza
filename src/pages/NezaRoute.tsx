@@ -15,18 +15,10 @@ const NezaRoute = () => {
   const [currentView, setCurrentView] = useState<'home' | 'catalog' | 'onboarding'>('home');
   const [showWelcomeMessage, setShowWelcomeMessage] = useState(true);
   const [tutorialMode, setTutorialMode] = useState(false);
-  const [countdownDays, setCountdownDays] = useState(7); // Contador por defecto
   const { isChatOpen, toggleChat } = useAsesorIA();
 
   useEffect(() => {
     userTrackingService.trackActivity('page_visit', { page: 'home' });
-    
-    // Simular actualización del countdown cada minuto
-    const interval = setInterval(() => {
-      setCountdownDays(prev => Math.max(prev - 1, 0));
-    }, 60000);
-    
-    return () => clearInterval(interval);
   }, []);
 
   if (currentView === 'catalog') {
@@ -48,26 +40,26 @@ const NezaRoute = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neza-blue-50 via-white to-neza-cyan-50">
+    <div className="min-h-screen bg-gradient-to-br from-neza-blue-50 via-white to-neza-blue-50">
       {/* Mensaje de Bienvenida - Solo se muestra una vez */}
       {showWelcomeMessage && (
         <motion.div
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-r from-neza-blue-700 to-neza-cyan-600 text-white py-6 px-4 relative"
+          className="bg-gradient-to-r from-neza-blue-700 to-neza-blue-600 text-white py-6 px-4 relative"
         >
           <div className="container mx-auto max-w-4xl">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-3">
-                  <Shield className="w-6 h-6 text-neza-cyan-200" />
+                  <Shield className="w-6 h-6 text-neza-blue-200" />
                   <h3 className="text-xl font-bold">🔒 La transparencia es clave para encontrar tu mejor opción</h3>
                 </div>
-                <p className="text-neza-cyan-100 mb-3 text-lg leading-relaxed">
+                <p className="text-neza-blue-100 mb-3 text-lg leading-relaxed">
                   Sé completamente transparente con tu información. Esto nos permite encontrar las mejores opciones reales 
                   para tu perfil financiero y aumentar significativamente tus posibilidades de aprobación.
                 </p>
-                <div className="flex items-center gap-2 text-neza-cyan-200">
+                <div className="flex items-center gap-2 text-neza-blue-200">
                   <AlertTriangle className="w-5 h-5" />
                   <span className="font-medium">
                     ⚠️ Importante: Información falsa o incompleta afecta tu evaluación y reduce tus oportunidades.
@@ -86,29 +78,6 @@ const NezaRoute = () => {
           </div>
         </motion.div>
       )}
-
-      {/* MENSAJE FIJO OBLIGATORIO - SIEMPRE VISIBLE DURANTE FORMULARIO */}
-      <div className="bg-neza-blue-600 text-white py-3 px-4 sticky top-0 z-50 shadow-md">
-        <div className="container mx-auto flex items-center justify-between">
-          <div className="flex items-center">
-            <AlertTriangle className="w-5 h-5 mr-2 text-neza-cyan-200" />
-            <p className="font-medium">
-              Por favor, no nos mientas. Esta información es clave para brindarte los mejores productos.
-            </p>
-          </div>
-          
-          {/* Contador Regresivo */}
-          <div className="flex items-center gap-4">
-            <div className="bg-neza-cyan-500 rounded-lg px-3 py-1 text-center">
-              <div className="flex items-center gap-1 text-white">
-                <Clock className="w-4 h-4" />
-                <span className="font-bold text-lg">{countdownDays}</span>
-              </div>
-              <div className="text-xs text-neza-cyan-100">días restantes</div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-8">
@@ -138,14 +107,14 @@ const NezaRoute = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="bg-neza-cyan-50 border border-neza-cyan-200 rounded-lg p-4 text-sm text-neza-blue-800 max-w-2xl mx-auto"
+            className="bg-neza-blue-50 border border-neza-blue-200 rounded-lg p-4 text-sm text-neza-blue-800 max-w-2xl mx-auto"
           >
             <strong>🏛️ Aquí los bancos compiten para darte lo mejor:</strong> Las entidades financieras luchan en tiempo real 
             para ofrecerte las mejores condiciones. Tú eliges la ganadora.
           </motion.div>
         </motion.div>
 
-        {/* Activar Tutorial con Asesoría */}
+        {/* Activar Tutorial con AsesorIA */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -160,10 +129,10 @@ const NezaRoute = () => {
                 </div>
                 <div className="flex-1">
                   <h3 className="text-lg font-bold text-purple-800 mb-2">
-                    🧑‍🏫 Tutorial con Asesoría (Tipo Duolingo)
+                    🧑‍🏫 Tutorial con AsesorIA
                   </h3>
                   <p className="text-purple-600 text-sm mb-3">
-                    "¡Hola! Soy Asesoría, tu pata en este proceso. No te preocupes, yo te guío paso a paso."
+                    "¡Hola! Soy AsesorIA, tu pata en este proceso. No te preocupes, yo te guío paso a paso."
                   </p>
                   <Button
                     onClick={() => setTutorialMode(!tutorialMode)}
@@ -173,7 +142,7 @@ const NezaRoute = () => {
                     } text-white`}
                   >
                     <Sparkles className="w-4 h-4 mr-2" />
-                    {tutorialMode ? '✅ Asesoría Activada' : '🧠 Activar Asesoría Paso a Paso'}
+                    {tutorialMode ? '✅ AsesorIA Activada' : '🧠 Activar AsesorIA Paso a Paso'}
                   </Button>
                 </div>
               </div>
@@ -195,7 +164,7 @@ const NezaRoute = () => {
                     <Brain className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-orange-800 mb-2">Asesoría te explica:</h4>
+                    <h4 className="font-bold text-orange-800 mb-2">AsesorIA te explica:</h4>
                     <p className="text-orange-700 text-sm leading-relaxed">
                       "¿No sabes qué es un crédito vehicular? ¡Yo te lo explico! 
                       Escoge la opción que más se adapte a ti. Yo te diré por qué puede funcionar. 
@@ -226,45 +195,41 @@ const NezaRoute = () => {
               <motion.div
                 animate={{ rotate: [0, 5, -5, 0] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                className="w-16 h-16 bg-gradient-to-r from-neza-blue-500 to-neza-cyan-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"
+                className="w-16 h-16 bg-gradient-to-r from-neza-blue-500 to-neza-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"
               >
                 <TrendingUp className="w-8 h-8 text-white" />
               </motion.div>
               <CardTitle className="text-2xl text-neza-blue-800 flex items-center justify-center gap-2">
                 📊 Catálogo de Productos
-                <span className="text-sm bg-neza-blue-100 text-neza-blue-600 px-2 py-1 rounded-full">SUBASTA</span>
               </CardTitle>
               <CardDescription className="text-base text-neza-silver-600">
-                Mira lo que los bancos están dispuestos a ofrecerte - En tiempo real
+                Aquí te mostramos los productos que podemos ofrecerte y te explicamos cada uno de ellos
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="bg-neza-blue-50 rounded-lg p-3 text-center">
-                <div className="text-neza-blue-700 font-semibold">🏆 Tienes 12 opciones disponibles</div>
-                <div className="text-sm text-neza-blue-600">3 preaprobadas • 2 aprobadas • 7 en subasta</div>
+                <div className="text-neza-blue-700 font-semibold">🏆 Productos disponibles</div>
+                <div className="text-sm text-neza-blue-600">Créditos personalizados para tu perfil</div>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="grid grid-cols-1 gap-2 text-xs">
                 <div className="flex items-center gap-1 text-neza-blue-600">
-                  <span>💳</span> Tarjetas de Crédito
+                  <span>💰</span> Créditos Personales
                 </div>
                 <div className="flex items-center gap-1 text-neza-blue-600">
-                  <span>💰</span> Créditos S/ Soles
+                  <span>🚗</span> Créditos Vehiculares
                 </div>
                 <div className="flex items-center gap-1 text-neza-blue-600">
                   <span>🏠</span> Créditos Hipotecarios
                 </div>
-                <div className="flex items-center gap-1 text-neza-blue-600">
-                  <span>🏦</span> Cuentas de Ahorro
-                </div>
               </div>
               <Button className="w-full bg-neza-blue-600 hover:bg-neza-blue-700 text-lg py-6">
-                Ver Subasta en Vivo
+                Ver Productos Disponibles
               </Button>
             </CardContent>
           </Card>
 
           <Card 
-            className="hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 bg-white/80 backdrop-blur-sm border-neza-cyan-200" 
+            className="hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 bg-white/80 backdrop-blur-sm border-neza-blue-200" 
             onClick={() => {
               userTrackingService.trackActivity('button_click', { button: 'onboarding', section: 'main_actions' });
               setCurrentView('onboarding');
@@ -274,36 +239,35 @@ const NezaRoute = () => {
               <motion.div
                 animate={{ scale: [1, 1.1, 1] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                className="w-16 h-16 bg-gradient-to-r from-neza-cyan-500 to-neza-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"
+                className="w-16 h-16 bg-gradient-to-r from-neza-blue-500 to-neza-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"
               >
                 <FileText className="w-8 h-8 text-white" />
               </motion.div>
               <CardTitle className="text-2xl text-neza-blue-800 flex items-center justify-center gap-2">
-                ✓ Participar en Subasta
-                <span className="text-sm bg-neza-cyan-100 text-neza-cyan-600 px-2 py-1 rounded-full">RÁPIDO</span>
+                ✓ Experiencia Interactiva
               </CardTitle>
               <CardDescription className="text-base text-neza-silver-600">
                 Que los bancos compitan por ti - Sistema automático
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="bg-neza-cyan-50 rounded-lg p-3 text-center">
-                <div className="text-neza-cyan-700 font-semibold">🎯 Mejor propuesta actualizada</div>
-                <div className="text-sm text-neza-cyan-600">Cada 45 segundos • En tiempo real</div>
+              <div className="bg-neza-blue-50 rounded-lg p-3 text-center">
+                <div className="text-neza-blue-700 font-semibold">🎯 Mejor propuesta actualizada</div>
+                <div className="text-sm text-neza-blue-600">Evaluación en tiempo real</div>
               </div>
               <div className="grid grid-cols-1 gap-2 text-xs">
-                <div className="flex items-center gap-1 text-neza-cyan-600">
+                <div className="flex items-center gap-1 text-neza-blue-600">
                   <Sparkles className="w-3 h-3" /> Formulario automático (3 minutos)
                 </div>
-                <div className="flex items-center gap-1 text-neza-cyan-600">
+                <div className="flex items-center gap-1 text-neza-blue-600">
                   <Zap className="w-3 h-3" /> Los bancos compiten por ti
                 </div>
-                <div className="flex items-center gap-1 text-neza-cyan-600">
+                <div className="flex items-center gap-1 text-neza-blue-600">
                   <Trophy className="w-3 h-3" /> Eliges la mejor propuesta
                 </div>
               </div>
-              <Button className="w-full bg-neza-cyan-600 hover:bg-neza-cyan-700 text-lg py-6">
-                Iniciar Subasta Ahora
+              <Button className="w-full bg-neza-blue-600 hover:bg-neza-blue-700 text-lg py-6">
+                Comenzar Ahora
               </Button>
             </CardContent>
           </Card>
@@ -335,12 +299,12 @@ const NezaRoute = () => {
             
             <motion.div 
               whileHover={{ scale: 1.05 }}
-              className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-lg border border-neza-cyan-200"
+              className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-lg border border-neza-blue-200"
             >
-              <div className="w-16 h-16 bg-neza-cyan-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Target className="w-8 h-8 text-neza-cyan-600" />
+              <div className="w-16 h-16 bg-neza-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Target className="w-8 h-8 text-neza-blue-600" />
               </div>
-              <h4 className="font-semibold text-neza-cyan-800 text-lg mb-2">🎯 Tú Eliges</h4>
+              <h4 className="font-semibold text-neza-blue-800 text-lg mb-2">🎯 Tú Eliges</h4>
               <p className="text-sm text-neza-silver-600">
                 El poder está en tus manos para elegir la mejor alternativa
               </p>
@@ -361,12 +325,12 @@ const NezaRoute = () => {
             
             <motion.div 
               whileHover={{ scale: 1.05 }}
-              className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-lg border border-neza-cyan-200"
+              className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-lg border border-neza-blue-200"
             >
-              <div className="w-16 h-16 bg-neza-cyan-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Zap className="w-8 h-8 text-neza-cyan-600" />
+              <div className="w-16 h-16 bg-neza-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Zap className="w-8 h-8 text-neza-blue-600" />
               </div>
-              <h4 className="font-semibold text-neza-cyan-800 text-lg mb-2">⚡ Tiempo Real</h4>
+              <h4 className="font-semibold text-neza-blue-800 text-lg mb-2">⚡ Tiempo Real</h4>
               <p className="text-sm text-neza-silver-600">
                 Las mejores ofertas se actualizan automáticamente cada minuto.
               </p>
@@ -406,15 +370,15 @@ const NezaRoute = () => {
       >
         <div className="container mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <Shield className="w-5 h-5 text-neza-cyan-400" />
-            <span className="text-neza-cyan-400 font-semibold">Sistema de Subasta Certificado SBS</span>
+            <Shield className="w-5 h-5 text-neza-blue-400" />
+            <span className="text-neza-blue-400 font-semibold">Sistema de Subasta Certificado SBS</span>
           </div>
           <p className="text-neza-silver-300 text-sm max-w-2xl mx-auto">
             NEZA es un sistema de subasta financiera donde las entidades autorizadas y supervisadas 
             por la Superintendencia de Banca, Seguros y AFP (SBS) del Perú compiten para ofrecerte las mejores condiciones.
           </p>
           <div className="mt-4 text-xs text-neza-silver-400">
-            Última actualización de subastas: {new Date().toLocaleDateString('es-PE')} • {new Date().toLocaleTimeString('es-PE')}
+            Última actualización: {new Date().toLocaleDateString('es-PE')} • {new Date().toLocaleTimeString('es-PE')}
           </div>
         </div>
       </motion.div>
