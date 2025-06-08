@@ -1,11 +1,5 @@
+import { createRoot } from 'react-dom/client'
+import App from './App.tsx'
+import './index.css'
 
-import { createRoot } from "react-dom/client";
-import "./index.css";
-import App from "./App";
-import { UserProvider } from "./context/UserContext";
-
-createRoot(document.getElementById("root")!).render(
-  <UserProvider>
-    <App />
-  </UserProvider>
-);
+createRoot(document.getElementById("root")!).render(<App />);
