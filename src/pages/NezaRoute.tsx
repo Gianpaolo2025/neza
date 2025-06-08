@@ -144,13 +144,9 @@ const NezaRoute = () => {
         </div>
       )}
 
-      {/* Popup de Tutorial */}
+      {/* Popup de Tutorial - Simplificado sin animaciones complejas */}
       {showTutorialPopup && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8, y: 50 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          className="fixed bottom-24 right-6 z-40"
-        >
+        <div className="fixed bottom-24 right-6 z-40">
           <Card className="bg-white border-2 border-blue-200 shadow-xl max-w-sm">
             <CardContent className="p-4">
               <div className="flex items-center gap-3 mb-3">
@@ -181,16 +177,12 @@ const NezaRoute = () => {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
       )}
 
       {/* Mensaje de Bienvenida - Solo se muestra una vez */}
       {showWelcomeMessage && (
-        <motion.div
-          initial={{ opacity: 0, y: -50 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-gradient-to-r from-neza-blue-700 to-neza-blue-600 text-white py-6 px-4 relative"
-        >
+        <div className="bg-gradient-to-r from-neza-blue-700 to-neza-blue-600 text-white py-6 px-4 relative">
           <div className="container mx-auto max-w-6xl">
             <div className="flex items-start justify-between">
               <div className="flex-1">
@@ -222,50 +214,28 @@ const NezaRoute = () => {
               </Button>
             </div>
           </div>
-        </motion.div>
+        </div>
       )}
 
       {/* Contenido Principal Centrado */}
       <div className="w-full max-w-6xl mx-auto px-4 py-8">
-        {/* Header con nueva identidad */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <motion.h1 
-            initial={{ scale: 0.9 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.5 }}
-            className="text-4xl md:text-6xl font-bold text-neza-blue-800 mb-4"
-          >
+        {/* Header con nueva identidad - Sin animaciones complejas */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-6xl font-bold text-neza-blue-800 mb-4">
             NEZA
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="text-neza-blue-600 text-lg md:text-xl mb-4"
-          >
+          </h1>
+          <p className="text-neza-blue-600 text-lg md:text-xl mb-4">
             Sistema de Subasta Financiera Inteligente
-          </motion.p>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="bg-neza-blue-50 border border-neza-blue-200 rounded-lg p-4 text-sm text-neza-blue-800 max-w-2xl mx-auto"
-          >
+          </p>
+          <div className="bg-neza-blue-50 border border-neza-blue-200 rounded-lg p-4 text-sm text-neza-blue-800 max-w-2xl mx-auto">
             <strong>🏛️ Aquí los bancos compiten para darte lo mejor:</strong> Las entidades financieras luchan en tiempo real 
             para ofrecerte las mejores condiciones. Tú eliges la ganadora.
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
 
         {/* Experiencia Interactiva - Bloque Principal */}
-        <motion.div 
+        <div 
           id="interactive-experience"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
           className="max-w-4xl mx-auto mb-16"
         >
           <Card 
@@ -276,13 +246,9 @@ const NezaRoute = () => {
             }}
           >
             <CardHeader className="text-center pb-4">
-              <motion.div
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                className="w-20 h-20 bg-gradient-to-r from-neza-blue-500 to-neza-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"
-              >
+              <div className="w-20 h-20 bg-gradient-to-r from-neza-blue-500 to-neza-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <FileText className="w-10 h-10 text-white" />
-              </motion.div>
+              </div>
               <CardTitle className="text-3xl text-neza-blue-800 flex items-center justify-center gap-2 mb-4">
                 ✓ Experiencia Interactiva
               </CardTitle>
@@ -323,35 +289,26 @@ const NezaRoute = () => {
               </Button>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
 
         {/* Carrusel de Productos */}
-        <motion.div
+        <div
           id="products-section"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
           className="mb-16"
         >
           <ProductsCarousel onViewCatalog={() => setCurrentView('catalog')} />
-        </motion.div>
+        </div>
 
         {/* Features Section actualizada */}
-        <motion.div 
+        <div 
           id="why-system"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
           className="mb-16"
         >
           <h3 className="text-2xl font-bold text-center text-neza-blue-800 mb-8">
             ¿Por qué usar nuestro Sistema de Subasta?
           </h3>
           <div className="grid gap-6 md:grid-cols-3 max-w-4xl mx-auto">
-            <motion.div 
-              whileHover={{ scale: 1.05 }}
-              className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-lg border border-neza-blue-200"
-            >
+            <div className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-lg border border-neza-blue-200 hover:scale-105 transition-transform duration-200">
               <div className="w-16 h-16 bg-neza-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Shield className="w-8 h-8 text-neza-blue-600" />
               </div>
@@ -359,12 +316,9 @@ const NezaRoute = () => {
               <p className="text-sm text-neza-silver-600">
                 Los bancos compiten abiertamente por darte su mejor propuesta
               </p>
-            </motion.div>
+            </div>
             
-            <motion.div 
-              whileHover={{ scale: 1.05 }}
-              className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-lg border border-neza-blue-200"
-            >
+            <div className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-lg border border-neza-blue-200 hover:scale-105 transition-transform duration-200">
               <div className="w-16 h-16 bg-neza-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Target className="w-8 h-8 text-neza-blue-600" />
               </div>
@@ -372,12 +326,9 @@ const NezaRoute = () => {
               <p className="text-sm text-neza-silver-600">
                 El poder está en tus manos para elegir la mejor alternativa
               </p>
-            </motion.div>
+            </div>
             
-            <motion.div 
-              whileHover={{ scale: 1.05 }}
-              className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-lg border border-neza-blue-200"
-            >
+            <div className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-lg border border-neza-blue-200 hover:scale-105 transition-transform duration-200">
               <div className="w-16 h-16 bg-neza-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Zap className="w-8 h-8 text-neza-blue-600" />
               </div>
@@ -385,28 +336,18 @@ const NezaRoute = () => {
               <p className="text-sm text-neza-silver-600">
                 Las mejores ofertas se actualizan automáticamente cada minuto.
               </p>
-            </motion.div>
+            </div>
           </div>
-        </motion.div>
+        </div>
       </div>
 
       {/* Carrusel de Entidades SBS */}
-      <motion.div
-        id="sbs-entities"
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.2 }}
-      >
+      <div id="sbs-entities">
         <SBSEntitiesCarousel />
-      </motion.div>
+      </div>
 
       {/* Footer actualizado con nueva identidad */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.4 }}
-        className="bg-neza-blue-800 text-white py-8 mt-12"
-      >
+      <div className="bg-neza-blue-800 text-white py-8 mt-12">
         <div className="container mx-auto px-4 text-center max-w-6xl">
           <div className="flex items-center justify-center gap-2 mb-4">
             <Shield className="w-5 h-5 text-neza-blue-400" />
@@ -420,7 +361,7 @@ const NezaRoute = () => {
             Última actualización: {new Date().toLocaleDateString('es-PE')} • {new Date().toLocaleTimeString('es-PE')}
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* AsesorIA Chat Global */}
       <div id="chat-button">

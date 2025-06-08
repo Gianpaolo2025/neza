@@ -1,7 +1,7 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Eye } from "lucide-react";
 
 interface Product {
@@ -133,11 +133,11 @@ interface ProductsCarouselProps {
 export const ProductsCarousel = ({ onViewCatalog }: ProductsCarouselProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Auto-scroll del carrusel
+  // Auto-scroll optimizado - intervalo más largo para mejor rendimiento
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % products.length);
-    }, 5000);
+    }, 8000); // Aumentado de 5s a 8s
 
     return () => clearInterval(interval);
   }, []);
@@ -183,82 +183,70 @@ export const ProductsCarousel = ({ onViewCatalog }: ProductsCarouselProps) => {
           <ChevronRight className="w-5 h-5 text-neza-blue-600" />
         </button>
 
-        {/* Contenedor del carrusel */}
-        <div className="mx-12 min-h-[280px]">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentIndex}
-              initial={{ opacity: 0, x: 300 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -300 }}
-              transition={{ duration: 0.5, ease: "easeInOut" }}
-            >
-              <Card className="bg-white/90 backdrop-blur-sm border-neza-blue-200 hover:shadow-xl transition-all duration-300">
-                <CardHeader className="text-center pb-3">
-                  <motion.div
-                    animate={{ scale: [1, 1.1, 1] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                    className="text-4xl mb-3"
+        {/* Contenedor del carrusel - Optimizado sin AnimatePresence */}
+        <div className="mx-12 min-h-[260px]">
+          <div className="transition-opacity duration-300">
+            <Card className="bg-white/90 backdrop-blur-sm border-neza-blue-200 hover:shadow-xl transition-all duration-300">
+              <CardHeader className="text-center pb-3">
+                <div className="text-3xl mb-3">
+                  {currentProduct.icon}
+                </div>
+                <CardTitle className="text-lg text-neza-blue-800 mb-2">
+                  {currentProduct.name}
+                </CardTitle>
+                <CardDescription className="text-sm text-neza-silver-600 max-w-md mx-auto">
+                  {currentProduct.description}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {/* Información estructurada del producto */}
+                <div className="grid md:grid-cols-2 gap-2 text-center">
+                  <div className="bg-neza-blue-50 rounded-lg p-2">
+                    <div className="text-xs text-neza-blue-600 font-medium">Forma de Acceso</div>
+                    <div className="text-xs text-neza-blue-800 font-semibold">
+                      {currentProduct.accessForm}
+                    </div>
+                  </div>
+                  {currentProduct.minAmount && (
+                    <div className="bg-neza-blue-50 rounded-lg p-2">
+                      <div className="text-xs text-neza-blue-600 font-medium">Monto Estimado</div>
+                      <div className="text-xs text-neza-blue-800 font-semibold">
+                        {currentProduct.minAmount} - {currentProduct.maxAmount}
+                      </div>
+                    </div>
+                  )}
+                  {currentProduct.term && (
+                    <div className="bg-neza-blue-50 rounded-lg p-2">
+                      <div className="text-xs text-neza-blue-600 font-medium">Plazo Estándar</div>
+                      <div className="text-xs text-neza-blue-800 font-semibold">
+                        {currentProduct.term}
+                      </div>
+                    </div>
+                  )}
+                  <div className="bg-neza-blue-50 rounded-lg p-2">
+                    <div className="text-xs text-neza-blue-600 font-medium">Beneficio Principal</div>
+                    <div className="text-xs text-neza-blue-800 font-semibold">
+                      {currentProduct.benefit}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex justify-center pt-3">
+                  <Button
+                    onClick={onViewCatalog}
+                    variant="outline"
+                    className="border-neza-blue-300 text-neza-blue-600 hover:bg-neza-blue-50"
                   >
-                    {currentProduct.icon}
-                  </motion.div>
-                  <CardTitle className="text-xl text-neza-blue-800 mb-2">
-                    {currentProduct.name}
-                  </CardTitle>
-                  <CardDescription className="text-sm text-neza-silver-600 max-w-md mx-auto">
-                    {currentProduct.description}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {/* Información estructurada del producto */}
-                  <div className="grid md:grid-cols-2 gap-3 text-center">
-                    <div className="bg-neza-blue-50 rounded-lg p-2">
-                      <div className="text-xs text-neza-blue-600 font-medium">Forma de Acceso</div>
-                      <div className="text-xs text-neza-blue-800 font-semibold">
-                        {currentProduct.accessForm}
-                      </div>
-                    </div>
-                    {currentProduct.minAmount && (
-                      <div className="bg-neza-blue-50 rounded-lg p-2">
-                        <div className="text-xs text-neza-blue-600 font-medium">Monto Estimado</div>
-                        <div className="text-xs text-neza-blue-800 font-semibold">
-                          {currentProduct.minAmount} - {currentProduct.maxAmount}
-                        </div>
-                      </div>
-                    )}
-                    {currentProduct.term && (
-                      <div className="bg-neza-blue-50 rounded-lg p-2">
-                        <div className="text-xs text-neza-blue-600 font-medium">Plazo Estándar</div>
-                        <div className="text-xs text-neza-blue-800 font-semibold">
-                          {currentProduct.term}
-                        </div>
-                      </div>
-                    )}
-                    <div className="bg-neza-blue-50 rounded-lg p-2">
-                      <div className="text-xs text-neza-blue-600 font-medium">Beneficio Principal</div>
-                      <div className="text-xs text-neza-blue-800 font-semibold">
-                        {currentProduct.benefit}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-center pt-3">
-                    <Button
-                      onClick={onViewCatalog}
-                      variant="outline"
-                      className="border-neza-blue-300 text-neza-blue-600 hover:bg-neza-blue-50"
-                    >
-                      <Eye className="w-4 h-4 mr-2" />
-                      Ver Catálogo Completo
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </AnimatePresence>
+                    <Eye className="w-4 h-4 mr-2" />
+                    Ver Catálogo Completo
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
-        {/* Indicadores */}
+        {/* Indicadores optimizados */}
         <div className="flex justify-center mt-6 space-x-2 flex-wrap">
           {products.map((_, index) => (
             <button
