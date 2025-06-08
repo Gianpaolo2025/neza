@@ -427,23 +427,22 @@ class UserTrackingService {
       return acc;
     }, [] as Array<{ status: string; count: number }>);
 
-    const recentActivity = this.activities
-      .concat(this.userEvents.map(e => ({
-        id: e.id,
-        userId: e.userId,
-        sessionId: e.sessionId,
-        timestamp: e.timestamp,
-        activityType: 'event' as const,
-        data: e.data,
-        description: e.description
-      })))
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-      .slice(0, 20)
-      .map(activity => ({
-        timestamp: new Date(activity.timestamp),
-        description: activity.description,
-        userId: activity.userId
-      }));
+    // Create separate arrays for activities and events, then merge them for the timeline
+    const activityItems = this.activities.map(activity => ({
+      timestamp: new Date(activity.timestamp),
+      description: activity.description,
+      userId: activity.userId
+    }));
+
+    const eventItems = this.userEvents.map(event => ({
+      timestamp: new Date(event.timestamp),
+      description: event.description,
+      userId: event.userId
+    }));
+
+    const recentActivity = [...activityItems, ...eventItems]
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+      .slice(0, 20);
 
     return {
       totalUsers,

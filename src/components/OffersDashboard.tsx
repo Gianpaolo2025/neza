@@ -60,7 +60,11 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
 
   useEffect(() => {
     loadOffers();
-    userTrackingService.trackActivity('page_visit', { page: 'offers_dashboard' });
+    userTrackingService.trackActivity(
+      'page_visit', 
+      { page: 'offers_dashboard' }, 
+      'Usuario accedió al dashboard de ofertas'
+    );
 
     // Countdown timer basado en urgencia
     const urgencyMap = {
@@ -128,11 +132,15 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
   };
 
   const handleBankRedirect = (bankUrl: string, bankName: string) => {
-    userTrackingService.trackActivity('button_click', { 
-      bankName,
-      productType: selectedProductType,
-      amount: requestedAmount
-    });
+    userTrackingService.trackActivity(
+      'button_click', 
+      { 
+        bankName,
+        productType: selectedProductType,
+        amount: requestedAmount
+      },
+      `Usuario seleccionó banco: ${bankName}`
+    );
     
     // Ensure we redirect to the actual bank URL, not NEZA
     if (bankUrl && !bankUrl.includes('neza') && !bankUrl.includes('localhost')) {
