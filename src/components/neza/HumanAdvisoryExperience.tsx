@@ -359,10 +359,10 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
-      {/* Mensaje de Transparencia Fijo */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-yellow-100 border-b-2 border-yellow-400 py-2 px-4">
+      {/* Mensaje de Transparencia Fijo - CAMBIADO A AZUL FUERTE */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-blue-600 border-b-2 border-blue-700 py-2 px-4">
         <div className="container mx-auto max-w-4xl">
-          <p className="text-sm text-yellow-800 text-center font-medium">
+          <p className="text-sm text-white text-center font-medium">
             ⚠️ Este formulario no debe contener información falsa. La precisión de los datos es fundamental para ayudarte correctamente. Tardas menos de 2 minutos en completarlo. Sé honesto, es por tu beneficio.
           </p>
         </div>
@@ -692,24 +692,27 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                   </div>
                 )}
 
-                {/* Paso 2: Objetivo - Productos */}
+                {/* Paso 2: Objetivo - Productos CON SCROLL */}
                 {currentStep === 2 && (
                   <div className="space-y-4">
-                    <div className="productos-container max-h-80 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {productOptions.map((product) => (
-                        <Card 
-                          key={product.id}
-                          className={`cursor-pointer transition-all p-2 ${data.goal === product.id ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300'}`}
-                          onClick={() => setData(prev => ({ ...prev, goal: product.id }))}
-                        >
-                          <CardContent className="p-2 text-center">
-                            <div className="text-xl mb-1">{product.icon}</div>
-                            <h4 className="font-medium text-xs">{product.title}</h4>
-                            <p className="text-xs text-gray-600">{product.desc}</p>
-                          </CardContent>
-                        </Card>
-                      ))}
+                    <div className="max-h-80 overflow-y-auto border border-gray-200 rounded-lg p-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {productOptions.map((product) => (
+                          <Card 
+                            key={product.id}
+                            className={`cursor-pointer transition-all p-2 ${data.goal === product.id ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300'}`}
+                            onClick={() => setData(prev => ({ ...prev, goal: product.id }))}
+                          >
+                            <CardContent className="p-2 text-center">
+                              <div className="text-xl mb-1">{product.icon}</div>
+                              <h4 className="font-medium text-xs">{product.title}</h4>
+                              <p className="text-xs text-gray-600">{product.desc}</p>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
                     </div>
+                    <p className="text-xs text-gray-500 text-center">Desplaza hacia abajo para ver todos los productos disponibles</p>
                   </div>
                 )}
 
@@ -743,7 +746,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                   </div>
                 )}
 
-                {/* Paso 4: Trabajo */}
+                {/* Paso 4: Trabajo EXPANDIDO */}
                 {currentStep === 4 && (
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -987,7 +990,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                   </div>
                 )}
 
-                {/* Paso 7: Documentos */}
+                {/* Paso 7: Documentos CON REQUISITO DE 3 BOLETAS */}
                 {currentStep === 7 && (
                   <div className="space-y-4">
                     <div className="bg-blue-600 border border-blue-300 rounded-lg p-4 mb-4">
