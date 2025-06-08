@@ -1,4 +1,3 @@
-
 export interface UserSession {
   id: string;
   email: string;
@@ -8,6 +7,9 @@ export interface UserSession {
   deviceType: 'web' | 'mobile';
   userAgent: string;
   duration?: number;
+  entryMethod: 'direct' | 'catalog' | 'onboarding' | 'search' | 'referral';
+  entryReason: string;
+  currentRequest?: string;
 }
 
 export interface UserActivity {
@@ -15,10 +17,13 @@ export interface UserActivity {
   userId: string;
   sessionId: string;
   timestamp: Date;
-  activityType: 'product_view' | 'form_submit' | 'file_upload' | 'page_visit' | 'button_click';
+  activityType: 'product_view' | 'form_submit' | 'file_upload' | 'page_visit' | 'button_click' | 'form_start' | 'form_abandon' | 'offer_view' | 'offer_accept' | 'chat_interaction';
   data: any;
   productType?: string;
   documentType?: string;
+  description: string;
+  previousState?: any;
+  newState?: any;
 }
 
 export interface UserProfile {
@@ -33,6 +38,23 @@ export interface UserProfile {
   totalTimeSpent: number;
   completedProcesses: number;
   abandonedProcesses: number;
+  currentStatus: 'new' | 'exploring' | 'applying' | 'pending' | 'approved' | 'rejected';
+  currentRequest?: string;
+  registrationDate: Date;
+  lastUpdate: Date;
+  tags: string[];
+}
+
+export interface UserEvent {
+  id: string;
+  userId: string;
+  sessionId: string;
+  timestamp: Date;
+  eventType: 'registration' | 'form_update' | 'status_change' | 'offer_received' | 'document_upload' | 'chat_message' | 'admin_note';
+  description: string;
+  data: any;
+  automated: boolean;
+  adminUserId?: string;
 }
 
 export interface UploadedFile {
@@ -52,6 +74,7 @@ class UserTrackingService {
   private activities: UserActivity[] = [];
   private profiles: Map<string, UserProfile> = new Map();
   private uploadedFiles: UploadedFile[] = [];
+  private userEvents: UserEvent[] = [];
   private currentSessionId: string | null = null;
 
   constructor() {
@@ -72,6 +95,7 @@ class UserTrackingService {
     localStorage.setItem('neza_activities', JSON.stringify(this.activities));
     localStorage.setItem('neza_profiles', JSON.stringify(Array.from(this.profiles.entries())));
     localStorage.setItem('neza_files', JSON.stringify(this.uploadedFiles));
+    localStorage.setItem('neza_events', JSON.stringify(this.userEvents));
   }
 
   private loadFromStorage(): void {
@@ -87,12 +111,15 @@ class UserTrackingService {
 
       const files = localStorage.getItem('neza_files');
       if (files) this.uploadedFiles = JSON.parse(files);
+
+      const events = localStorage.getItem('neza_events');
+      if (events) this.userEvents = JSON.parse(events);
     } catch (error) {
       console.error('Error loading tracking data:', error);
     }
   }
 
-  startSession(email: string): string {
+  startSession(email: string, entryMethod: UserSession['entryMethod'] = 'direct', entryReason: string = 'Visita directa'): string {
     const sessionId = this.generateId();
     this.currentSessionId = sessionId;
 
@@ -102,25 +129,37 @@ class UserTrackingService {
       sessionId,
       startTime: new Date(),
       deviceType: this.detectDeviceType(),
-      userAgent: navigator.userAgent
+      userAgent: navigator.userAgent,
+      entryMethod,
+      entryReason
     };
 
     this.sessions.push(session);
 
-    // Actualizar perfil del usuario
-    const profile = this.profiles.get(email) || {
+    // Actualizar o crear perfil del usuario
+    const existingProfile = this.profiles.get(email);
+    const profile: UserProfile = existingProfile || {
       email,
       lastVisit: new Date(),
       totalSessions: 0,
       totalTimeSpent: 0,
       completedProcesses: 0,
-      abandonedProcesses: 0
+      abandonedProcesses: 0,
+      currentStatus: 'new',
+      registrationDate: new Date(),
+      lastUpdate: new Date(),
+      tags: []
     };
 
     profile.lastVisit = new Date();
     profile.totalSessions += 1;
-    this.profiles.set(email, profile);
+    profile.lastUpdate = new Date();
 
+    if (!existingProfile) {
+      this.addUserEvent(email, sessionId, 'registration', `Nuevo usuario registrado - ${entryReason}`, { entryMethod, entryReason }, true);
+    }
+
+    this.profiles.set(email, profile);
     this.saveToStorage();
     return sessionId;
   }
@@ -137,6 +176,7 @@ class UserTrackingService {
       const profile = this.profiles.get(session.email);
       if (profile) {
         profile.totalTimeSpent += session.duration;
+        profile.lastUpdate = new Date();
         this.profiles.set(session.email, profile);
       }
 
@@ -146,7 +186,7 @@ class UserTrackingService {
     this.currentSessionId = null;
   }
 
-  trackActivity(activityType: UserActivity['activityType'], data: any, productType?: string, documentType?: string): void {
+  trackActivity(activityType: UserActivity['activityType'], data: any, description: string, productType?: string, documentType?: string, previousState?: any, newState?: any): void {
     if (!this.currentSessionId) return;
 
     const session = this.sessions.find(s => s.sessionId === this.currentSessionId);
@@ -160,10 +200,21 @@ class UserTrackingService {
       activityType,
       data,
       productType,
-      documentType
+      documentType,
+      description,
+      previousState,
+      newState
     };
 
     this.activities.push(activity);
+    
+    // Actualizar el perfil con la última actividad
+    const profile = this.profiles.get(session.email);
+    if (profile) {
+      profile.lastUpdate = new Date();
+      this.profiles.set(session.email, profile);
+    }
+
     this.saveToStorage();
   }
 
@@ -186,25 +237,67 @@ class UserTrackingService {
     };
 
     this.uploadedFiles.push(uploadedFile);
-    this.trackActivity('file_upload', { fileName, fileType, documentType });
+    this.trackActivity('file_upload', { fileName, fileType, documentType }, `Archivo subido: ${fileName}`, undefined, documentType);
+    this.addUserEvent(session.email, this.currentSessionId, 'document_upload', `Documento subido: ${documentType}`, { fileName, fileType, fileSize }, true);
     this.saveToStorage();
 
     return uploadedFile.id;
   }
 
-  updateUserProfile(email: string, data: Partial<UserProfile>): void {
+  addUserEvent(userId: string, sessionId: string, eventType: UserEvent['eventType'], description: string, data: any, automated: boolean = true, adminUserId?: string): void {
+    const event: UserEvent = {
+      id: this.generateId(),
+      userId,
+      sessionId,
+      timestamp: new Date(),
+      eventType,
+      description,
+      data,
+      automated,
+      adminUserId
+    };
+
+    this.userEvents.push(event);
+    this.saveToStorage();
+  }
+
+  updateUserProfile(email: string, data: Partial<UserProfile>, reason: string = 'Actualización de perfil'): void {
     const profile = this.profiles.get(email) || {
       email,
       lastVisit: new Date(),
       totalSessions: 0,
       totalTimeSpent: 0,
       completedProcesses: 0,
-      abandonedProcesses: 0
+      abandonedProcesses: 0,
+      currentStatus: 'new' as const,
+      registrationDate: new Date(),
+      lastUpdate: new Date(),
+      tags: []
     };
 
+    const previousState = { ...profile };
     Object.assign(profile, data);
+    profile.lastUpdate = new Date();
     this.profiles.set(email, profile);
+
+    // Registrar el evento de actualización
+    this.addUserEvent(email, this.currentSessionId || 'system', 'form_update', reason, { previousState, newState: profile }, true);
     this.saveToStorage();
+  }
+
+  updateUserStatus(email: string, newStatus: UserProfile['currentStatus'], reason: string): void {
+    const profile = this.profiles.get(email);
+    if (profile) {
+      const previousStatus = profile.currentStatus;
+      profile.currentStatus = newStatus;
+      profile.lastUpdate = new Date();
+      this.profiles.set(email, profile);
+
+      this.addUserEvent(email, this.currentSessionId || 'system', 'status_change', 
+        `Estado cambiado de ${previousStatus} a ${newStatus}: ${reason}`, 
+        { previousStatus, newStatus, reason }, true);
+      this.saveToStorage();
+    }
   }
 
   getUserHistory(email: string): {
@@ -212,12 +305,55 @@ class UserTrackingService {
     sessions: UserSession[];
     activities: UserActivity[];
     files: UploadedFile[];
+    events: UserEvent[];
+    timeline: Array<{ timestamp: Date; type: string; description: string; data: any; }>;
   } {
+    const profile = this.profiles.get(email) || null;
+    const sessions = this.sessions.filter(s => s.email === email);
+    const activities = this.activities.filter(a => a.userId === email);
+    const files = this.uploadedFiles.filter(f => f.userId === email);
+    const events = this.userEvents.filter(e => e.userId === email);
+
+    // Crear timeline consolidado
+    const timeline: Array<{ timestamp: Date; type: string; description: string; data: any; }> = [];
+    
+    activities.forEach(activity => {
+      timeline.push({
+        timestamp: new Date(activity.timestamp),
+        type: 'activity',
+        description: activity.description,
+        data: activity
+      });
+    });
+
+    events.forEach(event => {
+      timeline.push({
+        timestamp: new Date(event.timestamp),
+        type: 'event',
+        description: event.description,
+        data: event
+      });
+    });
+
+    files.forEach(file => {
+      timeline.push({
+        timestamp: new Date(file.uploadTime),
+        type: 'file',
+        description: `Archivo subido: ${file.fileName}`,
+        data: file
+      });
+    });
+
+    // Ordenar timeline por fecha
+    timeline.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+
     return {
-      profile: this.profiles.get(email) || null,
-      sessions: this.sessions.filter(s => s.email === email),
-      activities: this.activities.filter(a => a.userId === email),
-      files: this.uploadedFiles.filter(f => f.userId === email)
+      profile,
+      sessions,
+      activities,
+      files,
+      events,
+      timeline
     };
   }
 
@@ -231,6 +367,8 @@ class UserTrackingService {
     conversionRate: number;
     totalFilesUploaded: number;
     fileTypeBreakdown: Array<{ type: string; count: number }>;
+    userStatusBreakdown: Array<{ status: string; count: number }>;
+    recentActivity: Array<{ timestamp: Date; description: string; userId: string; }>;
   } {
     const totalUsers = this.profiles.size;
     const totalSessions = this.sessions.length;
@@ -279,6 +417,34 @@ class UserTrackingService {
       return acc;
     }, [] as Array<{ type: string; count: number }>);
 
+    const userStatusBreakdown = Array.from(this.profiles.values()).reduce((acc, profile) => {
+      const existing = acc.find(item => item.status === profile.currentStatus);
+      if (existing) {
+        existing.count++;
+      } else {
+        acc.push({ status: profile.currentStatus, count: 1 });
+      }
+      return acc;
+    }, [] as Array<{ status: string; count: number }>);
+
+    const recentActivity = this.activities
+      .concat(this.userEvents.map(e => ({
+        id: e.id,
+        userId: e.userId,
+        sessionId: e.sessionId,
+        timestamp: e.timestamp,
+        activityType: 'event' as const,
+        data: e.data,
+        description: e.description
+      })))
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, 20)
+      .map(activity => ({
+        timestamp: new Date(activity.timestamp),
+        description: activity.description,
+        userId: activity.userId
+      }));
+
     return {
       totalUsers,
       totalSessions,
@@ -288,7 +454,9 @@ class UserTrackingService {
       hourlyTraffic,
       conversionRate,
       totalFilesUploaded: this.uploadedFiles.length,
-      fileTypeBreakdown
+      fileTypeBreakdown,
+      userStatusBreakdown,
+      recentActivity
     };
   }
 }

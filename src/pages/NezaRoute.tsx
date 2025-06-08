@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { ProductCatalog } from "@/components/neza/ProductCatalog";
 import { UserOnboarding } from "@/components/neza/UserOnboarding";
@@ -15,16 +14,31 @@ const NezaRoute = () => {
   const [currentView, setCurrentView] = useState<'home' | 'catalog' | 'onboarding'>('home');
   const [showWelcomeMessage, setShowWelcomeMessage] = useState(true);
   const [tutorialMode, setTutorialMode] = useState(false);
+  const [userEmail, setUserEmail] = useState<string>('');
   const { isChatOpen, toggleChat } = useAsesorIA();
 
   useEffect(() => {
-    userTrackingService.trackActivity('page_visit', { page: 'home' });
+    // Generar email temporal para usuarios anónimos
+    const tempEmail = `anonimo_${Date.now()}@neza.temp`;
+    setUserEmail(tempEmail);
+    
+    // Iniciar sesión de tracking automáticamente
+    userTrackingService.startSession(tempEmail, 'direct', 'Visita directa a página principal');
+    userTrackingService.trackActivity('page_visit', { page: 'home' }, 'Usuario visitó la página principal');
+
+    // Cleanup al salir
+    return () => {
+      userTrackingService.endSession();
+    };
   }, []);
 
   if (currentView === 'catalog') {
     return (
       <>
-        <ProductCatalog onBack={() => setCurrentView('home')} />
+        <ProductCatalog onBack={() => {
+          userTrackingService.trackActivity('button_click', { action: 'back_to_home', from: 'catalog' }, 'Usuario regresó del catálogo a la página principal');
+          setCurrentView('home');
+        }} />
         <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
       </>
     );
@@ -33,7 +47,10 @@ const NezaRoute = () => {
   if (currentView === 'onboarding') {
     return (
       <>
-        <UserOnboarding onBack={() => setCurrentView('home')} />
+        <UserOnboarding onBack={() => {
+          userTrackingService.trackActivity('button_click', { action: 'back_to_home', from: 'onboarding' }, 'Usuario regresó del onboarding a la página principal');
+          setCurrentView('home');
+        }} />
         <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
       </>
     );
@@ -69,7 +86,10 @@ const NezaRoute = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setShowWelcomeMessage(false)}
+                onClick={() => {
+                  userTrackingService.trackActivity('button_click', { action: 'close_welcome_message' }, 'Usuario cerró el mensaje de bienvenida');
+                  setShowWelcomeMessage(false);
+                }}
                 className="text-white hover:bg-white/20 ml-4"
               >
                 ✕
@@ -135,7 +155,11 @@ const NezaRoute = () => {
                     "¡Hola! Soy AsesorIA, tu pata en este proceso. No te preocupes, yo te guío paso a paso."
                   </p>
                   <Button
-                    onClick={() => setTutorialMode(!tutorialMode)}
+                    onClick={() => {
+                      userTrackingService.trackActivity('button_click', { action: 'toggle_tutorial', enabled: !tutorialMode }, 
+                        `Usuario ${tutorialMode ? 'desactivó' : 'activó'} el modo tutorial`);
+                      setTutorialMode(!tutorialMode);
+                    }}
                     className={`${tutorialMode 
                       ? 'bg-purple-600 hover:bg-purple-700' 
                       : 'bg-purple-500 hover:bg-purple-600'
@@ -187,7 +211,7 @@ const NezaRoute = () => {
           <Card 
             className="hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 bg-white/80 backdrop-blur-sm border-neza-blue-200" 
             onClick={() => {
-              userTrackingService.trackActivity('button_click', { button: 'catalog', section: 'main_actions' });
+              userTrackingService.trackActivity('button_click', { button: 'catalog', section: 'main_actions' }, 'Usuario accedió al catálogo de productos');
               setCurrentView('catalog');
             }}
           >
@@ -231,7 +255,7 @@ const NezaRoute = () => {
           <Card 
             className="hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 bg-white/80 backdrop-blur-sm border-neza-blue-200" 
             onClick={() => {
-              userTrackingService.trackActivity('button_click', { button: 'onboarding', section: 'main_actions' });
+              userTrackingService.trackActivity('button_click', { button: 'onboarding', section: 'main_actions' }, 'Usuario inició el proceso de onboarding');
               setCurrentView('onboarding');
             }}
           >
