@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 import { 
   Carousel,
@@ -16,257 +17,215 @@ const sbsEntitiesData = [
   {
     name: "ALFIN BANCO",
     specialties: ["Créditos PYME", "Financiamiento"],
-    type: "Banco",
-    code: "B-01056"
+    type: "Banco"
   },
   {
     name: "BBVA",
     specialties: ["Créditos Vehiculares", "Empresariales"],
-    type: "Banco",
-    code: "B-01011"
+    type: "Banco"
   },
   {
     name: "BANCO BCI",
     specialties: ["Banca Empresarial", "Corporativa"],
-    type: "Banco",
-    code: "B-01055"
+    type: "Banco"
   },
   {
     name: "BANCOM",
     specialties: ["Microfinanzas", "PYME"],
-    type: "Banco",
-    code: "B-01038"
+    type: "Banco"
   },
   {
     name: "BANCO DE CRÉDITO",
     specialties: ["Préstamos Personales", "Hipotecarios"],
-    type: "Banco",
-    code: "B-01002"
+    type: "Banco"
   },
   {
     name: "BANCO DE LA NACIÓN",
     specialties: ["Servicios Públicos", "Inclusión Financiera"],
-    type: "Banco",
-    code: "B-01018"
+    type: "Banco"
   },
   {
     name: "BANCO FALABELLA",
     specialties: ["Tarjetas", "Créditos de Consumo"],
-    type: "Banco",
-    code: "B-01041"
+    type: "Banco"
   },
   {
     name: "BANCO GNB",
     specialties: ["Banca Personal", "Empresarial"],
-    type: "Banco",
-    code: "B-01053"
+    type: "Banco"
   },
   {
     name: "BANBIF",
     specialties: ["Financiamiento", "Inversión"],
-    type: "Banco",
-    code: "B-01038"
+    type: "Banco"
   },
   {
     name: "INTERBANK",
     specialties: ["Tarjetas de Crédito", "Préstamos"],
-    type: "Banco",
-    code: "B-01003"
+    type: "Banco"
   },
   {
     name: "BANCO PICHINCHA",
     specialties: ["Banca Personal", "PYME"],
-    type: "Banco",
-    code: "B-01049"
+    type: "Banco"
   },
   {
     name: "BANCO RIPLEY",
     specialties: ["Tarjetas", "Préstamos Personales"],
-    type: "Banco",
-    code: "B-01043"
+    type: "Banco"
   },
   {
     name: "SANTANDER PERÚ",
     specialties: ["Créditos", "Inversiones"],
-    type: "Banco",
-    code: "B-01007"
+    type: "Banco"
   },
   {
     name: "BANK OF CHINA (PERÚ)",
     specialties: ["Comercio Internacional", "Corporativo"],
-    type: "Banco",
-    code: "B-01052"
+    type: "Banco"
   },
   {
     name: "CITIBANK DEL PERÚ",
     specialties: ["Banca Privada", "Corporativa"],
-    type: "Banco",
-    code: "B-01017"
+    type: "Banco"
   },
   {
     name: "COMPARTAMOS BANCO",
     specialties: ["Microfinanzas", "Inclusión"],
-    type: "Banco",
-    code: "B-01047"
+    type: "Banco"
   },
   {
     name: "ICBC PERU BANK S.A.",
     specialties: ["Comercio", "Inversión"],
-    type: "Banco",
-    code: "B-01051"
+    type: "Banco"
   },
   {
     name: "MIBANCO",
     specialties: ["Microcréditos", "PYME"],
-    type: "Banco",
-    code: "B-01049"
+    type: "Banco"
   },
   {
     name: "BANCO SANTANDER CONSUMO",
     specialties: ["Créditos Consumo", "Tarjetas"],
-    type: "Banco",
-    code: "B-01054"
+    type: "Banco"
   },
   {
     name: "SCOTIABANK PERÚ",
     specialties: ["Créditos Hipotecarios", "Empresariales"],
-    type: "Banco",
-    code: "B-01009"
+    type: "Banco"
   },
   // Financieras
   {
     name: "FINANCIERA CONFIANZA",
     specialties: ["Préstamos Personales", "Vehiculares"],
-    type: "Financiera",
-    code: "F-01128"
+    type: "Financiera"
   },
   {
     name: "FINANCIERA EFECTIVA",
     specialties: ["Microcréditos", "PYME"],
-    type: "Financiera",
-    code: "F-01125"
+    type: "Financiera"
   },
   {
     name: "FINANCIERA OH",
     specialties: ["Créditos Personales", "Consumo"],
-    type: "Financiera",
-    code: "F-01129"
+    type: "Financiera"
   },
   {
     name: "FINANCIERA PROEMPRESA",
     specialties: ["PYME", "Empresariales"],
-    type: "Financiera",
-    code: "F-01127"
+    type: "Financiera"
   },
   {
     name: "FINANCIERA QAPAQ",
     specialties: ["Microfinanzas", "Inclusión"],
-    type: "Financiera",
-    code: "F-01130"
+    type: "Financiera"
   },
   {
     name: "FINANCIERA SURGIR",
     specialties: ["Microcréditos", "Rural"],
-    type: "Financiera",
-    code: "F-01131"
+    type: "Financiera"
   },
-  // Cajas Municipales (cambiado CMAC por Caja Municipal)
+  // Cajas Municipales
   {
     name: "Caja Municipal CUSCO",
     specialties: ["Créditos PYME", "Ahorro"],
-    type: "Caja Municipal",
-    code: "CM-0801"
+    type: "Caja Municipal"
   },
   {
     name: "Caja Municipal AREQUIPA",
     specialties: ["Microcréditos", "Ahorro"],
-    type: "Caja Municipal",
-    code: "CM-0802"
+    type: "Caja Municipal"
   },
   {
     name: "Caja Municipal DEL SANTA",
     specialties: ["PYME", "Microfinanzas"],
-    type: "Caja Municipal",
-    code: "CM-0803"
+    type: "Caja Municipal"
   },
   {
     name: "Caja Municipal HUANCAYO",
     specialties: ["Créditos", "Ahorro"],
-    type: "Caja Municipal",
-    code: "CM-0804"
+    type: "Caja Municipal"
   },
   {
     name: "Caja Municipal ICA",
     specialties: ["PYME", "Consumo"],
-    type: "Caja Municipal",
-    code: "CM-0805"
+    type: "Caja Municipal"
   },
   {
     name: "Caja Municipal MAYNAS",
     specialties: ["Microcréditos", "Rural"],
-    type: "Caja Municipal",
-    code: "CM-0806"
+    type: "Caja Municipal"
   },
   {
     name: "Caja Municipal PAITA",
     specialties: ["PYME", "Pesquero"],
-    type: "Caja Municipal",
-    code: "CM-0807"
+    type: "Caja Municipal"
   },
   {
     name: "Caja Municipal PIURA",
     specialties: ["Agropecuario", "PYME"],
-    type: "Caja Municipal",
-    code: "CM-0808"
+    type: "Caja Municipal"
   },
   {
     name: "Caja Municipal TACNA",
     specialties: ["Comercio", "Frontera"],
-    type: "Caja Municipal",
-    code: "CM-0809"
+    type: "Caja Municipal"
   },
   {
     name: "Caja Municipal TRUJILLO",
     specialties: ["PYME", "Agroindustria"],
-    type: "Caja Municipal",
-    code: "CM-0810"
+    type: "Caja Municipal"
   },
   {
     name: "Caja Municipal LIMA",
     specialties: ["Microfinanzas", "Urbano"],
-    type: "Caja Municipal",
-    code: "CM-0811"
+    type: "Caja Municipal"
   },
   // Cajas Rurales
   {
     name: "CRAC CENCOSUD SCOTIA",
     specialties: ["Retail", "Consumo"],
-    type: "Caja Rural",
-    code: "CR-0901"
+    type: "Caja Rural"
   },
   {
     name: "CRAC LOS ANDES",
     specialties: ["Agropecuario", "Rural"],
-    type: "Caja Rural",
-    code: "CR-0902"
+    type: "Caja Rural"
   },
   {
     name: "CRAC DEL CENTRO",
     specialties: ["Agrícola", "PYME Rural"],
-    type: "Caja Rural",
-    code: "CR-0903"
+    type: "Caja Rural"
   },
   {
     name: "CRAC PRYMERA",
     specialties: ["Microfinanzas", "Rural"],
-    type: "Caja Rural",
-    code: "CR-0904"
+    type: "Caja Rural"
   },
   {
     name: "CRAC INCASUR",
     specialties: ["Agropecuario", "Sur"],
-    type: "Caja Rural",
-    code: "CR-0905"
+    type: "Caja Rural"
   }
 ];
 
@@ -278,6 +237,42 @@ const shuffleArray = (array: any[]) => {
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
   return shuffled;
+};
+
+// Función para obtener colores por tipo de entidad
+const getEntityTypeColor = (type: string) => {
+  switch (type) {
+    case 'Banco':
+      return {
+        bg: 'bg-blue-100',
+        text: 'text-blue-800',
+        border: 'border-blue-300'
+      };
+    case 'Caja Municipal':
+      return {
+        bg: 'bg-green-100',
+        text: 'text-green-800',
+        border: 'border-green-300'
+      };
+    case 'Financiera':
+      return {
+        bg: 'bg-purple-100',
+        text: 'text-purple-800',
+        border: 'border-purple-300'
+      };
+    case 'Caja Rural':
+      return {
+        bg: 'bg-orange-100',
+        text: 'text-orange-800',
+        border: 'border-orange-300'
+      };
+    default:
+      return {
+        bg: 'bg-gray-100',
+        text: 'text-gray-800',
+        border: 'border-gray-300'
+      };
+  }
 };
 
 export const SBSEntitiesCarousel = () => {
@@ -309,7 +304,8 @@ export const SBSEntitiesCarousel = () => {
               Autoplay({
                 delay: 0,
                 stopOnInteraction: false,
-                stopOnMouseEnter: true,
+                stopOnMouseEnter: false,
+                speed: 0.5,
               }),
             ]}
             opts={{
@@ -317,54 +313,43 @@ export const SBSEntitiesCarousel = () => {
               loop: true,
               dragFree: true,
               slidesToScroll: "auto",
-              duration: 20,
+              duration: 50,
             }}
             className="w-full max-w-full"
           >
             <CarouselContent className="-ml-2 md:-ml-4">
-              {shuffledEntities.map((entity, index) => (
-                <CarouselItem key={index} className="pl-2 md:pl-4 basis-1/2 md:basis-1/4 lg:basis-1/6">
-                  <Card className="w-full bg-white border border-blue-200 hover:border-blue-400 transition-all duration-200 shadow-sm hover:shadow-md">
-                    <CardContent className="p-4 text-center">
-                      {/* Ícono de edificio */}
-                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
-                        <Building2 className="w-6 h-6 text-blue-900" />
-                      </div>
-                      
-                      <h4 className="font-semibold text-blue-900 text-xs mb-2 leading-tight min-h-[2rem] flex items-center justify-center">
-                        {entity.name}
-                      </h4>
-                      
-                      <div className="flex justify-center mb-2">
-                        <span className={`
-                          inline-block px-2 py-1 rounded-full text-xs font-medium
-                          ${entity.type === 'Banco' 
-                            ? 'bg-blue-100 text-blue-800' 
-                            : entity.type === 'Caja Municipal'
-                            ? 'bg-blue-50 text-blue-700'
-                            : entity.type === 'Caja Rural'
-                            ? 'bg-blue-50 text-blue-600'
-                            : 'bg-blue-100 text-blue-800'
-                          }
-                        `}>
-                          {entity.type}
-                        </span>
-                      </div>
+              {shuffledEntities.map((entity, index) => {
+                const colors = getEntityTypeColor(entity.type);
+                return (
+                  <CarouselItem key={index} className="pl-2 md:pl-4 basis-1/2 md:basis-1/4 lg:basis-1/6">
+                    <Card className={`w-full bg-white border ${colors.border} hover:border-blue-400 transition-all duration-200 shadow-sm hover:shadow-md`}>
+                      <CardContent className="p-4 text-center">
+                        {/* Ícono de edificio */}
+                        <div className={`w-12 h-12 ${colors.bg} rounded-lg flex items-center justify-center mx-auto mb-3`}>
+                          <Building2 className={`w-6 h-6 ${colors.text}`} />
+                        </div>
+                        
+                        <h4 className="font-semibold text-blue-900 text-xs mb-2 leading-tight min-h-[2rem] flex items-center justify-center">
+                          {entity.name}
+                        </h4>
+                        
+                        <div className="flex justify-center mb-2">
+                          <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${colors.bg} ${colors.text}`}>
+                            {entity.type}
+                          </span>
+                        </div>
 
-                      {/* Especialidades */}
-                      <div className="text-xs text-blue-600 mb-2 min-h-[2rem] flex items-center justify-center">
-                        <span className="bg-blue-50 px-2 py-1 rounded-md border border-blue-200">
-                          {entity.specialties[0]}
-                        </span>
-                      </div>
-
-                      <div className="text-xs text-blue-600 font-mono">
-                        {entity.code}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </CarouselItem>
-              ))}
+                        {/* Especialidades */}
+                        <div className="text-xs text-blue-600 mb-2 min-h-[2rem] flex items-center justify-center">
+                          <span className="bg-blue-50 px-2 py-1 rounded-md border border-blue-200">
+                            {entity.specialties[0]}
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </CarouselItem>
+                );
+              })}
             </CarouselContent>
             <CarouselPrevious className="hidden md:flex -left-12 border-blue-300 text-blue-800 hover:bg-blue-50" />
             <CarouselNext className="hidden md:flex -right-12 border-blue-300 text-blue-800 hover:bg-blue-50" />

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -34,7 +35,7 @@ export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialP
       id: "entities",
       target: "#sbs-entities",
       title: "Paso 1 - Entidades Financieras Supervisadas por la SBS y SMV",
-      description: "Aquí tienes más de 30 entidades financieras supervisadas por la SBS y SMV que participan en tu subasta. Todas se mueven automáticamente para que las conozcas.",
+      description: "Aquí tienes más de 40 entidades financieras supervisadas por la SBS y SMV que participan en tu subasta. Todas se mueven automáticamente para que las conozcas.",
       position: "top",
       highlight: true
     },
@@ -87,7 +88,6 @@ export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialP
       const element = document.querySelector(currentStepData.target);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        // Aplicar resaltado más pronunciado en azul marino
         element.classList.add('tutorial-highlight-strong');
       }
       
@@ -140,14 +140,14 @@ export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialP
 
   return (
     <>
-      {/* Tutorial Card - Posicionado en la parte superior central sin overlay */}
-      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[90] max-w-2xl w-full mx-4">
-        <Card className="bg-white shadow-2xl border-4 border-blue-900 animate-in fade-in slide-in-from-top duration-300">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-start mb-4">
+      {/* Tutorial Card - Posicionado en la parte superior central, más delgado */}
+      <div className="fixed top-2 left-1/2 transform -translate-x-1/2 z-[90] max-w-4xl w-full mx-4">
+        <Card className="bg-white shadow-xl border-2 border-blue-900 animate-in fade-in slide-in-from-top duration-300">
+          <CardContent className="p-4">
+            <div className="flex justify-between items-start mb-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-900 to-blue-800 rounded-full flex items-center justify-center animate-pulse">
-                  <Sparkles className="w-5 h-5 text-white" />
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-900 to-blue-800 rounded-full flex items-center justify-center">
+                  <Sparkles className="w-4 h-4 text-white" />
                 </div>
                 <div>
                   <span className="text-sm text-blue-900 font-bold block">
@@ -160,43 +160,34 @@ export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialP
                 variant="ghost"
                 size="sm"
                 onClick={handleClose}
-                className="p-2 h-auto hover:bg-blue-100 text-blue-900"
+                className="p-1 h-auto hover:bg-blue-100 text-blue-900"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </Button>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-start gap-3 mb-3">
-                <Target className="w-6 h-6 text-blue-900 mt-1 flex-shrink-0" />
+            <div className="space-y-3">
+              <div className="flex items-start gap-2 mb-2">
+                <Target className="w-5 h-5 text-blue-900 mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="text-lg font-bold text-blue-900 mb-2">
+                  <h3 className="text-base font-bold text-blue-900 mb-1">
                     {currentStepData.title}
                   </h3>
-                  <p className="text-gray-700 leading-relaxed">
+                  <p className="text-gray-700 leading-relaxed text-sm">
                     {currentStepData.description}
                   </p>
                 </div>
               </div>
-
-              {isHighlighting && (
-                <div className="bg-blue-900 text-white rounded-lg p-4 animate-pulse border-2 border-blue-700">
-                  <p className="text-sm font-medium flex items-center gap-2">
-                    <Sparkles className="w-4 h-4" />
-                    ✨ Observa el elemento resaltado en azul marino en la página
-                  </p>
-                </div>
-              )}
             </div>
 
-            <div className="flex justify-between items-center mt-6 pt-4 border-t border-blue-200">
+            <div className="flex justify-between items-center mt-4 pt-3 border-t border-blue-200">
               <Button
                 variant="outline"
                 onClick={handlePrev}
                 disabled={currentStep === 0}
-                className="flex items-center gap-2 border-blue-900 text-blue-900 hover:bg-blue-50"
+                className="flex items-center gap-1 border-blue-900 text-blue-900 hover:bg-blue-50 text-xs px-3 py-1 h-8"
               >
-                <ArrowLeft className="w-4 h-4" />
+                <ArrowLeft className="w-3 h-3" />
                 Anterior
               </Button>
               
@@ -213,10 +204,10 @@ export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialP
               
               <Button
                 onClick={handleNext}
-                className="bg-blue-900 hover:bg-blue-800 flex items-center gap-2 text-white"
+                className="bg-blue-900 hover:bg-blue-800 flex items-center gap-1 text-white text-xs px-3 py-1 h-8"
               >
                 {currentStep === tutorialSteps.length - 1 ? 'Finalizar' : 'Siguiente'}
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-3 h-3" />
               </Button>
             </div>
           </CardContent>
