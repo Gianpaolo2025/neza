@@ -47,17 +47,6 @@ export const ProductsCarousel = ({ onViewCatalog }: ProductsCarouselProps) => {
       category: 'Express'
     },
     {
-      id: 'credito-microempresa',
-      name: 'Crédito Microempresa',
-      description: 'Capital de trabajo para hacer crecer tu negocio',
-      emoji: '🏪',
-      estimatedRate: '10% - 25%',
-      minAmount: 'S/. 5,000',
-      maxAmount: 'S/. 100,000',
-      term: '1-5 años',
-      category: 'Empresarial'
-    },
-    {
       id: 'tarjeta-credito',
       name: 'Tarjeta de Crédito',
       description: 'Flexibilidad de pago y beneficios exclusivos',
@@ -67,72 +56,6 @@ export const ProductsCarousel = ({ onViewCatalog }: ProductsCarouselProps) => {
       maxAmount: 'S/. 20,000',
       term: 'Renovable',
       category: 'Flexible'
-    },
-    {
-      id: 'credito-educativo',
-      name: 'Crédito Educativo',
-      description: 'Invierte en tu futuro académico y profesional',
-      emoji: '🎓',
-      estimatedRate: '8% - 18%',
-      minAmount: 'S/. 2,000',
-      maxAmount: 'S/. 80,000',
-      term: '2-10 años',
-      category: 'Educación'
-    },
-    {
-      id: 'credito-consumo',
-      name: 'Crédito de Consumo',
-      description: 'Para todas tus necesidades de compra',
-      emoji: '🛒',
-      estimatedRate: '15% - 40%',
-      minAmount: 'S/. 1,000',
-      maxAmount: 'S/. 30,000',
-      term: '1-4 años',
-      category: 'Consumo'
-    },
-    {
-      id: 'credito-construccion',
-      name: 'Crédito Construcción',
-      description: 'Construye o mejora tu vivienda',
-      emoji: '🏗️',
-      estimatedRate: '7% - 15%',
-      minAmount: 'S/. 20,000',
-      maxAmount: 'S/. 300,000',
-      term: '3-20 años',
-      category: 'Construcción'
-    },
-    {
-      id: 'credito-agricola',
-      name: 'Crédito Agrícola',
-      description: 'Financiamiento para actividades agropecuarias',
-      emoji: '🌾',
-      estimatedRate: '8% - 20%',
-      minAmount: 'S/. 3,000',
-      maxAmount: 'S/. 50,000',
-      term: '6 meses - 3 años',
-      category: 'Agropecuario'
-    },
-    {
-      id: 'credito-comercial',
-      name: 'Crédito Comercial',
-      description: 'Para empresas y comerciantes establecidos',
-      emoji: '🏢',
-      estimatedRate: '9% - 22%',
-      minAmount: 'S/. 10,000',
-      maxAmount: 'S/. 500,000',
-      term: '1-7 años',
-      category: 'Comercial'
-    },
-    {
-      id: 'refinanciamiento',
-      name: 'Refinanciamiento',
-      description: 'Mejora las condiciones de tus deudas actuales',
-      emoji: '🔄',
-      estimatedRate: '6% - 30%',
-      minAmount: 'S/. 5,000',
-      maxAmount: 'S/. 200,000',
-      term: '1-25 años',
-      category: 'Refinanciamiento'
     }
   ];
 
@@ -152,14 +75,7 @@ export const ProductsCarousel = ({ onViewCatalog }: ProductsCarouselProps) => {
       case 'Más Popular': return 'bg-green-100 text-green-800';
       case 'Recomendado': return 'bg-blue-100 text-blue-800';
       case 'Express': return 'bg-orange-100 text-orange-800';
-      case 'Empresarial': return 'bg-purple-100 text-purple-800';
       case 'Flexible': return 'bg-pink-100 text-pink-800';
-      case 'Educación': return 'bg-indigo-100 text-indigo-800';
-      case 'Consumo': return 'bg-cyan-100 text-cyan-800';
-      case 'Construcción': return 'bg-amber-100 text-amber-800';
-      case 'Agropecuario': return 'bg-lime-100 text-lime-800';
-      case 'Comercial': return 'bg-slate-100 text-slate-800';
-      case 'Refinanciamiento': return 'bg-teal-100 text-teal-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
