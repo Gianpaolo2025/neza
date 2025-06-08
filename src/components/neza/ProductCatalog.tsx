@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -171,9 +170,10 @@ const riskLevels = [
 
 interface ProductCatalogProps {
   onBack: () => void;
+  onProductRequest?: (productId?: string) => void;
 }
 
-export const ProductCatalog = ({ onBack }: ProductCatalogProps) => {
+export const ProductCatalog = ({ onBack, onProductRequest }: ProductCatalogProps) => {
   const [selectedCategory, setSelectedCategory] = useState('todos');
   const [selectedRisk, setSelectedRisk] = useState('todos');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -258,7 +258,11 @@ export const ProductCatalog = ({ onBack }: ProductCatalogProps) => {
                 </ul>
               </div>
 
-              <Button className="w-full bg-emerald-600 hover:bg-emerald-700" size="lg">
+              <Button 
+                className="w-full bg-emerald-600 hover:bg-emerald-700" 
+                size="lg"
+                onClick={() => onProductRequest?.(selectedProduct.id)}
+              >
                 Solicitar Producto
               </Button>
             </CardContent>

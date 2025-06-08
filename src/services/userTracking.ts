@@ -1,3 +1,4 @@
+
 export interface UserSession {
   id: string;
   email: string;
@@ -17,7 +18,7 @@ export interface UserActivity {
   userId: string;
   sessionId: string;
   timestamp: Date;
-  activityType: 'product_view' | 'form_submit' | 'file_upload' | 'page_visit' | 'button_click' | 'form_start' | 'form_abandon' | 'offer_view' | 'offer_accept' | 'chat_interaction' | 'auction_validation_start' | 'auction_validation_completed' | 'faq_question_submit' | 'tutorial_step_completed' | 'tutorial_completed';
+  activityType: 'product_view' | 'form_submit' | 'file_upload' | 'page_visit' | 'button_click' | 'form_start' | 'form_abandon' | 'offer_view' | 'offer_accept' | 'chat_interaction' | 'auction_validation_start' | 'auction_validation_completed' | 'faq_question_submit' | 'tutorial_step_completed' | 'tutorial_completed' | 'tutorial_start';
   data: any;
   productType?: string;
   documentType?: string;
