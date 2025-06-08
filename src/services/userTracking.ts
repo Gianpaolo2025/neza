@@ -7,7 +7,7 @@ export interface UserSession {
   deviceType: 'web' | 'mobile';
   userAgent: string;
   duration?: number;
-  entryMethod: 'direct' | 'catalog' | 'onboarding' | 'search' | 'referral';
+  entryMethod: 'direct' | 'catalog' | 'onboarding' | 'search' | 'referral' | 'product_request';
   entryReason: string;
   currentRequest?: string;
 }
@@ -17,7 +17,7 @@ export interface UserActivity {
   userId: string;
   sessionId: string;
   timestamp: Date;
-  activityType: 'product_view' | 'form_submit' | 'file_upload' | 'page_visit' | 'button_click' | 'form_start' | 'form_abandon' | 'offer_view' | 'offer_accept' | 'chat_interaction';
+  activityType: 'product_view' | 'form_submit' | 'file_upload' | 'page_visit' | 'button_click' | 'form_start' | 'form_abandon' | 'offer_view' | 'offer_accept' | 'chat_interaction' | 'auction_validation_start' | 'auction_validation_completed' | 'faq_question_submit' | 'tutorial_step_completed' | 'tutorial_completed';
   data: any;
   productType?: string;
   documentType?: string;
@@ -38,7 +38,7 @@ export interface UserProfile {
   totalTimeSpent: number;
   completedProcesses: number;
   abandonedProcesses: number;
-  currentStatus: 'new' | 'exploring' | 'applying' | 'pending' | 'approved' | 'rejected';
+  currentStatus: 'new' | 'exploring' | 'applying' | 'pending' | 'approved' | 'rejected' | 'validating' | 'qualified';
   currentRequest?: string;
   registrationDate: Date;
   lastUpdate: Date;
@@ -457,6 +457,13 @@ class UserTrackingService {
       userStatusBreakdown,
       recentActivity
     };
+  }
+
+  getCurrentUser(): { email: string } | null {
+    if (!this.currentSessionId) return null;
+    
+    const session = this.sessions.find(s => s.sessionId === this.currentSessionId);
+    return session ? { email: session.email } : null;
   }
 }
 

@@ -42,12 +42,13 @@ export const InteractiveFAQ = () => {
 
       // Store question in localStorage for admin dashboard
       const existingQuestions = JSON.parse(localStorage.getItem('nezaFAQQuestions') || '[]');
+      const currentUser = userTrackingService.getCurrentUser();
       const newQuestion = {
         id: SecurityUtils.generateSecureId(),
         question: sanitizedQuestion,
         timestamp: new Date().toISOString(),
         status: 'pending',
-        userEmail: userTrackingService.getCurrentUser()?.email || 'anonymous'
+        userEmail: currentUser?.email || 'anonymous'
       };
       
       existingQuestions.push(newQuestion);

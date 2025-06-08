@@ -62,7 +62,7 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
       phone: convertedData.phone,
       monthlyIncome: convertedData.monthlyIncome,
       currentRequest: `${convertedData.productType} - S/ ${convertedData.requestedAmount.toLocaleString()}`,
-      currentStatus: 'validating',
+      currentStatus: 'applying',
       tags: [convertedData.productType, convertedData.employmentType, convertedData.urgencyLevel]
     }, 'Onboarding completado con información completa');
 
