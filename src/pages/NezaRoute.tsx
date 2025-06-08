@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { ProductCatalog } from "@/components/neza/ProductCatalog";
 import { UserOnboarding } from "@/components/neza/UserOnboarding";
@@ -31,13 +30,19 @@ const NezaRoute = () => {
     userTrackingService.startSession(tempEmail, 'direct', 'Visita directa a página principal');
     userTrackingService.trackActivity('page_visit', { page: 'home' }, 'Usuario visitó la página principal');
 
-    // Mostrar popup de tutorial después de 2 segundos
+    // Mostrar popup de tutorial después de 1 segundo y luego iniciar tutorial automáticamente
     const timer = setTimeout(() => {
       const hasSeenTutorial = localStorage.getItem('nezaTutorialShown');
       if (!hasSeenTutorial) {
         setShowTutorialPopup(true);
+        // Auto-iniciar tutorial después de 3 segundos si no interactúa
+        setTimeout(() => {
+          if (showTutorialPopup) {
+            handleStartTutorial();
+          }
+        }, 3000);
       }
-    }, 2000);
+    }, 1000);
 
     return () => {
       clearTimeout(timer);
@@ -130,12 +135,12 @@ const NezaRoute = () => {
       
       {/* Popup de Tutorial */}
       {showTutorialPopup && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <Card className="bg-white border-2 border-neza-blue-200 shadow-2xl max-w-md w-full">
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+          <Card className="bg-white border-2 border-neza-blue-200 shadow-2xl max-w-md w-full animate-in fade-in zoom-in duration-300">
             <CardContent className="p-6">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-neza-blue-500 to-neza-blue-600 rounded-full flex items-center justify-center">
-                  <MessageCircle className="w-6 h-6 text-white" />
+                <div className="w-12 h-12 bg-gradient-to-r from-neza-blue-500 to-neza-blue-600 rounded-full flex items-center justify-center animate-pulse">
+                  <Sparkles className="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <h4 className="font-bold text-lg text-gray-800">🎯 ¡Bienvenido a NEZA!</h4>
@@ -165,9 +170,15 @@ const NezaRoute = () => {
         </div>
       )}
 
+      {/* Tutorial Interactivo - Siempre visible cuando showTutorial es true */}
+      <InteractiveTutorial 
+        isVisible={showTutorial} 
+        onClose={() => setShowTutorial(false)} 
+      />
+
       {/* Mensaje de Bienvenida */}
       {showWelcomeMessage && (
-        <div className="bg-gradient-to-r from-neza-blue-700 to-neza-blue-600 text-white py-6 px-4 relative">
+        <div className="bg-gradient-to-r from-neza-blue-700 to-neza-blue-600 text-white py-6 px-4 relative z-30">
           <div className="container mx-auto max-w-6xl">
             <div className="flex items-start justify-between">
               <div className="flex-1">
@@ -203,7 +214,7 @@ const NezaRoute = () => {
       )}
 
       {/* Contenido Principal */}
-      <div className="w-full max-w-6xl mx-auto px-4 py-8">
+      <div className="w-full max-w-6xl mx-auto px-4 py-8 relative z-20">
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-6xl font-bold text-neza-blue-800 mb-4">
@@ -325,22 +336,22 @@ const NezaRoute = () => {
           </div>
         </div>
 
-        {/* FAQ */}
+        {/* Sugerencias de Usuarios en lugar de FAQ */}
         <div id="faq-section" className="mb-16 max-w-4xl mx-auto">
           <h3 className="text-2xl font-bold text-center text-neza-blue-800 mb-8">
-            Preguntas Frecuentes
+            💬 Sugerencias de Usuarios
           </h3>
           <InteractiveFAQ />
         </div>
       </div>
 
       {/* Carrusel de Entidades SBS */}
-      <div id="sbs-entities">
+      <div id="sbs-entities" className="relative z-20">
         <SBSEntitiesCarousel />
       </div>
 
       {/* Footer */}
-      <div className="bg-neza-blue-800 text-white py-8 mt-12">
+      <div className="bg-neza-blue-800 text-white py-8 mt-12 relative z-20">
         <div className="container mx-auto px-4 text-center max-w-6xl">
           <div className="flex items-center justify-center gap-2 mb-4">
             <CheckCircle className="w-5 h-5 text-neza-blue-400" />
@@ -352,12 +363,6 @@ const NezaRoute = () => {
           </p>
         </div>
       </div>
-
-      {/* Tutorial Interactivo - Posicionado a la derecha */}
-      <InteractiveTutorial 
-        isVisible={showTutorial} 
-        onClose={() => setShowTutorial(false)} 
-      />
 
       {/* AsesorIA Chat - Con z-index menor al tutorial */}
       <div id="chat-button" className="relative z-40">

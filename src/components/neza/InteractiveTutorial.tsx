@@ -78,10 +78,10 @@ export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialP
       highlight: true
     },
     {
-      id: "faq",
+      id: "suggestions",
       target: "#faq-section",
-      title: "Preguntas Frecuentes",
-      description: "Encuentra respuestas a las consultas más comunes y envía tus propias preguntas si tienes dudas específicas.",
+      title: "Sugerencias de Usuarios",
+      description: "Encuentra preguntas frecuentes de otros usuarios y haz clic en cualquiera para enviarla al chat de AsesorIA.",
       position: "top"
     }
   ];
@@ -102,7 +102,7 @@ export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialP
         if (element) {
           element.classList.remove('tutorial-highlight');
         }
-      }, 2000);
+      }, 2500);
       
       return () => {
         clearTimeout(timer);
@@ -146,15 +146,15 @@ export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialP
   return (
     <>
       {/* Overlay sutil - solo detrás del tutorial */}
-      <div className="fixed inset-0 bg-black/10 z-50 pointer-events-none" />
+      <div className="fixed inset-0 bg-black/20 z-[50] pointer-events-none" />
       
       {/* Tutorial Card - Posicionado a la derecha con z-index alto */}
       <div className="fixed top-1/2 right-6 transform -translate-y-1/2 z-[70]">
-        <Card className="bg-white max-w-sm w-80 shadow-2xl border-2 border-neza-blue-500">
+        <Card className="bg-white max-w-sm w-80 shadow-2xl border-2 border-neza-blue-500 animate-in fade-in slide-in-from-right duration-300">
           <CardContent className="p-6">
             <div className="flex justify-between items-start mb-4">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-gradient-to-r from-neza-blue-500 to-neza-blue-600 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 bg-gradient-to-r from-neza-blue-500 to-neza-blue-600 rounded-full flex items-center justify-center animate-pulse">
                   <Sparkles className="w-4 h-4 text-white" />
                 </div>
                 <span className="text-sm text-neza-blue-600 font-medium">
@@ -184,7 +184,7 @@ export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialP
               </p>
 
               {isHighlighting && (
-                <div className="bg-neza-blue-50 border border-neza-blue-200 rounded-lg p-3">
+                <div className="bg-neza-blue-50 border border-neza-blue-200 rounded-lg p-3 animate-pulse">
                   <p className="text-neza-blue-800 text-sm font-medium">
                     ✨ Observa el elemento resaltado en la página
                   </p>
