@@ -3,6 +3,7 @@ import { useState } from "react";
 import { DynamicOnboarding } from "./DynamicOnboarding";
 import { HumanAdvisoryExperience } from "./HumanAdvisoryExperience";
 import { OffersDashboard } from "@/components/OffersDashboard";
+import { UserData } from "@/types/user";
 
 interface UserOnboardingProps {
   onBack: () => void;
@@ -10,11 +11,11 @@ interface UserOnboardingProps {
 
 export const UserOnboarding = ({ onBack }: UserOnboardingProps) => {
   const [currentView, setCurrentView] = useState<'advisory' | 'offers'>('advisory');
-  const [userData, setUserData] = useState(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
 
   const handleComplete = (data: any) => {
     // Convertir datos de la experiencia humana al formato esperado
-    const convertedData = {
+    const convertedData: UserData = {
       firstName: data.personalInfo.firstName,
       lastName: data.personalInfo.lastName,
       dni: data.personalInfo.dni,
