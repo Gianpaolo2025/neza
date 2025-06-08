@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -6,12 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { ArrowRight, ArrowLeft, Home, Car, CreditCard, Heart, Target, Play, Building2, FileText, Users, Briefcase, AlertCircle } from "lucide-react";
+import { ArrowRight, ArrowLeft, Home, Car, CreditCard, Heart, Target, Play, Building2, FileText, Users, Briefcase, AlertCircle, Upload, Eye, EyeOff } from "lucide-react";
 
 interface UserData {
   goal: string;
   amount: number;
   workSituation: string;
+  workDetails: string;
   hasPayslips: string;
   monthlyIncome: number;
   personalInfo: {
@@ -20,8 +22,15 @@ interface UserData {
     dni: string;
     email: string;
     phone: string;
+    emailVerified: boolean;
+    verificationCode: string;
   };
   preferredBank: string;
+  documents: {
+    dni: File | null;
+    payslips: File | null;
+    others: File | null;
+  };
 }
 
 interface HumanAdvisoryExperienceProps {
@@ -33,10 +42,13 @@ interface HumanAdvisoryExperienceProps {
 export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false }: HumanAdvisoryExperienceProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [showVideo, setShowVideo] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [sentVerificationCode, setSentVerificationCode] = useState("");
   const [data, setData] = useState<UserData>({
     goal: "",
     amount: 0,
     workSituation: "",
+    workDetails: "",
     hasPayslips: "",
     monthlyIncome: 0,
     personalInfo: {
@@ -44,9 +56,16 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
       lastName: "",
       dni: "",
       email: "",
-      phone: ""
+      phone: "",
+      emailVerified: false,
+      verificationCode: ""
     },
-    preferredBank: ""
+    preferredBank: "",
+    documents: {
+      dni: null,
+      payslips: null,
+      others: null
+    }
   });
 
   const steps = [
@@ -56,9 +75,14 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
       subtitle: forceFlow ? "Para solicitar este producto, necesitamos conocer tu perfil financiero" : "Te voy a hacer unas preguntas sencillas para entender qué necesitas"
     },
     {
+      id: "personal",
+      title: "Datos personales",
+      subtitle: "Necesitamos verificar tu identidad"
+    },
+    {
       id: "goal",
-      title: "¿Qué quieres lograr?",
-      subtitle: "Cuéntame cuál es tu meta principal"
+      title: "¿Qué quieres lograr? ¿Cuál es tu meta?",
+      subtitle: "Selecciona el producto que necesitas"
     },
     {
       id: "amount",
@@ -81,19 +105,41 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
       subtitle: "Solo necesito un estimado para calcular tus opciones"
     },
     {
-      id: "personal",
-      title: "Algunos datos para contactarte",
-      subtitle: "Los bancos necesitan esta información para hacer su propuesta"
-    },
-    {
-      id: "bank",
-      title: "¿Tienes algún banco favorito?",
-      subtitle: "Si tienes historial con alguno, puede ser una ventaja"
+      id: "documents",
+      title: "Subida de archivos/documentos",
+      subtitle: "Puedes subir tus documentos ahora o después"
     }
   ];
 
   const currentStepData = steps[currentStep];
   const progress = ((currentStep + 1) / steps.length) * 100;
+
+  const sendVerificationCode = () => {
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setSentVerificationCode(code);
+    // Simulate sending email
+    console.log(`Código de verificación enviado a ${data.personalInfo.email}: ${code}`);
+    alert(`Código de verificación enviado: ${code} (En producción se enviaría por email)`);
+  };
+
+  const verifyEmail = () => {
+    if (data.personalInfo.verificationCode === sentVerificationCode) {
+      setData(prev => ({
+        ...prev,
+        personalInfo: { ...prev.personalInfo, emailVerified: true }
+      }));
+      alert("Email verificado correctamente");
+    } else {
+      alert("Código incorrecto. Inténtalo de nuevo.");
+    }
+  };
+
+  const handleFileUpload = (type: keyof typeof data.documents, file: File) => {
+    setData(prev => ({
+      ...prev,
+      documents: { ...prev.documents, [type]: file }
+    }));
+  };
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
@@ -116,23 +162,42 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
   const canProceed = () => {
     switch (steps[currentStep].id) {
       case "intro": return true;
+      case "personal": 
+        return data.personalInfo.dni && data.personalInfo.firstName && 
+               data.personalInfo.lastName && data.personalInfo.email && 
+               data.personalInfo.phone && data.personalInfo.emailVerified;
       case "goal": return data.goal !== "";
       case "amount": return data.amount > 0;
-      case "work": return data.workSituation !== "";
+      case "work": return data.workSituation !== "" && data.workDetails !== "";
       case "payslips": return data.hasPayslips !== "";
       case "income": return data.monthlyIncome > 0;
-      case "personal": 
-        return data.personalInfo.firstName && data.personalInfo.lastName && 
-               data.personalInfo.dni && data.personalInfo.email && data.personalInfo.phone;
-      case "bank": return true;
+      case "documents": return true; // Optional step
       default: return false;
     }
   };
 
+  const productOptions = [
+    { id: "credito-personal", title: "Crédito Personal", icon: "💰", desc: "Para gastos personales" },
+    { id: "credito-vehicular", title: "Crédito Vehicular", icon: "🚗", desc: "Para comprar auto" },
+    { id: "credito-hipotecario", title: "Crédito Hipotecario", icon: "🏠", desc: "Para vivienda" },
+    { id: "tarjeta-credito", title: "Tarjeta de Crédito", icon: "💳", desc: "Línea de crédito" },
+    { id: "credito-empresarial", title: "Crédito Empresarial", icon: "🏢", desc: "Para negocios" },
+    { id: "credito-educativo", title: "Crédito Educativo", icon: "🎓", desc: "Para estudios" }
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
-      {/* Header con Misión y Visión */}
-      <div className="bg-white border-b border-blue-100 py-4 px-4">
+      {/* Mensaje de Transparencia Fijo */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-yellow-100 border-b-2 border-yellow-400 py-2 px-4">
+        <div className="container mx-auto max-w-4xl">
+          <p className="text-sm text-yellow-800 text-center font-medium">
+            ⚠️ Este formulario no debe contener información falsa. La precisión de los datos es fundamental para ayudarte correctamente. Tardas menos de 2 minutos en completarlo. Sé honesto, es por tu beneficio.
+          </p>
+        </div>
+      </div>
+
+      {/* Header con padding-top para el mensaje fijo */}
+      <div className="bg-white border-b border-blue-100 py-4 px-4 mt-12">
         <div className="container mx-auto max-w-4xl">
           <div className="flex items-center justify-between">
             <div>
@@ -142,31 +207,25 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
               </p>
             </div>
             
-            {forceFlow && (
-              <div className="flex items-center gap-2 bg-orange-50 px-3 py-2 rounded-lg">
-                <AlertCircle className="w-4 h-4 text-orange-600" />
-                <span className="text-sm text-orange-700 font-medium">Completar es obligatorio</span>
-              </div>
-            )}
-            
-            {!forceFlow && (
-              <div className="flex gap-4 text-xs">
-                <div className="text-center">
-                  <div className="flex items-center gap-1 text-blue-700 font-medium">
-                    <Heart className="w-3 h-3" />
-                    <span>Misión</span>
-                  </div>
-                  <p className="text-blue-600 max-w-[120px]">Ayudarte a cumplir tus metas sin estrés ni letras pequeñas</p>
+            <div className="flex items-center gap-4">
+              {forceFlow && (
+                <div className="flex items-center gap-2 bg-orange-50 px-3 py-2 rounded-lg">
+                  <AlertCircle className="w-4 h-4 text-orange-600" />
+                  <span className="text-sm text-orange-700 font-medium">Completar es obligatorio</span>
                 </div>
-                
-                <div className="text-center">
-                  <div className="flex items-center gap-1 text-blue-700 font-medium">
-                    <Target className="w-3 h-3" />
-                    <span>Visión</span>
-                  </div>
-                  <p className="text-blue-600 max-w-[120px]">Ser tu aliado con soluciones reales y cercanas</p>
-                </div>
-                
+              )}
+              
+              <Button
+                onClick={() => setShowTutorial(!showTutorial)}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1 text-xs"
+              >
+                {showTutorial ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                Ver tutorial
+              </Button>
+              
+              {!forceFlow && (
                 <Button
                   onClick={() => setShowVideo(true)}
                   variant="outline"
@@ -176,11 +235,22 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                   <Play className="w-3 h-3" />
                   Tutorial (1 min)
                 </Button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Tutorial Box */}
+      {showTutorial && (
+        <div className="bg-blue-50 border-b border-blue-200 py-3 px-4">
+          <div className="container mx-auto max-w-4xl">
+            <div className="text-sm text-blue-800">
+              <strong>Paso {currentStep + 1}:</strong> {currentStepData.subtitle}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="container mx-auto px-4 py-8 max-w-3xl">
         {/* Progress */}
@@ -217,61 +287,147 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                     <div className="text-6xl mb-4">👋</div>
                     <p className="text-lg text-gray-700">
                       {forceFlow ? 
-                        "Para procesar tu solicitud, necesitamos conocer tu perfil financiero. Este proceso es obligatorio y toma menos de 3 minutos." :
+                        "Para procesar tu solicitud, necesitamos conocer tu perfil financiero. Este proceso es obligatorio y toma menos de 2 minutos." :
                         "Soy tu asesor financiero personal. Te voy a acompañar para encontrar la mejor opción para ti entre todos los bancos disponibles."
                       }
                     </p>
                     <p className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
                       {forceFlow ? 
                         "Al completar este formulario, las entidades financieras podrán hacer ofertas personalizadas para ti." :
-                        "Todo el proceso toma menos de 3 minutos y es completamente gratuito."
+                        "Todo el proceso toma menos de 2 minutos y es completamente gratuito."
                       }
                     </p>
                   </div>
                 )}
 
-                {/* Paso 1: Objetivo */}
+                {/* Paso 1: Datos Personales */}
                 {currentStep === 1 && (
                   <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <Card 
-                        className={`cursor-pointer transition-all ${data.goal === 'casa' ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300'}`}
-                        onClick={() => setData(prev => ({ ...prev, goal: 'casa' }))}
-                      >
-                        <CardContent className="p-4 text-center">
-                          <Home className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-                          <h4 className="font-medium">¿Quieres un depa o una casa?</h4>
-                          <p className="text-xs text-gray-600">Vivienda propia</p>
-                        </CardContent>
-                      </Card>
+                    <div>
+                      <Label>DNI *</Label>
+                      <Input
+                        placeholder="12345678"
+                        value={data.personalInfo.dni}
+                        onChange={(e) => setData(prev => ({ 
+                          ...prev, 
+                          personalInfo: { ...prev.personalInfo, dni: e.target.value }
+                        }))}
+                        maxLength={8}
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label>Nombres *</Label>
+                        <Input
+                          placeholder="Tu nombre"
+                          value={data.personalInfo.firstName}
+                          onChange={(e) => setData(prev => ({ 
+                            ...prev, 
+                            personalInfo: { ...prev.personalInfo, firstName: e.target.value }
+                          }))}
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label>Apellidos *</Label>
+                        <Input
+                          placeholder="Tus apellidos"
+                          value={data.personalInfo.lastName}
+                          onChange={(e) => setData(prev => ({ 
+                            ...prev, 
+                            personalInfo: { ...prev.personalInfo, lastName: e.target.value }
+                          }))}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label>Correo Electrónico *</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          type="email"
+                          placeholder="tu@email.com"
+                          value={data.personalInfo.email}
+                          onChange={(e) => setData(prev => ({ 
+                            ...prev, 
+                            personalInfo: { ...prev.personalInfo, email: e.target.value }
+                          }))}
+                          className="flex-1"
+                        />
+                        <Button 
+                          onClick={sendVerificationCode}
+                          disabled={!data.personalInfo.email || data.personalInfo.emailVerified}
+                          variant="outline"
+                        >
+                          Enviar código
+                        </Button>
+                      </div>
+                    </div>
 
-                      <Card 
-                        className={`cursor-pointer transition-all ${data.goal === 'auto' ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300'}`}
-                        onClick={() => setData(prev => ({ ...prev, goal: 'auto' }))}
-                      >
-                        <CardContent className="p-4 text-center">
-                          <Car className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-                          <h4 className="font-medium">Un auto</h4>
-                          <p className="text-xs text-gray-600">Vehículo propio</p>
-                        </CardContent>
-                      </Card>
+                    {sentVerificationCode && !data.personalInfo.emailVerified && (
+                      <div>
+                        <Label>Código de verificación *</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="123456"
+                            value={data.personalInfo.verificationCode}
+                            onChange={(e) => setData(prev => ({ 
+                              ...prev, 
+                              personalInfo: { ...prev.personalInfo, verificationCode: e.target.value }
+                            }))}
+                            className="flex-1"
+                          />
+                          <Button onClick={verifyEmail} variant="outline">
+                            Verificar
+                          </Button>
+                        </div>
+                      </div>
+                    )}
 
-                      <Card 
-                        className={`cursor-pointer transition-all ${data.goal === 'personal' ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300'}`}
-                        onClick={() => setData(prev => ({ ...prev, goal: 'personal' }))}
-                      >
-                        <CardContent className="p-4 text-center">
-                          <CreditCard className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-                          <h4 className="font-medium">Dinero para gastos</h4>
-                          <p className="text-xs text-gray-600">Uso personal</p>
-                        </CardContent>
-                      </Card>
+                    {data.personalInfo.emailVerified && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                        <p className="text-green-800 text-sm">✅ Email verificado correctamente</p>
+                      </div>
+                    )}
+                    
+                    <div>
+                      <Label>Teléfono *</Label>
+                      <Input
+                        placeholder="987654321"
+                        value={data.personalInfo.phone}
+                        onChange={(e) => setData(prev => ({ 
+                          ...prev, 
+                          personalInfo: { ...prev.personalInfo, phone: e.target.value }
+                        }))}
+                      />
                     </div>
                   </div>
                 )}
 
-                {/* Paso 2: Monto */}
+                {/* Paso 2: Objetivo - Productos */}
                 {currentStep === 2 && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {productOptions.map((product) => (
+                        <Card 
+                          key={product.id}
+                          className={`cursor-pointer transition-all p-3 ${data.goal === product.id ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300'}`}
+                          onClick={() => setData(prev => ({ ...prev, goal: product.id }))}
+                        >
+                          <CardContent className="p-0 text-center">
+                            <div className="text-2xl mb-2">{product.icon}</div>
+                            <h4 className="font-medium text-sm">{product.title}</h4>
+                            <p className="text-xs text-gray-600">{product.desc}</p>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Paso 3: Monto */}
+                {currentStep === 3 && (
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                       {[5000, 10000, 25000, 50000, 100000, 200000].map((amount) => (
@@ -300,59 +456,55 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                   </div>
                 )}
 
-                {/* Paso 3: Trabajo (fusionado) */}
-                {currentStep === 3 && (
+                {/* Paso 4: Trabajo */}
+                {currentStep === 4 && (
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Card 
-                        className={`cursor-pointer transition-all ${data.workSituation === 'empleado' ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300'}`}
-                        onClick={() => setData(prev => ({ ...prev, workSituation: 'empleado' }))}
-                      >
-                        <CardContent className="p-4 text-center">
-                          <Building2 className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-                          <h4 className="font-medium">Trabajo en planilla</h4>
-                          <p className="text-xs text-gray-600">Empleado dependiente</p>
-                        </CardContent>
-                      </Card>
-
-                      <Card 
-                        className={`cursor-pointer transition-all ${data.workSituation === 'independiente' ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300'}`}
-                        onClick={() => setData(prev => ({ ...prev, workSituation: 'independiente' }))}
-                      >
-                        <CardContent className="p-4 text-center">
-                          <Users className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-                          <h4 className="font-medium">Trabajo independiente</h4>
-                          <p className="text-xs text-gray-600">Por mi cuenta</p>
-                        </CardContent>
-                      </Card>
-
-                      <Card 
-                        className={`cursor-pointer transition-all ${data.workSituation === 'empresario' ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300'}`}
-                        onClick={() => setData(prev => ({ ...prev, workSituation: 'empresario' }))}
-                      >
-                        <CardContent className="p-4 text-center">
-                          <Briefcase className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-                          <h4 className="font-medium">Tengo mi negocio</h4>
-                          <p className="text-xs text-gray-600">Empresario</p>
-                        </CardContent>
-                      </Card>
-
-                      <Card 
-                        className={`cursor-pointer transition-all ${data.workSituation === 'pensionista' ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300'}`}
-                        onClick={() => setData(prev => ({ ...prev, workSituation: 'pensionista' }))}
-                      >
-                        <CardContent className="p-4 text-center">
-                          <FileText className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-                          <h4 className="font-medium">Soy pensionista</h4>
-                          <p className="text-xs text-gray-600">Jubilado/a</p>
-                        </CardContent>
-                      </Card>
+                      {[
+                        { id: 'empleado', title: 'Trabajo en planilla', icon: Building2 },
+                        { id: 'independiente', title: 'Trabajo independiente', icon: Users },
+                        { id: 'empresario', title: 'Tengo mi negocio', icon: Briefcase },
+                        { id: 'estudiante', title: 'Soy estudiante', icon: FileText }
+                      ].map((work) => (
+                        <Card 
+                          key={work.id}
+                          className={`cursor-pointer transition-all ${data.workSituation === work.id ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300'}`}
+                          onClick={() => setData(prev => ({ ...prev, workSituation: work.id }))}
+                        >
+                          <CardContent className="p-4 text-center">
+                            <work.icon className="w-8 h-8 mx-auto mb-2 text-blue-600" />
+                            <h4 className="font-medium">{work.title}</h4>
+                          </CardContent>
+                        </Card>
+                      ))}
                     </div>
+
+                    {data.workSituation && (
+                      <div className="mt-4">
+                        <Label>
+                          {data.workSituation === 'empleado' && 'Dónde trabajas:'}
+                          {data.workSituation === 'independiente' && 'Describe qué haces:'}
+                          {data.workSituation === 'empresario' && 'Nombre del negocio y actividad:'}
+                          {data.workSituation === 'estudiante' && 'Carrera y ciclo actual:'}
+                        </Label>
+                        <Input
+                          placeholder={
+                            data.workSituation === 'empleado' ? 'Empresa donde trabajas' :
+                            data.workSituation === 'independiente' ? 'Actividad independiente' :
+                            data.workSituation === 'empresario' ? 'Negocio - Rubro - Actividad' :
+                            'Carrera - Ciclo'
+                          }
+                          value={data.workDetails}
+                          onChange={(e) => setData(prev => ({ ...prev, workDetails: e.target.value }))}
+                          className="mt-2"
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
 
-                {/* Paso 4: Boletas */}
-                {currentStep === 4 && (
+                {/* Paso 5: Boletas */}
+                {currentStep === 5 && (
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <Card 
@@ -377,20 +529,11 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                         </CardContent>
                       </Card>
                     </div>
-
-                    {data.hasPayslips === 'no' && (
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
-                        <p className="text-green-800 text-sm">
-                          <strong>Tranquilo</strong>, si no tienes boletas de pago, igual podemos ayudarte. 
-                          Vemos tu caso de forma personalizada.
-                        </p>
-                      </div>
-                    )}
                   </div>
                 )}
 
-                {/* Paso 5: Ingresos */}
-                {currentStep === 5 && (
+                {/* Paso 6: Ingresos */}
+                {currentStep === 6 && (
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                       {[1000, 1500, 2500, 4000, 6000, 10000].map((income) => (
@@ -419,96 +562,100 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                   </div>
                 )}
 
-                {/* Paso 6: Datos Personales */}
-                {currentStep === 6 && (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label>Nombres</Label>
-                        <Input
-                          placeholder="Tu nombre"
-                          value={data.personalInfo.firstName}
-                          onChange={(e) => setData(prev => ({ 
-                            ...prev, 
-                            personalInfo: { ...prev.personalInfo, firstName: e.target.value }
-                          }))}
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label>Apellidos</Label>
-                        <Input
-                          placeholder="Tus apellidos"
-                          value={data.personalInfo.lastName}
-                          onChange={(e) => setData(prev => ({ 
-                            ...prev, 
-                            personalInfo: { ...prev.personalInfo, lastName: e.target.value }
-                          }))}
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label>DNI</Label>
-                        <Input
-                          placeholder="12345678"
-                          value={data.personalInfo.dni}
-                          onChange={(e) => setData(prev => ({ 
-                            ...prev, 
-                            personalInfo: { ...prev.personalInfo, dni: e.target.value }
-                          }))}
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label>Teléfono</Label>
-                        <Input
-                          placeholder="987654321"
-                          value={data.personalInfo.phone}
-                          onChange={(e) => setData(prev => ({ 
-                            ...prev, 
-                            personalInfo: { ...prev.personalInfo, phone: e.target.value }
-                          }))}
-                        />
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <Label>Email</Label>
-                      <Input
-                        type="email"
-                        placeholder="tu@email.com"
-                        value={data.personalInfo.email}
-                        onChange={(e) => setData(prev => ({ 
-                          ...prev, 
-                          personalInfo: { ...prev.personalInfo, email: e.target.value }
-                        }))}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Paso 7: Banco Preferido */}
+                {/* Paso 7: Documentos */}
                 {currentStep === 7 && (
                   <div className="space-y-4">
-                    <Select onValueChange={(value) => setData(prev => ({ ...prev, preferredBank: value }))}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecciona tu banco favorito (opcional)" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ninguno">Sin preferencia</SelectItem>
-                        <SelectItem value="bcp">Banco de Crédito BCP</SelectItem>
-                        <SelectItem value="bbva">BBVA</SelectItem>
-                        <SelectItem value="scotiabank">Scotiabank</SelectItem>
-                        <SelectItem value="interbank">Interbank</SelectItem>
-                        <SelectItem value="banco-nacion">Banco de la Nación</SelectItem>
-                        <SelectItem value="pichincha">Banco Pichincha</SelectItem>
-                        <SelectItem value="mibanco">Mi Banco</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                       <p className="text-blue-800 text-sm">
-                        Si ya eres cliente de algún banco, puede darte ventajas en tu propuesta.
+                        <strong>Importante:</strong> Subir documentos no es obligatorio para ir a la subasta, pero sí para cerrar con un banco.
+                      </p>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="flex items-center gap-2">
+                          <span>DNI (obligatorio para validar)</span>
+                          <span className="text-red-500">*</span>
+                        </Label>
+                        <div className="mt-2 p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
+                          <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                          <input
+                            type="file"
+                            accept="image/*,.pdf"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleFileUpload('dni', file);
+                            }}
+                            className="hidden"
+                            id="dni-upload"
+                          />
+                          <label htmlFor="dni-upload" className="cursor-pointer">
+                            <Button variant="outline" size="sm" asChild>
+                              <span>Subir DNI</span>
+                            </Button>
+                          </label>
+                          {data.documents.dni && (
+                            <p className="text-sm text-green-600 mt-2">✅ {data.documents.dni.name}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label>Boletas de pago</Label>
+                        <div className="mt-2 p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
+                          <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                          <input
+                            type="file"
+                            accept="image/*,.pdf"
+                            multiple
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleFileUpload('payslips', file);
+                            }}
+                            className="hidden"
+                            id="payslips-upload"
+                          />
+                          <label htmlFor="payslips-upload" className="cursor-pointer">
+                            <Button variant="outline" size="sm" asChild>
+                              <span>Subir Boletas</span>
+                            </Button>
+                          </label>
+                          {data.documents.payslips && (
+                            <p className="text-sm text-green-600 mt-2">✅ {data.documents.payslips.name}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label>Otros documentos</Label>
+                        <div className="mt-2 p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
+                          <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                          <input
+                            type="file"
+                            accept="image/*,.pdf"
+                            multiple
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleFileUpload('others', file);
+                            }}
+                            className="hidden"
+                            id="others-upload"
+                          />
+                          <label htmlFor="others-upload" className="cursor-pointer">
+                            <Button variant="outline" size="sm" asChild>
+                              <span>Subir Documentos</span>
+                            </Button>
+                          </label>
+                          {data.documents.others && (
+                            <p className="text-sm text-green-600 mt-2">✅ {data.documents.others.name}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <p className="text-green-800 text-sm">
+                        <strong>Sistema de gestión:</strong> Cada usuario tiene una carpeta individual donde se almacenan datos y documentos. Si regresas por otro producto, tu información se mantiene actualizada.
                       </p>
                     </div>
                   </div>

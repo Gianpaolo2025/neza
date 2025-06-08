@@ -14,4 +14,11 @@ export interface UserData {
   bankingRelationship: string;
   urgencyLevel: string;
   preferredBank: string;
+  emailVerified?: boolean;
+  workDetails?: string;
+  documents?: {
+    dni: File | null;
+    payslips: File | null;
+    others: File | null;
+  };
 }

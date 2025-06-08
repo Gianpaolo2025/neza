@@ -8,7 +8,7 @@ import { userTrackingService } from "@/services/userTracking";
 
 interface UserOnboardingProps {
   onBack: () => void;
-  forceFlow?: boolean; // Nueva prop para flujo obligatorio
+  forceFlow?: boolean;
 }
 
 export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProps) => {
@@ -16,7 +16,7 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
   const [userData, setUserData] = useState<UserData | null>(null);
 
   const handleComplete = (data: any) => {
-    // Convertir datos de la experiencia humana al formato esperado
+    // Convert data from the experience to expected format
     const convertedData: UserData = {
       firstName: data.personalInfo.firstName,
       lastName: data.personalInfo.lastName,
@@ -25,19 +25,22 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
       phone: data.personalInfo.phone,
       monthlyIncome: data.monthlyIncome,
       requestedAmount: data.amount,
-      productType: data.goal === 'casa' ? 'credito-hipotecario' : 
-                   data.goal === 'auto' ? 'credito-vehicular' : 'credito-personal',
+      productType: data.goal,
       employmentType: data.workSituation === 'empleado' ? 'dependiente' : 
                      data.workSituation === 'independiente' ? 'independiente' :
-                     data.workSituation === 'empresario' ? 'empresario' : 'pensionista',
+                     data.workSituation === 'empresario' ? 'empresario' : 
+                     data.workSituation === 'estudiante' ? 'estudiante' : 'otro',
       hasOtherDebts: 'no',
       bankingRelationship: data.preferredBank || 'ninguno',
       urgencyLevel: 'normal',
       creditHistory: data.hasPayslips === 'si' ? 'bueno' : 'nuevo',
-      preferredBank: data.preferredBank || ''
+      preferredBank: data.preferredBank || '',
+      emailVerified: data.personalInfo.emailVerified,
+      workDetails: data.workDetails,
+      documents: data.documents
     };
     
-    // Iniciar sesión de tracking si no existe
+    // Start tracking session if not exists
     if (!userTrackingService['currentSessionId']) {
       userTrackingService.startSession(
         convertedData.email, 
@@ -46,7 +49,7 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
       );
     }
 
-    // Registrar la finalización del onboarding
+    // Register onboarding completion
     userTrackingService.trackActivity(
       'form_submit',
       { ...convertedData, forceFlow },
@@ -54,7 +57,7 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
       convertedData.productType
     );
 
-    // Actualizar perfil del usuario con toda la información
+    // Update user profile with all information
     userTrackingService.updateUserProfile(convertedData.email, {
       firstName: convertedData.firstName,
       lastName: convertedData.lastName,
@@ -66,7 +69,7 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
       tags: [convertedData.productType, convertedData.employmentType, convertedData.urgencyLevel]
     }, 'Onboarding completado con información completa');
 
-    // Registrar evento específico
+    // Register specific event
     userTrackingService.addUserEvent(
       convertedData.email,
       userTrackingService['currentSessionId'] || 'system',
@@ -83,7 +86,7 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
     );
     
     setUserData(convertedData);
-    setCurrentView('validation'); // Ir a validación antes de ofertas
+    setCurrentView('validation');
   };
 
   const handleValidationSuccess = () => {
@@ -138,7 +141,7 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
   return (
     <HumanAdvisoryExperience 
       onBack={() => {
-        // Registrar abandono del onboarding
+        // Register abandonment of onboarding
         userTrackingService.trackActivity(
           'form_abandon',
           { step: 'advisory', reason: 'user_back_button', forceFlow },
