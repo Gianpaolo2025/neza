@@ -10,10 +10,11 @@ interface Product {
   name: string;
   description: string;
   icon: string;
-  minAmount: string;
-  maxAmount: string;
-  term: string;
+  minAmount?: string;
+  maxAmount?: string;
+  term?: string;
   benefit: string;
+  accessForm: string;
 }
 
 const products: Product[] = [
@@ -25,7 +26,8 @@ const products: Product[] = [
     minAmount: 'S/. 1,000',
     maxAmount: 'S/. 50,000',
     term: '6 meses - 5 años',
-    benefit: 'Aprobación en 24 horas'
+    benefit: 'Aprobación en 24 horas',
+    accessForm: 'Evaluación crediticia'
   },
   {
     id: '2',
@@ -35,7 +37,8 @@ const products: Product[] = [
     minAmount: 'S/. 10,000',
     maxAmount: 'S/. 150,000',
     term: '2-7 años',
-    benefit: 'Tasas desde 12% anual'
+    benefit: 'Tasas desde 12% anual',
+    accessForm: 'Evaluación de ingresos'
   },
   {
     id: '3',
@@ -45,7 +48,82 @@ const products: Product[] = [
     minAmount: 'S/. 50,000',
     maxAmount: 'S/. 500,000',
     term: '5-30 años',
-    benefit: 'Financia hasta el 90%'
+    benefit: 'Financia hasta el 90%',
+    accessForm: 'Evaluación inmobiliaria'
+  },
+  {
+    id: '4',
+    name: 'Seguro de Vida',
+    description: 'Protege a tu familia con cobertura completa ante cualquier eventualidad',
+    icon: '🛡️',
+    minAmount: 'S/. 50,000',
+    maxAmount: 'S/. 1,000,000',
+    term: 'Renovación anual',
+    benefit: 'Cobertura desde S/. 50',
+    accessForm: 'Evaluación médica'
+  },
+  {
+    id: '5',
+    name: 'Tarjeta de Crédito',
+    description: 'Accede a crédito revolving con beneficios y promociones exclusivas',
+    icon: '💳',
+    minAmount: 'S/. 500',
+    maxAmount: 'S/. 50,000',
+    term: 'Línea permanente',
+    benefit: 'Sin cuota de manejo el primer año',
+    accessForm: 'Solicitud en línea'
+  },
+  {
+    id: '6',
+    name: 'Tarjeta de Débito',
+    description: 'Maneja tu dinero de forma segura con acceso a cajeros y compras',
+    icon: '💳',
+    benefit: 'Sin costo de mantenimiento',
+    accessForm: 'Apertura de cuenta',
+    term: 'Sin vencimiento'
+  },
+  {
+    id: '7',
+    name: 'Seguro Vehicular',
+    description: 'Protege tu vehículo contra robo, accidentes y daños a terceros',
+    icon: '🚙',
+    minAmount: 'S/. 2,000',
+    maxAmount: 'S/. 100,000',
+    term: 'Renovación anual',
+    benefit: 'Cobertura todo riesgo',
+    accessForm: 'Inspección vehicular'
+  },
+  {
+    id: '8',
+    name: 'Cuenta de Ahorros',
+    description: 'Ahorra tu dinero con rendimientos atractivos y acceso inmediato',
+    icon: '🏛️',
+    minAmount: 'S/. 0',
+    benefit: 'Rentabilidad hasta 4% anual',
+    accessForm: 'Apertura inmediata',
+    term: 'Sin plazo fijo'
+  },
+  {
+    id: '9',
+    name: 'Depósito a Plazo',
+    description: 'Invierte tu dinero con tasas fijas garantizadas y mayor rentabilidad',
+    icon: '📈',
+    minAmount: 'S/. 1,000',
+    maxAmount: 'S/. 500,000',
+    term: '30 días - 5 años',
+    benefit: 'Tasas hasta 6% anual',
+    accessForm: 'Depósito inicial'
+  },
+  {
+    id: '10',
+    name: 'Fondos Mutuos',
+    description: 'Invierte en portafolios diversificados manejados por expertos',
+    icon: '📊',
+    minAmount: 'S/. 100',
+    maxAmount: 'Sin límite',
+    term: 'Flexible',
+    benefit: 'Diversificación profesional',
+    accessForm: 'Perfil de inversionista'
   }
 ];
 
@@ -107,7 +185,7 @@ export const ProductsCarousel = ({ onViewCatalog }: ProductsCarouselProps) => {
         </button>
 
         {/* Contenedor del carrusel */}
-        <div className="mx-12 min-h-[320px]">
+        <div className="mx-12 min-h-[350px]">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentIndex}
@@ -133,21 +211,32 @@ export const ProductsCarousel = ({ onViewCatalog }: ProductsCarouselProps) => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid md:grid-cols-3 gap-4 text-center">
+                  {/* Información estructurada del producto */}
+                  <div className="grid md:grid-cols-2 gap-4 text-center">
                     <div className="bg-neza-blue-50 rounded-lg p-3">
-                      <div className="text-xs text-neza-blue-600 font-medium">Monto</div>
+                      <div className="text-xs text-neza-blue-600 font-medium">Forma de Acceso</div>
                       <div className="text-sm text-neza-blue-800 font-semibold">
-                        {currentProduct.minAmount} - {currentProduct.maxAmount}
+                        {currentProduct.accessForm}
                       </div>
                     </div>
-                    <div className="bg-neza-blue-50 rounded-lg p-3">
-                      <div className="text-xs text-neza-blue-600 font-medium">Plazo</div>
-                      <div className="text-sm text-neza-blue-800 font-semibold">
-                        {currentProduct.term}
+                    {currentProduct.minAmount && (
+                      <div className="bg-neza-blue-50 rounded-lg p-3">
+                        <div className="text-xs text-neza-blue-600 font-medium">Monto Estimado</div>
+                        <div className="text-sm text-neza-blue-800 font-semibold">
+                          {currentProduct.minAmount} - {currentProduct.maxAmount}
+                        </div>
                       </div>
-                    </div>
+                    )}
+                    {currentProduct.term && (
+                      <div className="bg-neza-blue-50 rounded-lg p-3">
+                        <div className="text-xs text-neza-blue-600 font-medium">Plazo Estándar</div>
+                        <div className="text-sm text-neza-blue-800 font-semibold">
+                          {currentProduct.term}
+                        </div>
+                      </div>
+                    )}
                     <div className="bg-neza-blue-50 rounded-lg p-3">
-                      <div className="text-xs text-neza-blue-600 font-medium">Beneficio</div>
+                      <div className="text-xs text-neza-blue-600 font-medium">Beneficio Principal</div>
                       <div className="text-sm text-neza-blue-800 font-semibold">
                         {currentProduct.benefit}
                       </div>
@@ -174,14 +263,14 @@ export const ProductsCarousel = ({ onViewCatalog }: ProductsCarouselProps) => {
         </div>
 
         {/* Indicadores */}
-        <div className="flex justify-center mt-6 space-x-2">
+        <div className="flex justify-center mt-6 space-x-2 flex-wrap">
           {products.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentIndex(index)}
-              className={`w-3 h-3 rounded-full transition-all duration-200 ${
+              className={`w-2 h-2 rounded-full transition-all duration-200 ${
                 index === currentIndex 
-                  ? 'bg-neza-blue-600 w-8' 
+                  ? 'bg-neza-blue-600 w-6' 
                   : 'bg-neza-blue-300 hover:bg-neza-blue-400'
               }`}
               aria-label={`Ir al producto ${index + 1}`}

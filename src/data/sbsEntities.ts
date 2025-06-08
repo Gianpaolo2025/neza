@@ -1,3 +1,4 @@
+
 export interface FinancialEntity {
   id: string;
   name: string;
@@ -46,14 +47,14 @@ export const sbsEntities: FinancialEntity[] = [
   // Bancos
   {
     id: 'alfin-banco',
-    name: 'Alfin Banco',
+    name: 'ALFIN Banco',
     type: 'banco',
     sbsCode: '056',
     products: []
   },
   {
     id: 'bbva',
-    name: 'BBVA Continental',
+    name: 'BBVA',
     type: 'banco',
     sbsCode: '011',
     products: [
@@ -95,14 +96,14 @@ export const sbsEntities: FinancialEntity[] = [
   },
   {
     id: 'bancom',
-    name: 'Bancom',
+    name: 'BANCOM',
     type: 'banco',
     sbsCode: '038',
     products: []
   },
   {
     id: 'bcp',
-    name: 'Banco de Crédito del Perú',
+    name: 'Banco de Crédito',
     type: 'banco',
     sbsCode: '002',
     products: [
@@ -186,7 +187,7 @@ export const sbsEntities: FinancialEntity[] = [
   },
   {
     id: 'banbif',
-    name: 'Banbif',
+    name: 'BanBif',
     type: 'banco',
     sbsCode: '038',
     products: []
@@ -249,7 +250,7 @@ export const sbsEntities: FinancialEntity[] = [
   },
   {
     id: 'mibanco',
-    name: 'Mi Banco',
+    name: 'Mibanco',
     type: 'banco',
     sbsCode: '049',
     products: [
@@ -284,7 +285,7 @@ export const sbsEntities: FinancialEntity[] = [
   },
   {
     id: 'bn-santander-cons',
-    name: 'BN Santander Consumer',
+    name: 'Santander Consumer',
     type: 'banco',
     sbsCode: '054',
     products: []
@@ -343,7 +344,7 @@ export const sbsEntities: FinancialEntity[] = [
   },
   {
     id: 'financiera-oh',
-    name: 'Financiera OH',
+    name: 'Financiera Oh!',
     type: 'financiera',
     sbsCode: '129',
     products: []
@@ -373,56 +374,56 @@ export const sbsEntities: FinancialEntity[] = [
   // Cajas Municipales
   {
     id: 'cmac-cusco',
-    name: 'CMAC Cusco',
+    name: 'Caja Municipal Cusco',
     type: 'caja',
     sbsCode: '801',
     products: []
   },
   {
     id: 'cmac-arequipa',
-    name: 'CMAC Arequipa',
+    name: 'Caja Municipal Arequipa',
     type: 'caja',
     sbsCode: '802',
     products: []
   },
   {
     id: 'cmac-del-santa',
-    name: 'CMAC del Santa',
+    name: 'Caja Municipal Del Santa',
     type: 'caja',
     sbsCode: '803',
     products: []
   },
   {
     id: 'cmac-huancayo',
-    name: 'CMAC Huancayo',
+    name: 'Caja Municipal Huancayo',
     type: 'caja',
     sbsCode: '804',
     products: []
   },
   {
     id: 'cmac-ica',
-    name: 'CMAC Ica',
+    name: 'Caja Municipal Ica',
     type: 'caja',
     sbsCode: '805',
     products: []
   },
   {
     id: 'cmac-maynas',
-    name: 'CMAC Maynas',
+    name: 'Caja Municipal Maynas',
     type: 'caja',
     sbsCode: '806',
     products: []
   },
   {
     id: 'cmac-paita',
-    name: 'CMAC Paita',
+    name: 'Caja Municipal Paita',
     type: 'caja',
     sbsCode: '807',
     products: []
   },
   {
     id: 'caja-piura',
-    name: 'CMAC Piura',
+    name: 'Caja Municipal Piura',
     type: 'caja',
     sbsCode: '808',
     products: [
@@ -457,21 +458,21 @@ export const sbsEntities: FinancialEntity[] = [
   },
   {
     id: 'cmac-tacna',
-    name: 'CMAC Tacna',
+    name: 'Caja Municipal Tacna',
     type: 'caja',
     sbsCode: '809',
     products: []
   },
   {
     id: 'cmac-trujillo',
-    name: 'CMAC Trujillo',
+    name: 'Caja Municipal Trujillo',
     type: 'caja',
     sbsCode: '810',
     products: []
   },
   {
     id: 'cmcp-lima',
-    name: 'CMCP Lima',
+    name: 'Caja Metropolitana Lima',
     type: 'caja',
     sbsCode: '811',
     products: []
@@ -480,35 +481,35 @@ export const sbsEntities: FinancialEntity[] = [
   // Cajas Rurales
   {
     id: 'crac-cencosud-scotia',
-    name: 'CRAC Cencosud Scotia',
+    name: 'Caja Rural Cencosud Scotia',
     type: 'caja',
     sbsCode: '901',
     products: []
   },
   {
     id: 'crac-los-andes',
-    name: 'CRAC Los Andes',
+    name: 'Caja Rural Los Andes',
     type: 'caja',
     sbsCode: '902',
     products: []
   },
   {
     id: 'crac-del-centro',
-    name: 'CRAC del Centro',
+    name: 'Caja Rural del Centro',
     type: 'caja',
     sbsCode: '903',
     products: []
   },
   {
     id: 'crac-prymera',
-    name: 'CRAC Prymera',
+    name: 'Caja Rural Prymera',
     type: 'caja',
     sbsCode: '904',
     products: []
   },
   {
     id: 'crac-incasur',
-    name: 'CRAC Incasur',
+    name: 'Caja Rural Incasur',
     type: 'caja',
     sbsCode: '905',
     products: []
