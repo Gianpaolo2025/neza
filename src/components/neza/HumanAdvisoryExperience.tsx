@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { ArrowRight, ArrowLeft, Home, Car, CreditCard, Heart, Target, Play, Building2, FileText, Users, Briefcase, AlertCircle, Upload, Eye, EyeOff } from "lucide-react";
+import { ArrowRight, ArrowLeft, Home, Car, CreditCard, Heart, Target, Play, Building2, FileText, Users, Briefcase, AlertCircle, Upload, Eye, EyeOff, GraduationCap, Factory, Stethoscope, Calculator, Gavel } from "lucide-react";
 
 interface UserData {
   goal: string;
@@ -31,6 +31,15 @@ interface UserData {
     payslips: File | null;
     others: File | null;
   };
+  // New fields for expanded work information
+  carrera?: string;
+  ciclo?: string;
+  hacePracticas?: string;
+  empresaPracticas?: string;
+  empresaTrabajo?: string;
+  nombreNegocio?: string;
+  rubroNegocio?: string;
+  actividadPrincipal?: string;
 }
 
 interface HumanAdvisoryExperienceProps {
@@ -44,6 +53,11 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
   const [showVideo, setShowVideo] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [sentVerificationCode, setSentVerificationCode] = useState("");
+  const [codeSentMessage, setCodeSentMessage] = useState("");
+  const [emailVerifiedMessage, setEmailVerifiedMessage] = useState("");
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [uploadedPayslips, setUploadedPayslips] = useState<File[]>([]);
+  
   const [data, setData] = useState<UserData>({
     goal: "",
     amount: 0,
@@ -114,12 +128,40 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
   const currentStepData = steps[currentStep];
   const progress = ((currentStep + 1) / steps.length) * 100;
 
+  // Validation functions
+  const validateName = (name: string) => {
+    const nameRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
+    return nameRegex.test(name) && name.trim().length >= 2;
+  };
+
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePhone = (phone: string) => {
+    return /^\d{9}$/.test(phone);
+  };
+
+  const validateDNI = (dni: string) => {
+    return /^\d{8}$/.test(dni);
+  };
+
   const sendVerificationCode = () => {
+    if (!validateEmail(data.personalInfo.email)) {
+      setValidationErrors(prev => ({ ...prev, email: "Formato de correo inválido" }));
+      return;
+    }
+
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     setSentVerificationCode(code);
-    // Simulate sending email
+    setCodeSentMessage("Código enviado. Revisa tu correo electrónico para continuar.");
+    
+    // Clear the message after 5 seconds
+    setTimeout(() => setCodeSentMessage(""), 5000);
+    
+    // Simulate sending email - in production this would be a real API call
     console.log(`Código de verificación enviado a ${data.personalInfo.email}: ${code}`);
-    alert(`Código de verificación enviado: ${code} (En producción se enviaría por email)`);
   };
 
   const verifyEmail = () => {
@@ -128,13 +170,88 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
         ...prev,
         personalInfo: { ...prev.personalInfo, emailVerified: true }
       }));
-      alert("Email verificado correctamente");
+      setEmailVerifiedMessage("Correo verificado correctamente.");
+      setValidationErrors(prev => ({ ...prev, verificationCode: "" }));
+      
+      // Auto-advance if all fields are complete
+      setTimeout(() => {
+        if (canProceedFromPersonalStep()) {
+          handleNext();
+        }
+      }, 1500);
     } else {
-      alert("Código incorrecto. Inténtalo de nuevo.");
+      setValidationErrors(prev => ({ ...prev, verificationCode: "Código incorrecto" }));
     }
   };
 
+  const canProceedFromPersonalStep = () => {
+    return validateName(data.personalInfo.firstName) &&
+           validateName(data.personalInfo.lastName) &&
+           validateDNI(data.personalInfo.dni) &&
+           validateEmail(data.personalInfo.email) &&
+           validatePhone(data.personalInfo.phone) &&
+           data.personalInfo.emailVerified;
+  };
+
+  const validateCurrentStep = () => {
+    const errors: Record<string, string> = {};
+    
+    if (currentStep === 1) { // Personal step
+      if (!validateName(data.personalInfo.firstName)) {
+        errors.firstName = "Solo se permiten letras y tildes, mínimo 2 caracteres";
+      }
+      if (!validateName(data.personalInfo.lastName)) {
+        errors.lastName = "Solo se permiten letras y tildes, mínimo 2 caracteres";
+      }
+      if (!validateDNI(data.personalInfo.dni)) {
+        errors.dni = "DNI debe tener exactamente 8 dígitos";
+      }
+      if (!validateEmail(data.personalInfo.email)) {
+        errors.email = "Formato de correo inválido";
+      }
+      if (!validatePhone(data.personalInfo.phone)) {
+        errors.phone = "Teléfono debe tener exactamente 9 dígitos";
+      }
+      if (!data.personalInfo.emailVerified) {
+        errors.emailVerified = "Debes verificar tu correo electrónico";
+      }
+    }
+
+    if (currentStep === 4) { // Work step
+      if (data.workSituation === "estudiante") {
+        if (!data.carrera) errors.carrera = "Campo obligatorio";
+        if (!data.ciclo) errors.ciclo = "Campo obligatorio";
+        if (!data.hacePracticas) errors.hacePracticas = "Campo obligatorio";
+        if (data.hacePracticas === "si" && !data.empresaPracticas) {
+          errors.empresaPracticas = "Campo obligatorio";
+        }
+      } else if (data.workSituation === "independiente") {
+        if (!data.workDetails) errors.workDetails = "Describe qué haces";
+        if (!data.empresaTrabajo) errors.empresaTrabajo = "Campo obligatorio";
+      } else if (data.workSituation === "empleado") {
+        if (!data.workDetails) errors.workDetails = "Indica dónde trabajas";
+        if (!data.empresaTrabajo) errors.empresaTrabajo = "Nombre de la empresa";
+      } else if (data.workSituation === "empresario") {
+        if (!data.nombreNegocio) errors.nombreNegocio = "Nombre del negocio";
+        if (!data.rubroNegocio) errors.rubroNegocio = "Rubro del negocio";
+        if (!data.actividadPrincipal) errors.actividadPrincipal = "Actividad principal";
+      }
+    }
+
+    if (currentStep === 7) { // Documents step
+      if (uploadedPayslips.length < 3) {
+        errors.payslips = "Debes adjuntar al menos 3 boletas de pago";
+      }
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleFileUpload = (type: keyof typeof data.documents, file: File) => {
+    if (type === 'payslips') {
+      setUploadedPayslips(prev => [...prev, file]);
+    }
     setData(prev => ({
       ...prev,
       documents: { ...prev.documents, [type]: file }
@@ -142,6 +259,8 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
   };
 
   const handleNext = () => {
+    if (!validateCurrentStep()) return;
+    
     if (currentStep < steps.length - 1) {
       setCurrentStep(prev => prev + 1);
     } else {
@@ -162,13 +281,21 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
   const canProceed = () => {
     switch (steps[currentStep].id) {
       case "intro": return true;
-      case "personal": 
-        return data.personalInfo.dni && data.personalInfo.firstName && 
-               data.personalInfo.lastName && data.personalInfo.email && 
-               data.personalInfo.phone && data.personalInfo.emailVerified;
+      case "personal": return canProceedFromPersonalStep();
       case "goal": return data.goal !== "";
       case "amount": return data.amount > 0;
-      case "work": return data.workSituation !== "" && data.workDetails !== "";
+      case "work": 
+        if (data.workSituation === "estudiante") {
+          return data.carrera && data.ciclo && data.hacePracticas && 
+                 (data.hacePracticas === "no" || data.empresaPracticas);
+        } else if (data.workSituation === "independiente") {
+          return data.workDetails && data.empresaTrabajo;
+        } else if (data.workSituation === "empleado") {
+          return data.workDetails && data.empresaTrabajo;
+        } else if (data.workSituation === "empresario") {
+          return data.nombreNegocio && data.rubroNegocio && data.actividadPrincipal;
+        }
+        return data.workSituation !== "";
       case "payslips": return data.hasPayslips !== "";
       case "income": return data.monthlyIncome > 0;
       case "documents": return true; // Optional step
@@ -182,7 +309,12 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
     { id: "credito-hipotecario", title: "Crédito Hipotecario", icon: "🏠", desc: "Para vivienda" },
     { id: "tarjeta-credito", title: "Tarjeta de Crédito", icon: "💳", desc: "Línea de crédito" },
     { id: "credito-empresarial", title: "Crédito Empresarial", icon: "🏢", desc: "Para negocios" },
-    { id: "credito-educativo", title: "Crédito Educativo", icon: "🎓", desc: "Para estudios" }
+    { id: "credito-educativo", title: "Crédito Educativo", icon: "🎓", desc: "Para estudios" },
+    { id: "credito-medico", title: "Crédito Médico", icon: "🏥", desc: "Para gastos médicos" },
+    { id: "credito-viaje", title: "Crédito de Viaje", icon: "✈️", desc: "Para viajes" },
+    { id: "refinanciamiento", title: "Refinanciamiento", icon: "🔄", desc: "Consolidar deudas" },
+    { id: "credito-construccion", title: "Crédito Construcción", icon: "🏗️", desc: "Para construcción" },
+    { id: "credito-rural", title: "Crédito Rural", icon: "🌾", desc: "Para actividades rurales" }
   ];
 
   return (
@@ -246,7 +378,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
         <div className="bg-blue-50 border-b border-blue-200 py-3 px-4">
           <div className="container mx-auto max-w-4xl">
             <div className="text-sm text-blue-800">
-              <strong>Paso {currentStep + 1}:</strong> {currentStepData.subtitle}
+              <strong>Paso {currentStep + 1} de {steps.length}:</strong> {currentStepData.subtitle}
             </div>
           </div>
         </div>
@@ -308,12 +440,22 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                       <Input
                         placeholder="12345678"
                         value={data.personalInfo.dni}
-                        onChange={(e) => setData(prev => ({ 
-                          ...prev, 
-                          personalInfo: { ...prev.personalInfo, dni: e.target.value }
-                        }))}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, '').slice(0, 8);
+                          setData(prev => ({ 
+                            ...prev, 
+                            personalInfo: { ...prev.personalInfo, dni: value }
+                          }));
+                          if (validationErrors.dni) {
+                            setValidationErrors(prev => ({ ...prev, dni: "" }));
+                          }
+                        }}
                         maxLength={8}
+                        className={validationErrors.dni ? "border-red-500" : ""}
                       />
+                      {validationErrors.dni && (
+                        <p className="text-red-500 text-sm mt-1">{validationErrors.dni}</p>
+                      )}
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -322,11 +464,21 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                         <Input
                           placeholder="Tu nombre"
                           value={data.personalInfo.firstName}
-                          onChange={(e) => setData(prev => ({ 
-                            ...prev, 
-                            personalInfo: { ...prev.personalInfo, firstName: e.target.value }
-                          }))}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+                            setData(prev => ({ 
+                              ...prev, 
+                              personalInfo: { ...prev.personalInfo, firstName: value }
+                            }));
+                            if (validationErrors.firstName) {
+                              setValidationErrors(prev => ({ ...prev, firstName: "" }));
+                            }
+                          }}
+                          className={validationErrors.firstName ? "border-red-500" : ""}
                         />
+                        {validationErrors.firstName && (
+                          <p className="text-red-500 text-sm mt-1">{validationErrors.firstName}</p>
+                        )}
                       </div>
                       
                       <div>
@@ -334,11 +486,21 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                         <Input
                           placeholder="Tus apellidos"
                           value={data.personalInfo.lastName}
-                          onChange={(e) => setData(prev => ({ 
-                            ...prev, 
-                            personalInfo: { ...prev.personalInfo, lastName: e.target.value }
-                          }))}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+                            setData(prev => ({ 
+                              ...prev, 
+                              personalInfo: { ...prev.personalInfo, lastName: value }
+                            }));
+                            if (validationErrors.lastName) {
+                              setValidationErrors(prev => ({ ...prev, lastName: "" }));
+                            }
+                          }}
+                          className={validationErrors.lastName ? "border-red-500" : ""}
                         />
+                        {validationErrors.lastName && (
+                          <p className="text-red-500 text-sm mt-1">{validationErrors.lastName}</p>
+                        )}
                       </div>
                     </div>
                     
@@ -349,11 +511,16 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                           type="email"
                           placeholder="tu@email.com"
                           value={data.personalInfo.email}
-                          onChange={(e) => setData(prev => ({ 
-                            ...prev, 
-                            personalInfo: { ...prev.personalInfo, email: e.target.value }
-                          }))}
-                          className="flex-1"
+                          onChange={(e) => {
+                            setData(prev => ({ 
+                              ...prev, 
+                              personalInfo: { ...prev.personalInfo, email: e.target.value }
+                            }));
+                            if (validationErrors.email) {
+                              setValidationErrors(prev => ({ ...prev, email: "" }));
+                            }
+                          }}
+                          className={`flex-1 ${validationErrors.email ? "border-red-500" : ""}`}
                         />
                         <Button 
                           onClick={sendVerificationCode}
@@ -363,7 +530,16 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                           Enviar código
                         </Button>
                       </div>
+                      {validationErrors.email && (
+                        <p className="text-red-500 text-sm mt-1">{validationErrors.email}</p>
+                      )}
                     </div>
+
+                    {codeSentMessage && (
+                      <div className="bg-[#0050b3] border border-blue-300 rounded-lg p-3">
+                        <p className="text-white text-sm">{codeSentMessage}</p>
+                      </div>
+                    )}
 
                     {sentVerificationCode && !data.personalInfo.emailVerified && (
                       <div>
@@ -372,22 +548,30 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                           <Input
                             placeholder="123456"
                             value={data.personalInfo.verificationCode}
-                            onChange={(e) => setData(prev => ({ 
-                              ...prev, 
-                              personalInfo: { ...prev.personalInfo, verificationCode: e.target.value }
-                            }))}
-                            className="flex-1"
+                            onChange={(e) => {
+                              setData(prev => ({ 
+                                ...prev, 
+                                personalInfo: { ...prev.personalInfo, verificationCode: e.target.value }
+                              }));
+                              if (validationErrors.verificationCode) {
+                                setValidationErrors(prev => ({ ...prev, verificationCode: "" }));
+                              }
+                            }}
+                            className={`flex-1 ${validationErrors.verificationCode ? "border-red-500" : ""}`}
                           />
                           <Button onClick={verifyEmail} variant="outline">
                             Verificar
                           </Button>
                         </div>
+                        {validationErrors.verificationCode && (
+                          <p className="text-red-500 text-sm mt-1">{validationErrors.verificationCode}</p>
+                        )}
                       </div>
                     )}
 
-                    {data.personalInfo.emailVerified && (
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                        <p className="text-green-800 text-sm">✅ Email verificado correctamente</p>
+                    {emailVerifiedMessage && (
+                      <div className="bg-[#0050b3] border border-blue-300 rounded-lg p-3">
+                        <p className="text-white text-sm">✅ {emailVerifiedMessage}</p>
                       </div>
                     )}
                     
@@ -396,11 +580,22 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                       <Input
                         placeholder="987654321"
                         value={data.personalInfo.phone}
-                        onChange={(e) => setData(prev => ({ 
-                          ...prev, 
-                          personalInfo: { ...prev.personalInfo, phone: e.target.value }
-                        }))}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, '').slice(0, 9);
+                          setData(prev => ({ 
+                            ...prev, 
+                            personalInfo: { ...prev.personalInfo, phone: value }
+                          }));
+                          if (validationErrors.phone) {
+                            setValidationErrors(prev => ({ ...prev, phone: "" }));
+                          }
+                        }}
+                        maxLength={9}
+                        className={validationErrors.phone ? "border-red-500" : ""}
                       />
+                      {validationErrors.phone && (
+                        <p className="text-red-500 text-sm mt-1">{validationErrors.phone}</p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -408,16 +603,16 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                 {/* Paso 2: Objetivo - Productos */}
                 {currentStep === 2 && (
                   <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <div className="productos-container max-h-80 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                       {productOptions.map((product) => (
                         <Card 
                           key={product.id}
-                          className={`cursor-pointer transition-all p-3 ${data.goal === product.id ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300'}`}
+                          className={`cursor-pointer transition-all p-2 ${data.goal === product.id ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300'}`}
                           onClick={() => setData(prev => ({ ...prev, goal: product.id }))}
                         >
-                          <CardContent className="p-0 text-center">
-                            <div className="text-2xl mb-2">{product.icon}</div>
-                            <h4 className="font-medium text-sm">{product.title}</h4>
+                          <CardContent className="p-2 text-center">
+                            <div className="text-xl mb-1">{product.icon}</div>
+                            <h4 className="font-medium text-xs">{product.title}</h4>
                             <p className="text-xs text-gray-600">{product.desc}</p>
                           </CardContent>
                         </Card>
@@ -464,7 +659,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                         { id: 'empleado', title: 'Trabajo en planilla', icon: Building2 },
                         { id: 'independiente', title: 'Trabajo independiente', icon: Users },
                         { id: 'empresario', title: 'Tengo mi negocio', icon: Briefcase },
-                        { id: 'estudiante', title: 'Soy estudiante', icon: FileText }
+                        { id: 'estudiante', title: 'Soy estudiante', icon: GraduationCap }
                       ].map((work) => (
                         <Card 
                           key={work.id}
@@ -479,25 +674,163 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                       ))}
                     </div>
 
-                    {data.workSituation && (
-                      <div className="mt-4">
-                        <Label>
-                          {data.workSituation === 'empleado' && 'Dónde trabajas:'}
-                          {data.workSituation === 'independiente' && 'Describe qué haces:'}
-                          {data.workSituation === 'empresario' && 'Nombre del negocio y actividad:'}
-                          {data.workSituation === 'estudiante' && 'Carrera y ciclo actual:'}
-                        </Label>
-                        <Input
-                          placeholder={
-                            data.workSituation === 'empleado' ? 'Empresa donde trabajas' :
-                            data.workSituation === 'independiente' ? 'Actividad independiente' :
-                            data.workSituation === 'empresario' ? 'Negocio - Rubro - Actividad' :
-                            'Carrera - Ciclo'
-                          }
-                          value={data.workDetails}
-                          onChange={(e) => setData(prev => ({ ...prev, workDetails: e.target.value }))}
-                          className="mt-2"
-                        />
+                    {/* Conditional fields based on work situation */}
+                    {data.workSituation === 'estudiante' && (
+                      <div className="space-y-4 border-t pt-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label>Carrera *</Label>
+                            <Input
+                              placeholder="Ingeniería, Administración, etc."
+                              value={data.carrera || ""}
+                              onChange={(e) => setData(prev => ({ ...prev, carrera: e.target.value }))}
+                              className={validationErrors.carrera ? "border-red-500" : ""}
+                            />
+                            {validationErrors.carrera && (
+                              <p className="text-red-500 text-sm mt-1">{validationErrors.carrera}</p>
+                            )}
+                          </div>
+                          <div>
+                            <Label>Ciclo *</Label>
+                            <Input
+                              placeholder="1er, 2do, 3er, etc."
+                              value={data.ciclo || ""}
+                              onChange={(e) => setData(prev => ({ ...prev, ciclo: e.target.value }))}
+                              className={validationErrors.ciclo ? "border-red-500" : ""}
+                            />
+                            {validationErrors.ciclo && (
+                              <p className="text-red-500 text-sm mt-1">{validationErrors.ciclo}</p>
+                            )}
+                          </div>
+                        </div>
+                        <div>
+                          <Label>¿Hace prácticas profesionales? *</Label>
+                          <Select onValueChange={(value) => setData(prev => ({ ...prev, hacePracticas: value }))}>
+                            <SelectTrigger className={validationErrors.hacePracticas ? "border-red-500" : ""}>
+                              <SelectValue placeholder="Selecciona una opción" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="si">Sí</SelectItem>
+                              <SelectItem value="no">No</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          {validationErrors.hacePracticas && (
+                            <p className="text-red-500 text-sm mt-1">{validationErrors.hacePracticas}</p>
+                          )}
+                        </div>
+                        {data.hacePracticas === 'si' && (
+                          <div>
+                            <Label>Empresa donde realiza prácticas *</Label>
+                            <Input
+                              placeholder="Nombre de la empresa"
+                              value={data.empresaPracticas || ""}
+                              onChange={(e) => setData(prev => ({ ...prev, empresaPracticas: e.target.value }))}
+                              className={validationErrors.empresaPracticas ? "border-red-500" : ""}
+                            />
+                            {validationErrors.empresaPracticas && (
+                              <p className="text-red-500 text-sm mt-1">{validationErrors.empresaPracticas}</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {data.workSituation === 'independiente' && (
+                      <div className="space-y-4 border-t pt-4">
+                        <div>
+                          <Label>¿Qué hace? *</Label>
+                          <Input
+                            placeholder="Describe tu actividad independiente"
+                            value={data.workDetails}
+                            onChange={(e) => setData(prev => ({ ...prev, workDetails: e.target.value }))}
+                            className={validationErrors.workDetails ? "border-red-500" : ""}
+                          />
+                          {validationErrors.workDetails && (
+                            <p className="text-red-500 text-sm mt-1">{validationErrors.workDetails}</p>
+                          )}
+                        </div>
+                        <div>
+                          <Label>Empresa (si aplica) *</Label>
+                          <Input
+                            placeholder="Nombre de la empresa o N/A"
+                            value={data.empresaTrabajo || ""}
+                            onChange={(e) => setData(prev => ({ ...prev, empresaTrabajo: e.target.value }))}
+                            className={validationErrors.empresaTrabajo ? "border-red-500" : ""}
+                          />
+                          {validationErrors.empresaTrabajo && (
+                            <p className="text-red-500 text-sm mt-1">{validationErrors.empresaTrabajo}</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {data.workSituation === 'empleado' && (
+                      <div className="space-y-4 border-t pt-4">
+                        <div>
+                          <Label>¿Dónde trabaja? *</Label>
+                          <Input
+                            placeholder="Describe tu puesto de trabajo"
+                            value={data.workDetails}
+                            onChange={(e) => setData(prev => ({ ...prev, workDetails: e.target.value }))}
+                            className={validationErrors.workDetails ? "border-red-500" : ""}
+                          />
+                          {validationErrors.workDetails && (
+                            <p className="text-red-500 text-sm mt-1">{validationErrors.workDetails}</p>
+                          )}
+                        </div>
+                        <div>
+                          <Label>Nombre de la empresa *</Label>
+                          <Input
+                            placeholder="Empresa donde trabajas"
+                            value={data.empresaTrabajo || ""}
+                            onChange={(e) => setData(prev => ({ ...prev, empresaTrabajo: e.target.value }))}
+                            className={validationErrors.empresaTrabajo ? "border-red-500" : ""}
+                          />
+                          {validationErrors.empresaTrabajo && (
+                            <p className="text-red-500 text-sm mt-1">{validationErrors.empresaTrabajo}</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {data.workSituation === 'empresario' && (
+                      <div className="space-y-4 border-t pt-4">
+                        <div>
+                          <Label>Nombre del negocio *</Label>
+                          <Input
+                            placeholder="Nombre de tu negocio"
+                            value={data.nombreNegocio || ""}
+                            onChange={(e) => setData(prev => ({ ...prev, nombreNegocio: e.target.value }))}
+                            className={validationErrors.nombreNegocio ? "border-red-500" : ""}
+                          />
+                          {validationErrors.nombreNegocio && (
+                            <p className="text-red-500 text-sm mt-1">{validationErrors.nombreNegocio}</p>
+                          )}
+                        </div>
+                        <div>
+                          <Label>Rubro *</Label>
+                          <Input
+                            placeholder="Comercio, servicios, manufactura, etc."
+                            value={data.rubroNegocio || ""}
+                            onChange={(e) => setData(prev => ({ ...prev, rubroNegocio: e.target.value }))}
+                            className={validationErrors.rubroNegocio ? "border-red-500" : ""}
+                          />
+                          {validationErrors.rubroNegocio && (
+                            <p className="text-red-500 text-sm mt-1">{validationErrors.rubroNegocio}</p>
+                          )}
+                        </div>
+                        <div>
+                          <Label>Actividad principal *</Label>
+                          <Input
+                            placeholder="Describe la actividad principal"
+                            value={data.actividadPrincipal || ""}
+                            onChange={(e) => setData(prev => ({ ...prev, actividadPrincipal: e.target.value }))}
+                            className={validationErrors.actividadPrincipal ? "border-red-500" : ""}
+                          />
+                          {validationErrors.actividadPrincipal && (
+                            <p className="text-red-500 text-sm mt-1">{validationErrors.actividadPrincipal}</p>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -574,7 +907,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                     <div className="space-y-4">
                       <div>
                         <Label className="flex items-center gap-2">
-                          <span>DNI (obligatorio para validar)</span>
+                          <span>DNI (ambas caras - obligatorio para validar)</span>
                           <span className="text-red-500">*</span>
                         </Label>
                         <div className="mt-2 p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
@@ -601,7 +934,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                       </div>
 
                       <div>
-                        <Label>Boletas de pago</Label>
+                        <Label>Adjunta tus 3 últimas boletas de pago como requisito mínimo *</Label>
                         <div className="mt-2 p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
                           <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
                           <input
@@ -609,8 +942,13 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                             accept="image/*,.pdf"
                             multiple
                             onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) handleFileUpload('payslips', file);
+                              const files = Array.from(e.target.files || []);
+                              files.forEach(file => {
+                                setUploadedPayslips(prev => [...prev, file]);
+                              });
+                              if (files.length > 0) {
+                                handleFileUpload('payslips', files[0]);
+                              }
                             }}
                             className="hidden"
                             id="payslips-upload"
@@ -620,8 +958,16 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                               <span>Subir Boletas</span>
                             </Button>
                           </label>
-                          {data.documents.payslips && (
-                            <p className="text-sm text-green-600 mt-2">✅ {data.documents.payslips.name}</p>
+                          {uploadedPayslips.length > 0 && (
+                            <div className="mt-2">
+                              <p className="text-sm text-green-600">✅ {uploadedPayslips.length} archivo(s) subido(s)</p>
+                              {uploadedPayslips.length < 3 && (
+                                <p className="text-sm text-orange-600">⚠️ Se requieren mínimo 3 boletas</p>
+                              )}
+                            </div>
+                          )}
+                          {validationErrors.payslips && (
+                            <p className="text-red-500 text-sm mt-1">{validationErrors.payslips}</p>
                           )}
                         </div>
                       </div>
@@ -679,7 +1025,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
           <Button
             onClick={handleNext}
             disabled={!canProceed()}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+            className="flex items-center gap-2 bg-[#0050b3] hover:bg-[#003d8f]"
           >
             {currentStep === steps.length - 1 ? 
               (forceFlow ? 'Proceder a la subasta' : 'Ver mis opciones') : 

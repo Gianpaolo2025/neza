@@ -21,4 +21,13 @@ export interface UserData {
     payslips: File | null;
     others: File | null;
   };
+  // New fields for expanded work information
+  carrera?: string;
+  ciclo?: string;
+  hacePracticas?: string;
+  empresaPracticas?: string;
+  empresaTrabajo?: string;
+  nombreNegocio?: string;
+  rubroNegocio?: string;
+  actividadPrincipal?: string;
 }
