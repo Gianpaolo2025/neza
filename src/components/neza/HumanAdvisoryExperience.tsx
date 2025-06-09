@@ -6,8 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { ArrowRight, ArrowLeft, Home, Car, CreditCard, Heart, Target, Play, Building2, FileText, Users, Briefcase, AlertCircle, Upload, Eye, EyeOff, GraduationCap, Factory, Stethoscope, Calculator, Gavel, Edit3 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { ArrowRight, ArrowLeft, Home, Car, CreditCard, Heart, Target, Play, Building2, FileText, Users, Briefcase, AlertCircle, Upload, Eye, EyeOff, GraduationCap, Factory, Stethoscope, Calculator, Gavel } from "lucide-react";
 
 interface UserData {
   goal: string;
@@ -22,8 +21,6 @@ interface UserData {
     dni: string;
     email: string;
     phone: string;
-    emailVerified: boolean;
-    verificationCode: string;
   };
   preferredBank: string;
   documents: {
@@ -52,13 +49,8 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
   const [currentStep, setCurrentStep] = useState(0);
   const [showVideo, setShowVideo] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
-  const [sentVerificationCode, setSentVerificationCode] = useState("");
-  const [codeSentMessage, setCodeSentMessage] = useState("");
-  const [emailVerifiedMessage, setEmailVerifiedMessage] = useState("");
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [uploadedPayslips, setUploadedPayslips] = useState<File[]>([]);
-  const [isReturningUser, setIsReturningUser] = useState(false);
-  const [fieldsEditable, setFieldsEditable] = useState(false);
   
   const [data, setData] = useState<UserData>({
     goal: "",
@@ -72,9 +64,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
       lastName: "",
       dni: "",
       email: "",
-      phone: "",
-      emailVerified: false,
-      verificationCode: ""
+      phone: ""
     },
     preferredBank: "",
     documents: {
@@ -106,8 +96,6 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
             monthlyIncome: parsedData.monthlyIncome || prev.monthlyIncome,
             hasPayslips: parsedData.hasPayslips || prev.hasPayslips
           }));
-          setIsReturningUser(true);
-          setFieldsEditable(false);
         }
       } catch (error) {
         console.log('Error loading saved data:', error);
@@ -187,106 +175,11 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
     return /^\d{8}$/.test(dni);
   };
 
-  // Updated sendVerificationCode function to use Supabase Edge Function
-  const sendVerificationCode = async () => {
-    if (!validateEmail(data.personalInfo.email)) {
-      setValidationErrors(prev => ({ ...prev, email: "Formato de correo inválido" }));
-      return;
-    }
-
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    setSentVerificationCode(code);
-    setCodeSentMessage("Enviando código de verificación...");
-
-    try {
-      const { data: result, error } = await supabase.functions.invoke('send-verification-email', {
-        body: {
-          email: data.personalInfo.email,
-          code: code
-        }
-      });
-
-      if (error) {
-        console.error('Error sending email:', error);
-        setCodeSentMessage("Error al enviar el código. Inténtalo de nuevo.");
-        // Fallback to console log for development
-        console.log(`Código de verificación (fallback): ${code}`);
-        
-        // Clear error message after 5 seconds and show fallback message
-        setTimeout(() => {
-          setCodeSentMessage("Revisa la consola del navegador para ver el código de verificación.");
-        }, 3000);
-      } else {
-        setCodeSentMessage("Código enviado a tu correo electrónico. Revisa tu bandeja de entrada.");
-        console.log('Email sent successfully');
-      }
-    } catch (error) {
-      console.error('Unexpected error:', error);
-      setCodeSentMessage("Error de conexión. Revisa la consola para el código.");
-      console.log(`Código de verificación (fallback): ${code}`);
-      
-      setTimeout(() => {
-        setCodeSentMessage("Revisa la consola del navegador para ver el código de verificación.");
-      }, 3000);
-    }
-
-    // Clear the message after 10 seconds
-    setTimeout(() => setCodeSentMessage(""), 10000);
-  };
-
-  const verifyEmail = () => {
-    if (data.personalInfo.verificationCode === sentVerificationCode) {
-      setData(prev => ({
-        ...prev,
-        personalInfo: { ...prev.personalInfo, emailVerified: true }
-      }));
-      setEmailVerifiedMessage("El email ha sido verificado correctamente.");
-      setValidationErrors(prev => ({ ...prev, verificationCode: "" }));
-      
-      // Auto-advance if all fields are complete
-      setTimeout(() => {
-        if (canProceedFromPersonalStep()) {
-          handleNext();
-        }
-      }, 1500);
-    } else {
-      setValidationErrors(prev => ({ ...prev, verificationCode: "Código incorrecto" }));
-    }
-  };
-
-  const canProceedFromPersonalStep = () => {
-    return validateName(data.personalInfo.firstName) &&
-           validateName(data.personalInfo.lastName) &&
-           validateDNI(data.personalInfo.dni) &&
-           validateEmail(data.personalInfo.email) &&
-           validatePhone(data.personalInfo.phone) &&
-           data.personalInfo.emailVerified;
-  };
-
   const validateCurrentStep = () => {
     const errors: Record<string, string> = {};
     
-    if (currentStep === 1) { // Personal step
-      if (!validateName(data.personalInfo.firstName)) {
-        errors.firstName = "Solo se permiten letras y tildes, mínimo 2 caracteres";
-      }
-      if (!validateName(data.personalInfo.lastName)) {
-        errors.lastName = "Solo se permiten letras y tildes, mínimo 2 caracteres";
-      }
-      if (!validateDNI(data.personalInfo.dni)) {
-        errors.dni = "DNI debe tener exactamente 8 dígitos";
-      }
-      if (!validateEmail(data.personalInfo.email)) {
-        errors.email = "Formato de correo inválido";
-      }
-      if (!validatePhone(data.personalInfo.phone)) {
-        errors.phone = "Teléfono debe tener exactamente 9 dígitos";
-      }
-      if (!data.personalInfo.emailVerified) {
-        errors.emailVerified = "Debes verificar tu correo electrónico";
-      }
-    }
-
+    // Removed all validation for personal step - users can proceed with any data
+    
     if (currentStep === 4) { // Work step
       if (data.workSituation === "estudiante") {
         if (!data.carrera) errors.carrera = "Campo obligatorio";
@@ -351,7 +244,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
   const canProceed = () => {
     switch (steps[currentStep].id) {
       case "intro": return true;
-      case "personal": return canProceedFromPersonalStep();
+      case "personal": return true; // Always allow proceeding from personal step
       case "goal": return data.goal !== "";
       case "amount": return data.amount > 0;
       case "work": 
@@ -502,225 +395,86 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                   </div>
                 )}
 
-                {/* Paso 1: Datos Personales */}
+                {/* Paso 1: Datos Personales - SIMPLIFICADO */}
                 {currentStep === 1 && (
                   <div className="space-y-4">
-                    {isReturningUser && (
-                      <div className="bg-blue-600 border border-blue-300 rounded-lg p-3 mb-4">
-                        <div className="flex items-center justify-between">
-                          <p className="text-white text-sm">
-                            ¡Hola {data.personalInfo.firstName}! Ya tenemos tus datos cargados. 
-                            {fieldsEditable ? " Puedes editarlos si necesitas." : " Si deseas cambiarlos, haz clic en 'Editar datos'."}
-                          </p>
-                          {!fieldsEditable && (
-                            <Button
-                              onClick={() => setFieldsEditable(true)}
-                              variant="outline"
-                              size="sm"
-                              className="ml-2 bg-white text-blue-700 hover:bg-blue-50"
-                            >
-                              <Edit3 className="w-3 h-3 mr-1" />
-                              Editar datos
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
                     <div>
-                      <Label>DNI *</Label>
+                      <Label>DNI</Label>
                       <Input
                         placeholder="12345678"
                         value={data.personalInfo.dni}
                         onChange={(e) => {
-                          if (fieldsEditable || !isReturningUser) {
-                            const value = e.target.value.replace(/\D/g, '').slice(0, 8);
-                            setData(prev => ({ 
-                              ...prev, 
-                              personalInfo: { ...prev.personalInfo, dni: value }
-                            }));
-                            if (validationErrors.dni) {
-                              setValidationErrors(prev => ({ ...prev, dni: "" }));
-                            }
-                          }
+                          const value = e.target.value.replace(/\D/g, '').slice(0, 8);
+                          setData(prev => ({ 
+                            ...prev, 
+                            personalInfo: { ...prev.personalInfo, dni: value }
+                          }));
                         }}
                         maxLength={8}
-                        className={validationErrors.dni ? "border-red-500" : ""}
-                        disabled={isReturningUser && !fieldsEditable}
                       />
-                      {validationErrors.dni && (
-                        <p className="text-red-500 text-sm mt-1">{validationErrors.dni}</p>
-                      )}
-                      {isReturningUser && !fieldsEditable && (
-                        <p className="text-xs text-gray-500 mt-1">Este dato ya fue ingresado previamente.</p>
-                      )}
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <Label>Nombres *</Label>
+                        <Label>Nombres</Label>
                         <Input
                           placeholder="Tu nombre"
                           value={data.personalInfo.firstName}
                           onChange={(e) => {
-                            if (fieldsEditable || !isReturningUser) {
-                              const value = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
-                              setData(prev => ({ 
-                                ...prev, 
-                                personalInfo: { ...prev.personalInfo, firstName: value }
-                              }));
-                              if (validationErrors.firstName) {
-                                setValidationErrors(prev => ({ ...prev, firstName: "" }));
-                              }
-                            }
+                            const value = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+                            setData(prev => ({ 
+                              ...prev, 
+                              personalInfo: { ...prev.personalInfo, firstName: value }
+                            }));
                           }}
-                          className={validationErrors.firstName ? "border-red-500" : ""}
-                          disabled={isReturningUser && !fieldsEditable}
                         />
-                        {validationErrors.firstName && (
-                          <p className="text-red-500 text-sm mt-1">{validationErrors.firstName}</p>
-                        )}
-                        {isReturningUser && !fieldsEditable && (
-                          <p className="text-xs text-gray-500 mt-1">Este dato ya fue ingresado previamente.</p>
-                        )}
                       </div>
                       
                       <div>
-                        <Label>Apellidos *</Label>
+                        <Label>Apellidos</Label>
                         <Input
                           placeholder="Tus apellidos"
                           value={data.personalInfo.lastName}
                           onChange={(e) => {
-                            if (fieldsEditable || !isReturningUser) {
-                              const value = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
-                              setData(prev => ({ 
-                                ...prev, 
-                                personalInfo: { ...prev.personalInfo, lastName: value }
-                              }));
-                              if (validationErrors.lastName) {
-                                setValidationErrors(prev => ({ ...prev, lastName: "" }));
-                              }
-                            }
+                            const value = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+                            setData(prev => ({ 
+                              ...prev, 
+                              personalInfo: { ...prev.personalInfo, lastName: value }
+                            }));
                           }}
-                          className={validationErrors.lastName ? "border-red-500" : ""}
-                          disabled={isReturningUser && !fieldsEditable}
                         />
-                        {validationErrors.lastName && (
-                          <p className="text-red-500 text-sm mt-1">{validationErrors.lastName}</p>
-                        )}
-                        {isReturningUser && !fieldsEditable && (
-                          <p className="text-xs text-gray-500 mt-1">Este dato ya fue ingresado previamente.</p>
-                        )}
                       </div>
                     </div>
                     
                     <div>
-                      <Label>Correo Electrónico *</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          type="email"
-                          placeholder="tu@email.com"
-                          value={data.personalInfo.email}
-                          onChange={(e) => {
-                            if (fieldsEditable || !isReturningUser) {
-                              setData(prev => ({ 
-                                ...prev, 
-                                personalInfo: { ...prev.personalInfo, email: e.target.value }
-                              }));
-                              if (validationErrors.email) {
-                                setValidationErrors(prev => ({ ...prev, email: "" }));
-                              }
-                            }
-                          }}
-                          className={`flex-1 ${validationErrors.email ? "border-red-500" : ""}`}
-                          disabled={isReturningUser && !fieldsEditable}
-                        />
-                        <Button 
-                          onClick={sendVerificationCode}
-                          disabled={!data.personalInfo.email || data.personalInfo.emailVerified || (isReturningUser && !fieldsEditable)}
-                          variant="outline"
-                        >
-                          Enviar código
-                        </Button>
-                      </div>
-                      {validationErrors.email && (
-                        <p className="text-red-500 text-sm mt-1">{validationErrors.email}</p>
-                      )}
-                      {isReturningUser && !fieldsEditable && (
-                        <p className="text-xs text-gray-500 mt-1">Este dato ya fue ingresado previamente.</p>
-                      )}
+                      <Label>Correo Electrónico</Label>
+                      <Input
+                        type="email"
+                        placeholder="tu@email.com"
+                        value={data.personalInfo.email}
+                        onChange={(e) => {
+                          setData(prev => ({ 
+                            ...prev, 
+                            personalInfo: { ...prev.personalInfo, email: e.target.value }
+                          }));
+                        }}
+                      />
                     </div>
-
-                    {codeSentMessage && (
-                      <div className="bg-blue-600 border border-blue-300 rounded-lg p-3">
-                        <p className="text-white text-sm">{codeSentMessage}</p>
-                      </div>
-                    )}
-
-                    {sentVerificationCode && !data.personalInfo.emailVerified && (
-                      <div>
-                        <Label>Código de verificación *</Label>
-                        <div className="flex gap-2">
-                          <Input
-                            placeholder="123456"
-                            value={data.personalInfo.verificationCode}
-                            onChange={(e) => {
-                              setData(prev => ({ 
-                                ...prev, 
-                                personalInfo: { ...prev.personalInfo, verificationCode: e.target.value }
-                              }));
-                              if (validationErrors.verificationCode) {
-                                setValidationErrors(prev => ({ ...prev, verificationCode: "" }));
-                              }
-                            }}
-                            className={`flex-1 ${validationErrors.verificationCode ? "border-red-500" : ""}`}
-                          />
-                          <Button onClick={verifyEmail} variant="outline">
-                            Verificar
-                          </Button>
-                        </div>
-                        {validationErrors.verificationCode && (
-                          <p className="text-red-500 text-sm mt-1">{validationErrors.verificationCode}</p>
-                        )}
-                        <p className="text-xs text-gray-500 mt-1">
-                          Si no recibes el email, revisa tu carpeta de spam o la consola del navegador.
-                        </p>
-                      </div>
-                    )}
-
-                    {emailVerifiedMessage && (
-                      <div className="bg-blue-600 border border-blue-300 rounded-lg p-3">
-                        <p className="text-white text-sm">✅ {emailVerifiedMessage}</p>
-                      </div>
-                    )}
                     
                     <div>
-                      <Label>Teléfono *</Label>
+                      <Label>Teléfono</Label>
                       <Input
                         placeholder="987654321"
                         value={data.personalInfo.phone}
                         onChange={(e) => {
-                          if (fieldsEditable || !isReturningUser) {
-                            const value = e.target.value.replace(/\D/g, '').slice(0, 9);
-                            setData(prev => ({ 
-                              ...prev, 
-                              personalInfo: { ...prev.personalInfo, phone: value }
-                            }));
-                            if (validationErrors.phone) {
-                              setValidationErrors(prev => ({ ...prev, phone: "" }));
-                            }
-                          }
+                          const value = e.target.value.replace(/\D/g, '').slice(0, 9);
+                          setData(prev => ({ 
+                            ...prev, 
+                            personalInfo: { ...prev.personalInfo, phone: value }
+                          }));
                         }}
                         maxLength={9}
-                        className={validationErrors.phone ? "border-red-500" : ""}
-                        disabled={isReturningUser && !fieldsEditable}
                       />
-                      {validationErrors.phone && (
-                        <p className="text-red-500 text-sm mt-1">{validationErrors.phone}</p>
-                      )}
-                      {isReturningUser && !fieldsEditable && (
-                        <p className="text-xs text-gray-500 mt-1">Este dato ya fue ingresado previamente.</p>
-                      )}
                     </div>
                   </div>
                 )}
