@@ -37,7 +37,6 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
   const [previousData, setPreviousData] = useState<Partial<PersonalData>>({});
 
   useEffect(() => {
-    // Cargar datos previos del localStorage
     const savedData = localStorage.getItem('nezaPersonalData');
     if (savedData) {
       try {
@@ -79,7 +78,6 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
     if (!data.occupation) newErrors.occupation = "Ocupación es requerida";
     if (!data.preferredCurrency) newErrors.preferredCurrency = "Moneda preferida es requerida";
 
-    // Validar años de trabajo (máximo 40)
     if (data.workYears > 40) newErrors.workYears = "Máximo 40 años de experiencia";
     if (data.workMonths > 11) newErrors.workMonths = "Máximo 11 meses";
 
@@ -89,10 +87,7 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
 
   const handleContinue = () => {
     if (validateForm()) {
-      // Guardar datos en localStorage para futuras sesiones
       localStorage.setItem('nezaPersonalData', JSON.stringify(data));
-      
-      // Continuar directamente sin verificación
       onUpdate({ ...data, isValidated: true, otpVerified: true });
       onNext();
     }
@@ -139,20 +134,14 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
           Datos Personales
         </h2>
         <p className="text-base md:text-lg text-slate-700 mb-4">
-          {isReturningUser ? "Actualiza tus datos si es necesario" : "Completa tus datos personales para continuar"}
+          Completa tus datos personales para continuar
         </p>
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-sm text-green-800">
-          <strong>✏️ Todos los campos son editables:</strong> Puedes modificar cualquier información, incluso si ya la habías ingresado antes
+          <strong>✏️ Todos los campos son editables:</strong> Puedes modificar cualquier información cuando desees
         </div>
-        {Object.keys(previousData).length > 0 && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800 mt-3">
-            <strong>💡 Autocompletado disponible:</strong> Verás sugerencias basadas en datos anteriores debajo de cada campo
-          </div>
-        )}
       </motion.div>
 
       <div className="grid gap-4 md:gap-6 md:grid-cols-2">
-        {/* Nombres - SIEMPRE EDITABLE */}
         <Card className="border-blue-200 bg-white/80">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -178,7 +167,6 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
           </CardContent>
         </Card>
 
-        {/* Apellidos - SIEMPRE EDITABLE */}
         <Card className="border-blue-200 bg-white/80">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -204,7 +192,6 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
           </CardContent>
         </Card>
 
-        {/* DNI - SIEMPRE EDITABLE */}
         <Card className="border-blue-200 bg-white/80">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -231,7 +218,6 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
           </CardContent>
         </Card>
 
-        {/* Fecha de nacimiento */}
         <Card className="border-blue-200 bg-white/80">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -258,7 +244,6 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
           </CardContent>
         </Card>
 
-        {/* Email - SIEMPRE EDITABLE */}
         <Card className="border-blue-200 bg-white/80">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -285,7 +270,6 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
           </CardContent>
         </Card>
 
-        {/* Teléfono - SIEMPRE EDITABLE */}
         <Card className="border-blue-200 bg-white/80">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -312,7 +296,6 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
           </CardContent>
         </Card>
 
-        {/* Ocupación */}
         <Card className="border-blue-200 bg-white/80">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -344,7 +327,6 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
           </CardContent>
         </Card>
 
-        {/* Experiencia Laboral */}
         <Card className="border-blue-200 bg-white/80">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -395,7 +377,6 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
           </CardContent>
         </Card>
 
-        {/* Moneda Preferida */}
         <Card className="border-blue-200 bg-white/80">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -425,7 +406,6 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
         </Card>
       </div>
 
-      {/* Dirección completa */}
       <Card className="border-blue-200 bg-white/80 mt-4 md:mt-6">
         <CardContent className="p-4 md:p-6">
           <div className="flex items-center gap-3 mb-4">
@@ -451,7 +431,6 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
         </CardContent>
       </Card>
 
-      {/* Botones de navegación */}
       <div className="flex flex-col md:flex-row gap-4 mt-6 md:mt-8">
         {onPrev && (
           <Button 
