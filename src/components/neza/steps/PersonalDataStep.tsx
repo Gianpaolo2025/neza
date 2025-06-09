@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -34,6 +34,20 @@ interface PersonalDataStepProps {
 
 export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUser }: PersonalDataStepProps) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [previousData, setPreviousData] = useState<Partial<PersonalData>>({});
+
+  useEffect(() => {
+    // Cargar datos previos del localStorage
+    const savedData = localStorage.getItem('nezaPersonalData');
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData);
+        setPreviousData(parsed);
+      } catch (error) {
+        console.error('Error parsing saved data:', error);
+      }
+    }
+  }, []);
 
   const occupationOptions = [
     "Empleado público",
@@ -74,10 +88,30 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
 
   const handleContinue = () => {
     if (validateForm()) {
+      // Guardar datos en localStorage para futuras sesiones
+      localStorage.setItem('nezaPersonalData', JSON.stringify(data));
       // Automatically mark as validated and verified
       onUpdate({ ...data, isValidated: true, otpVerified: true });
       onNext();
     }
+  };
+
+  const fillFromPrevious = (field: keyof PersonalData, value: any) => {
+    onUpdate({ ...data, [field]: value });
+  };
+
+  const AutocompleteButton = ({ field, value, label }: { field: keyof PersonalData; value: any; label: string }) => {
+    if (!value || value === data[field]) return null;
+    
+    return (
+      <button
+        type="button"
+        onClick={() => fillFromPrevious(field, value)}
+        className="mt-1 text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-md hover:bg-blue-100 border border-blue-200 transition-colors"
+      >
+        {label}: {value}
+      </button>
+    );
   };
 
   return (
@@ -121,6 +155,7 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
               placeholder="Ej: Juan Carlos"
               className={`text-base md:text-lg py-4 md:py-6 ${errors.firstName ? 'border-red-500' : 'border-blue-300'} focus:border-blue-500`}
             />
+            <AutocompleteButton field="firstName" value={previousData.firstName} label="Usar anterior" />
             {errors.firstName && (
               <p className="text-red-500 text-sm mt-2">{errors.firstName}</p>
             )}
@@ -142,6 +177,7 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
               placeholder="Ej: Pérez García"
               className={`text-base md:text-lg py-4 md:py-6 ${errors.lastName ? 'border-red-500' : 'border-blue-300'} focus:border-blue-500`}
             />
+            <AutocompleteButton field="lastName" value={previousData.lastName} label="Usar anterior" />
             {errors.lastName && (
               <p className="text-red-500 text-sm mt-2">{errors.lastName}</p>
             )}
@@ -164,6 +200,7 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
               maxLength={8}
               className={`text-base md:text-lg py-4 md:py-6 ${errors.dni ? 'border-red-500' : 'border-blue-300'} focus:border-blue-500`}
             />
+            <AutocompleteButton field="dni" value={previousData.dni} label="Usar anterior" />
             {errors.dni && (
               <p className="text-red-500 text-sm mt-2">{errors.dni}</p>
             )}
@@ -208,6 +245,7 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
               placeholder="juan@ejemplo.com"
               className={`text-base md:text-lg py-4 md:py-6 ${errors.email ? 'border-red-500' : 'border-blue-300'} focus:border-blue-500`}
             />
+            <AutocompleteButton field="email" value={previousData.email} label="Usar anterior" />
             {errors.email && (
               <p className="text-red-500 text-sm mt-2">{errors.email}</p>
             )}
@@ -230,6 +268,7 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
               maxLength={9}
               className={`text-base md:text-lg py-4 md:py-6 ${errors.phone ? 'border-red-500' : 'border-blue-300'} focus:border-blue-500`}
             />
+            <AutocompleteButton field="phone" value={previousData.phone} label="Usar anterior" />
             {errors.phone && (
               <p className="text-red-500 text-sm mt-2">{errors.phone}</p>
             )}
