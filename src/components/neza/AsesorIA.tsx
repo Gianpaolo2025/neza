@@ -8,7 +8,7 @@ import { Bot, X, Minimize2, Maximize2, Sparkles, Heart, Lightbulb, TrendingUp, S
 interface AsesorIAProps {
   message: string;
   onClose: () => void;
-  onReopen: () => void;
+  onReopen?: () => void;
   currentStep: number;
   userProgress?: {
     profileLevel: number;
@@ -17,7 +17,7 @@ interface AsesorIAProps {
   };
 }
 
-export const AsesorIA = ({ message, onClose, currentStep, userProgress }: AsesorIAProps) => {
+export const AsesorIA = ({ message, onClose, onReopen, currentStep, userProgress }: AsesorIAProps) => {
   const [isMinimized, setIsMinimized] = useState(false);
   const [showTips, setShowTips] = useState(false);
   const [showPersonalizedAdvice, setShowPersonalizedAdvice] = useState(false);
@@ -45,28 +45,40 @@ export const AsesorIA = ({ message, onClose, currentStep, userProgress }: Asesor
 
     const advice = [];
     
-    if (userProgress.profileLevel && userProgress.profileLevel < 50) {
-      advice.push("📈 Tu perfil financiero puede mejorar. Te ayudo a fortalecerlo.");
-    }
-    
-    if (userProgress.monthlyIncome) {
-      if (userProgress.monthlyIncome >= 5000) {
-        advice.push("💰 Excelentes ingresos! Te abren muchas opciones premium.");
-      } else if (userProgress.monthlyIncome >= 2000) {
-        advice.push("👍 Buenos ingresos. Puedes acceder a productos competitivos.");
-      } else {
-        advice.push("🌱 Empezando bien. Te ayudo a elegir productos accesibles.");
+    try {
+      if (userProgress.profileLevel && userProgress.profileLevel < 50) {
+        advice.push("📈 Tu perfil financiero puede mejorar. Te ayudo a fortalecerlo.");
       }
-    }
-    
-    if (userProgress.selectedProduct) {
-      advice.push("🎯 Excelente elección de producto. Te guío en los siguientes pasos.");
+      
+      if (userProgress.monthlyIncome) {
+        if (userProgress.monthlyIncome >= 5000) {
+          advice.push("💰 Excelentes ingresos! Te abren muchas opciones premium.");
+        } else if (userProgress.monthlyIncome >= 2000) {
+          advice.push("👍 Buenos ingresos. Puedes acceder a productos competitivos.");
+        } else {
+          advice.push("🌱 Empezando bien. Te ayudo a elegir productos accesibles.");
+        }
+      }
+      
+      if (userProgress.selectedProduct) {
+        advice.push("🎯 Excelente elección de producto. Te guío en los siguientes pasos.");
+      }
+    } catch (error) {
+      console.error('Error generating personalized advice:', error);
     }
     
     return advice;
   };
 
-  const getCurrentTips = () => stepTips[currentStep as keyof typeof stepTips] || [];
+  const getCurrentTips = () => {
+    try {
+      return stepTips[currentStep as keyof typeof stepTips] || [];
+    } catch (error) {
+      console.error('Error getting current tips:', error);
+      return [];
+    }
+  };
+
   const personalizedAdvice = getPersonalizedAdvice();
 
   if (isMinimized) {
@@ -192,7 +204,7 @@ export const AsesorIA = ({ message, onClose, currentStep, userProgress }: Asesor
                 transition={{ delay: 0.3 }}
                 className="text-slate-700 leading-relaxed mb-4"
               >
-                <p className="text-base">{message}</p>
+                <p className="text-base">{message || "Hola, soy tu asesora financiera personal."}</p>
                 
                 {userProgress?.profileLevel && (
                   <motion.div
