@@ -45,11 +45,7 @@ const App = () => (
                 <BankRoute />
               </ProtectedRoute>
             } />
-            <Route path="/neza" element={
-              <ProtectedRoute>
-                <NezaRoute />
-              </ProtectedRoute>
-            } />
+            <Route path="/neza" element={<NezaRoute />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

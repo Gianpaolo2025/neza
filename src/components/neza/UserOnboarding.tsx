@@ -5,6 +5,9 @@ import { AuctionValidator } from "./AuctionValidator";
 import { OffersDashboard } from "@/components/OffersDashboard";
 import { UserData } from "@/types/user";
 import { userTrackingService } from "@/services/userTracking";
+import { Login } from "@/components/auth/Login";
+import { Register } from "@/components/auth/Register";
+import { useAuth } from "@/hooks/useAuth";
 
 interface UserOnboardingProps {
   onBack: () => void;
@@ -12,8 +15,10 @@ interface UserOnboardingProps {
 }
 
 export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProps) => {
-  const [currentView, setCurrentView] = useState<'advisory' | 'validation' | 'offers'>('advisory');
+  const [currentView, setCurrentView] = useState<'advisory' | 'validation' | 'offers' | 'auth'>('advisory');
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [showRegister, setShowRegister] = useState(false);
+  const { user } = useAuth();
 
   const handleComplete = (data: any) => {
     // Convert data from the experience to expected format
@@ -40,7 +45,15 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
       documents: data.documents
     };
     
-    // Start tracking session if not exists
+    setUserData(convertedData);
+    
+    // Check if user is authenticated before proceeding to validation
+    if (!user) {
+      setCurrentView('auth');
+      return;
+    }
+    
+    // Continue with tracking and validation if authenticated
     if (!userTrackingService['currentSessionId']) {
       userTrackingService.startSession(
         convertedData.email, 
@@ -49,7 +62,6 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
       );
     }
 
-    // Register onboarding completion
     userTrackingService.trackActivity(
       'form_submit',
       { ...convertedData, forceFlow },
@@ -57,7 +69,6 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
       convertedData.productType
     );
 
-    // Update user profile with all information
     userTrackingService.updateUserProfile(convertedData.email, {
       firstName: convertedData.firstName,
       lastName: convertedData.lastName,
@@ -69,7 +80,6 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
       tags: [convertedData.productType, convertedData.employmentType, convertedData.urgencyLevel]
     }, 'Onboarding completado con información completa');
 
-    // Register specific event
     userTrackingService.addUserEvent(
       convertedData.email,
       userTrackingService['currentSessionId'] || 'system',
@@ -85,8 +95,13 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
       true
     );
     
-    setUserData(convertedData);
     setCurrentView('validation');
+  };
+
+  const handleAuthSuccess = () => {
+    if (userData) {
+      setCurrentView('validation');
+    }
   };
 
   const handleValidationSuccess = () => {
@@ -103,6 +118,54 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
   const handleValidationRetry = () => {
     setCurrentView('advisory');
   };
+
+  if (currentView === 'auth') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-neza-blue-50 via-white to-neza-blue-50 flex items-center justify-center p-4">
+        {showRegister ? (
+          <div className="w-full max-w-md">
+            <Register />
+            <div className="text-center mt-4">
+              <button
+                onClick={() => setShowRegister(false)}
+                className="text-neza-blue-600 hover:underline text-sm"
+              >
+                ¿Ya tienes cuenta? Inicia sesión
+              </button>
+            </div>
+            <div className="text-center mt-2">
+              <button
+                onClick={() => setCurrentView('advisory')}
+                className="text-gray-500 hover:underline text-sm"
+              >
+                Volver al formulario
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="w-full max-w-md">
+            <Login />
+            <div className="text-center mt-4">
+              <button
+                onClick={() => setShowRegister(true)}
+                className="text-neza-blue-600 hover:underline text-sm"
+              >
+                ¿No tienes cuenta? Regístrate
+              </button>
+            </div>
+            <div className="text-center mt-2">
+              <button
+                onClick={() => setCurrentView('advisory')}
+                className="text-gray-500 hover:underline text-sm"
+              >
+                Volver al formulario
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   if (currentView === 'offers' && userData) {
     return (
@@ -141,7 +204,6 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
   return (
     <HumanAdvisoryExperience 
       onBack={() => {
-        // Register abandonment of onboarding
         userTrackingService.trackActivity(
           'form_abandon',
           { step: 'advisory', reason: 'user_back_button', forceFlow },
