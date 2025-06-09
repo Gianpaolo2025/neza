@@ -81,17 +81,18 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
   };
 
   const canProceedFromPersonalStep = () => {
-    const { firstName, lastName, dni, email, phone } = personalInfo;
-    return firstName.length > 0 && lastName.length > 0 && dni.length === 8 && email.includes('@') && phone.length >= 9;
+    // Allow proceeding even with incomplete data
+    return true;
   };
 
   const canProceedFromWorkStep = () => {
-    const { workSituation } = workDetails;
-    return workSituation.length > 0 && monthlyIncome > 0;
+    // Allow proceeding even with incomplete data
+    return true;
   };
 
   const canProceedFromGoalStep = () => {
-    return goal.length > 0 && amount > 0;
+    // Allow proceeding even with incomplete data
+    return true;
   };
 
   const canProceedFromDocuments = () => {
@@ -110,7 +111,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
       case 'goal':
         return canProceedFromGoalStep();
       case 'documents':
-        return canProceedFromDocuments(); // Always true now
+        return canProceedFromDocuments();
       case 'summary':
         return true;
       default:
@@ -158,13 +159,25 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
 
   const handleFinalSubmit = () => {
     onComplete({
+      dni: personalInfo.dni,
+      firstName: personalInfo.firstName,
+      lastName: personalInfo.lastName,
+      email: personalInfo.email,
+      phone: personalInfo.phone,
+      monthlyIncome,
+      requestedAmount: amount,
+      employmentType: workDetails.workSituation,
+      creditHistory: '',
+      productType: goal,
+      hasOtherDebts: '',
+      bankingRelationship: '',
+      urgencyLevel: '',
+      preferredBank,
       personalInfo,
       workDetails,
-      monthlyIncome,
       amount,
       goal,
       hasPayslips,
-      preferredBank,
       documents
     });
   };
