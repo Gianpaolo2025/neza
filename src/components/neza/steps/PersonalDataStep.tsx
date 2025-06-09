@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -7,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { User, Mail, Phone, MapPin, Calendar, Briefcase } from "lucide-react";
+import { EmailVerification } from "../EmailVerification";
 
 interface PersonalData {
   firstName: string;
@@ -35,6 +35,7 @@ interface PersonalDataStepProps {
 export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUser }: PersonalDataStepProps) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [previousData, setPreviousData] = useState<Partial<PersonalData>>({});
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
 
   useEffect(() => {
     // Cargar datos previos del localStorage
@@ -90,29 +91,55 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
     if (validateForm()) {
       // Guardar datos en localStorage para futuras sesiones
       localStorage.setItem('nezaPersonalData', JSON.stringify(data));
-      // Automatically mark as validated and verified
+      
+      // Si el email ha cambiado o no está verificado, mostrar verificación
+      if (!data.otpVerified || data.email !== previousData.email) {
+        setShowEmailVerification(true);
+        return;
+      }
+      
+      // Si ya está verificado, continuar directamente
       onUpdate({ ...data, isValidated: true, otpVerified: true });
       onNext();
     }
+  };
+
+  const handleEmailVerified = () => {
+    onUpdate({ ...data, isValidated: true, otpVerified: true });
+    setShowEmailVerification(false);
+    onNext();
   };
 
   const fillFromPrevious = (field: keyof PersonalData, value: any) => {
     onUpdate({ ...data, [field]: value });
   };
 
-  const AutocompleteButton = ({ field, value, label }: { field: keyof PersonalData; value: any; label: string }) => {
-    if (!value || value === data[field]) return null;
+  const AutocompleteSuggestion = ({ field, value, label }: { field: keyof PersonalData; value: any; label: string }) => {
+    if (!value || value === data[field] || !value.toString().trim()) return null;
     
     return (
-      <button
-        type="button"
-        onClick={() => fillFromPrevious(field, value)}
-        className="mt-1 text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-md hover:bg-blue-100 border border-blue-200 transition-colors"
-      >
-        {label}: {value}
-      </button>
+      <div className="mt-2">
+        <button
+          type="button"
+          onClick={() => fillFromPrevious(field, value)}
+          className="text-xs bg-blue-50 text-blue-700 px-3 py-2 rounded-md hover:bg-blue-100 border border-blue-200 transition-colors shadow-sm"
+        >
+          💡 {label}: <strong>{value}</strong>
+        </button>
+      </div>
     );
   };
+
+  // Si se está mostrando la verificación de email, renderizar solo eso
+  if (showEmailVerification) {
+    return (
+      <EmailVerification
+        email={data.email}
+        onVerified={handleEmailVerified}
+        onBack={() => setShowEmailVerification(false)}
+      />
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4">
@@ -140,7 +167,7 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
       </motion.div>
 
       <div className="grid gap-4 md:gap-6 md:grid-cols-2">
-        {/* Nombres - SIEMPRE EDITABLE */}
+        {/* Nombres - SIEMPRE EDITABLE con autocompletado */}
         <Card className="border-blue-200 bg-white/80">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -155,14 +182,14 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
               placeholder="Ej: Juan Carlos"
               className={`text-base md:text-lg py-4 md:py-6 ${errors.firstName ? 'border-red-500' : 'border-blue-300'} focus:border-blue-500`}
             />
-            <AutocompleteButton field="firstName" value={previousData.firstName} label="Usar anterior" />
+            <AutocompleteSuggestion field="firstName" value={previousData.firstName} label="Usar nombre anterior" />
             {errors.firstName && (
               <p className="text-red-500 text-sm mt-2">{errors.firstName}</p>
             )}
           </CardContent>
         </Card>
 
-        {/* Apellidos - SIEMPRE EDITABLE */}
+        {/* Apellidos - SIEMPRE EDITABLE con autocompletado */}
         <Card className="border-blue-200 bg-white/80">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -177,14 +204,14 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
               placeholder="Ej: Pérez García"
               className={`text-base md:text-lg py-4 md:py-6 ${errors.lastName ? 'border-red-500' : 'border-blue-300'} focus:border-blue-500`}
             />
-            <AutocompleteButton field="lastName" value={previousData.lastName} label="Usar anterior" />
+            <AutocompleteSuggestion field="lastName" value={previousData.lastName} label="Usar apellido anterior" />
             {errors.lastName && (
               <p className="text-red-500 text-sm mt-2">{errors.lastName}</p>
             )}
           </CardContent>
         </Card>
 
-        {/* DNI - SIEMPRE EDITABLE */}
+        {/* DNI - SIEMPRE EDITABLE con autocompletado */}
         <Card className="border-blue-200 bg-white/80">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -200,7 +227,7 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
               maxLength={8}
               className={`text-base md:text-lg py-4 md:py-6 ${errors.dni ? 'border-red-500' : 'border-blue-300'} focus:border-blue-500`}
             />
-            <AutocompleteButton field="dni" value={previousData.dni} label="Usar anterior" />
+            <AutocompleteSuggestion field="dni" value={previousData.dni} label="Usar DNI anterior" />
             {errors.dni && (
               <p className="text-red-500 text-sm mt-2">{errors.dni}</p>
             )}
@@ -229,7 +256,7 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
           </CardContent>
         </Card>
 
-        {/* Email - SIEMPRE EDITABLE */}
+        {/* Email - SIEMPRE EDITABLE con autocompletado */}
         <Card className="border-blue-200 bg-white/80">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -245,14 +272,14 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
               placeholder="juan@ejemplo.com"
               className={`text-base md:text-lg py-4 md:py-6 ${errors.email ? 'border-red-500' : 'border-blue-300'} focus:border-blue-500`}
             />
-            <AutocompleteButton field="email" value={previousData.email} label="Usar anterior" />
+            <AutocompleteSuggestion field="email" value={previousData.email} label="Usar email anterior" />
             {errors.email && (
               <p className="text-red-500 text-sm mt-2">{errors.email}</p>
             )}
           </CardContent>
         </Card>
 
-        {/* Teléfono - SIEMPRE EDITABLE */}
+        {/* Teléfono - SIEMPRE EDITABLE con autocompletado */}
         <Card className="border-blue-200 bg-white/80">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -268,7 +295,7 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
               maxLength={9}
               className={`text-base md:text-lg py-4 md:py-6 ${errors.phone ? 'border-red-500' : 'border-blue-300'} focus:border-blue-500`}
             />
-            <AutocompleteButton field="phone" value={previousData.phone} label="Usar anterior" />
+            <AutocompleteSuggestion field="phone" value={previousData.phone} label="Usar teléfono anterior" />
             {errors.phone && (
               <p className="text-red-500 text-sm mt-2">{errors.phone}</p>
             )}
