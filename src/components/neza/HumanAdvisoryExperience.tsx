@@ -43,7 +43,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
   const [goal, setGoal] = useState('');
   const [hasPayslips, setHasPayslips] = useState('si');
   const [preferredBank, setPreferredBank] = useState('');
-  const [documents, setDocuments] = useState<{ [key: string]: any }>({});
+  const [documents, setDocuments] = useState<{ [key: string]: { file: File; analysis: any; fileId: string } }>({});
 
   const documentTypes = [
     {
@@ -157,16 +157,26 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
   };
 
   const handleFinalSubmit = () => {
-    onComplete({
-      personalInfo,
-      workDetails,
+    const userData: UserData = {
+      dni: personalInfo.dni,
+      firstName: personalInfo.firstName,
+      lastName: personalInfo.lastName,
+      email: personalInfo.email,
+      phone: personalInfo.phone,
       monthlyIncome,
-      amount,
-      goal,
-      hasPayslips,
+      requestedAmount: amount,
+      employmentType: workDetails.workSituation,
+      creditHistory: '',
+      productType: goal,
+      hasOtherDebts: '',
+      bankingRelationship: '',
+      urgencyLevel: '',
       preferredBank,
+      workDetails,
       documents
-    });
+    };
+    
+    onComplete(userData);
   };
 
   const handleDocumentUpload = (documentType: string, file: File, analysis: any, fileId: string) => {
@@ -571,7 +581,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
             key={docType.type}
             title={docType.title}
             description={docType.description}
-            required={false} // Changed to false
+            required={false}
             documentType={docType.type}
             status={getDocumentStatus(docType.type)}
             onUpload={(file, analysis, fileId) => handleDocumentUpload(docType.type, file, analysis, fileId)}

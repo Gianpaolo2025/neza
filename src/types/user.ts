@@ -22,9 +22,11 @@ export interface UserData {
     seniority: string;
   };
   documents?: {
-    dni: File | null;
-    payslips: File | null;
-    others: File | null;
+    [key: string]: {
+      file: File;
+      analysis: any;
+      fileId: string;
+    };
   };
   // New fields for expanded work information
   carrera?: string;
