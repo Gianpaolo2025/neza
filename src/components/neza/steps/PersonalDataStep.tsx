@@ -152,7 +152,7 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
       </motion.div>
 
       <div className="grid gap-4 md:gap-6 md:grid-cols-2">
-        {/* Nombres - SIEMPRE EDITABLE con autocompletado */}
+        {/* Nombres - SIEMPRE EDITABLE */}
         <Card className="border-blue-200 bg-white/80">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -178,7 +178,7 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
           </CardContent>
         </Card>
 
-        {/* Apellidos - SIEMPRE EDITABLE con autocompletado */}
+        {/* Apellidos - SIEMPRE EDITABLE */}
         <Card className="border-blue-200 bg-white/80">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -204,7 +204,7 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
           </CardContent>
         </Card>
 
-        {/* DNI - SIEMPRE EDITABLE con autocompletado */}
+        {/* DNI - SIEMPRE EDITABLE */}
         <Card className="border-blue-200 bg-white/80">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -258,7 +258,7 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
           </CardContent>
         </Card>
 
-        {/* Email - SIEMPRE EDITABLE con autocompletado */}
+        {/* Email - SIEMPRE EDITABLE */}
         <Card className="border-blue-200 bg-white/80">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center gap-3 mb-4">
@@ -285,7 +285,7 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
           </CardContent>
         </Card>
 
-        {/* Teléfono - SIEMPRE EDITABLE con autocompletado */}
+        {/* Teléfono - SIEMPRE EDITABLE */}
         <Card className="border-blue-200 bg-white/80">
           <CardContent className="p-4 md:p-6">
             <div className="flex items-center gap-3 mb-4">

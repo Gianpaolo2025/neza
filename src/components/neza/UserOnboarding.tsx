@@ -5,9 +5,6 @@ import { AuctionValidator } from "./AuctionValidator";
 import { OffersDashboard } from "@/components/OffersDashboard";
 import { UserData } from "@/types/user";
 import { userTrackingService } from "@/services/userTracking";
-import { Login } from "@/components/auth/Login";
-import { Register } from "@/components/auth/Register";
-import { useAuth } from "@/hooks/useAuth";
 
 interface UserOnboardingProps {
   onBack: () => void;
@@ -15,10 +12,8 @@ interface UserOnboardingProps {
 }
 
 export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProps) => {
-  const [currentView, setCurrentView] = useState<'advisory' | 'validation' | 'offers' | 'auth'>('advisory');
+  const [currentView, setCurrentView] = useState<'advisory' | 'validation' | 'offers'>('advisory');
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [showRegister, setShowRegister] = useState(false);
-  const { user } = useAuth();
 
   const handleComplete = (data: any) => {
     // Convert data from the experience to expected format
@@ -40,20 +35,14 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
       urgencyLevel: 'normal',
       creditHistory: data.hasPayslips === 'si' ? 'bueno' : 'nuevo',
       preferredBank: data.preferredBank || '',
-      emailVerified: data.personalInfo.emailVerified,
+      emailVerified: true,
       workDetails: data.workDetails,
       documents: data.documents
     };
     
     setUserData(convertedData);
     
-    // Check if user is authenticated before proceeding to validation
-    if (!user) {
-      setCurrentView('auth');
-      return;
-    }
-    
-    // Continue with tracking and validation if authenticated
+    // Continue directly to validation without authentication
     if (!userTrackingService['currentSessionId']) {
       userTrackingService.startSession(
         convertedData.email, 
@@ -98,12 +87,6 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
     setCurrentView('validation');
   };
 
-  const handleAuthSuccess = () => {
-    if (userData) {
-      setCurrentView('validation');
-    }
-  };
-
   const handleValidationSuccess = () => {
     if (userData) {
       userTrackingService.updateUserStatus(
@@ -118,54 +101,6 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
   const handleValidationRetry = () => {
     setCurrentView('advisory');
   };
-
-  if (currentView === 'auth') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-neza-blue-50 via-white to-neza-blue-50 flex items-center justify-center p-4">
-        {showRegister ? (
-          <div className="w-full max-w-md">
-            <Register />
-            <div className="text-center mt-4">
-              <button
-                onClick={() => setShowRegister(false)}
-                className="text-neza-blue-600 hover:underline text-sm"
-              >
-                ¿Ya tienes cuenta? Inicia sesión
-              </button>
-            </div>
-            <div className="text-center mt-2">
-              <button
-                onClick={() => setCurrentView('advisory')}
-                className="text-gray-500 hover:underline text-sm"
-              >
-                Volver al formulario
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="w-full max-w-md">
-            <Login />
-            <div className="text-center mt-4">
-              <button
-                onClick={() => setShowRegister(true)}
-                className="text-neza-blue-600 hover:underline text-sm"
-              >
-                ¿No tienes cuenta? Regístrate
-              </button>
-            </div>
-            <div className="text-center mt-2">
-              <button
-                onClick={() => setCurrentView('advisory')}
-                className="text-gray-500 hover:underline text-sm"
-              >
-                Volver al formulario
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
 
   if (currentView === 'offers' && userData) {
     return (
