@@ -15,25 +15,12 @@ export interface UserData {
   urgencyLevel: string;
   preferredBank: string;
   emailVerified?: boolean;
-  workDetails?: {
-    workSituation: string;
-    companyName: string;
-    jobTitle: string;
-    seniority: string;
+  workDetails?: string;
+  documents?: {
+    dni: File | null;
+    payslips: File | null;
+    others: File | null;
   };
-  documents?: { [key: string]: any };
-  // Personal info from form
-  personalInfo?: {
-    firstName: string;
-    lastName: string;
-    dni: string;
-    email: string;
-    phone: string;
-  };
-  // Goal info
-  amount?: number;
-  goal?: string;
-  hasPayslips?: string;
   // New fields for expanded work information
   carrera?: string;
   ciclo?: string;
