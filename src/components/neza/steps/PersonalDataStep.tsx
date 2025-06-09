@@ -45,6 +45,7 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
       try {
         const parsed = JSON.parse(savedData);
         setPreviousData(parsed);
+        console.log('Datos previos cargados:', parsed);
       } catch (error) {
         console.error('Error parsing saved data:', error);
       }
@@ -95,6 +96,7 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
       
       // Si el email ha cambiado o no está verificado, mostrar verificación
       if (!data.otpVerified || data.email !== previousData.email) {
+        console.log('Iniciando verificación de email para:', data.email);
         setShowEmailVerification(true);
         return;
       }
@@ -106,12 +108,14 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
   };
 
   const handleEmailVerified = () => {
+    console.log('Email verificado exitosamente');
     onUpdate({ ...data, isValidated: true, otpVerified: true });
     setShowEmailVerification(false);
     onNext();
   };
 
   const fillFromPrevious = (field: keyof PersonalData, value: any) => {
+    console.log(`Autocompletando ${field} con valor:`, value);
     onUpdate({ ...data, [field]: value });
   };
 
@@ -123,9 +127,11 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
         <button
           type="button"
           onClick={() => fillFromPrevious(field, value)}
-          className="text-xs bg-blue-50 text-blue-700 px-3 py-2 rounded-md hover:bg-blue-100 border border-blue-200 transition-colors shadow-sm"
+          className="text-xs bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-800 px-4 py-2 rounded-lg hover:from-blue-100 hover:to-indigo-100 border border-blue-200 transition-all duration-200 shadow-sm hover:shadow-md flex items-center gap-2"
         >
-          💡 {label}: <strong>{value}</strong>
+          <span className="text-blue-600">💡</span>
+          <span className="font-medium">{label}:</span>
+          <span className="bg-white px-2 py-1 rounded text-blue-900 font-semibold">{value}</span>
         </button>
       </div>
     );
@@ -134,11 +140,16 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
   // Si se está mostrando la verificación de email, renderizar solo eso
   if (showEmailVerification) {
     return (
-      <EmailVerification
-        email={data.email}
-        onVerified={handleEmailVerified}
-        onBack={() => setShowEmailVerification(false)}
-      />
+      <div className="max-w-4xl mx-auto px-4">
+        <EmailVerification
+          email={data.email}
+          onVerified={handleEmailVerified}
+          onBack={() => {
+            console.log('Regresando de verificación de email');
+            setShowEmailVerification(false);
+          }}
+        />
+      </div>
     );
   }
 
@@ -165,6 +176,11 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-sm text-green-800">
           <strong>✏️ Todos los campos son editables:</strong> Puedes modificar cualquier información, incluso si ya la habías ingresado antes
         </div>
+        {Object.keys(previousData).length > 0 && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-800 mt-3">
+            <strong>💡 Autocompletado disponible:</strong> Verás sugerencias basadas en datos anteriores debajo de cada campo
+          </div>
+        )}
       </motion.div>
 
       <div className="grid gap-4 md:gap-6 md:grid-cols-2">
@@ -183,7 +199,11 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
               placeholder="Ej: Juan Carlos"
               className={`text-base md:text-lg py-4 md:py-6 ${errors.firstName ? 'border-red-500' : 'border-blue-300'} focus:border-blue-500`}
             />
-            <AutocompleteSuggestion field="firstName" value={previousData.firstName} label="Usar nombre anterior" />
+            <AutocompleteSuggestion 
+              field="firstName" 
+              value={previousData.firstName} 
+              label="Usar nombre anterior" 
+            />
             {errors.firstName && (
               <p className="text-red-500 text-sm mt-2">{errors.firstName}</p>
             )}
@@ -205,7 +225,11 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
               placeholder="Ej: Pérez García"
               className={`text-base md:text-lg py-4 md:py-6 ${errors.lastName ? 'border-red-500' : 'border-blue-300'} focus:border-blue-500`}
             />
-            <AutocompleteSuggestion field="lastName" value={previousData.lastName} label="Usar apellido anterior" />
+            <AutocompleteSuggestion 
+              field="lastName" 
+              value={previousData.lastName} 
+              label="Usar apellido anterior" 
+            />
             {errors.lastName && (
               <p className="text-red-500 text-sm mt-2">{errors.lastName}</p>
             )}
@@ -228,7 +252,11 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
               maxLength={8}
               className={`text-base md:text-lg py-4 md:py-6 ${errors.dni ? 'border-red-500' : 'border-blue-300'} focus:border-blue-500`}
             />
-            <AutocompleteSuggestion field="dni" value={previousData.dni} label="Usar DNI anterior" />
+            <AutocompleteSuggestion 
+              field="dni" 
+              value={previousData.dni} 
+              label="Usar DNI anterior" 
+            />
             {errors.dni && (
               <p className="text-red-500 text-sm mt-2">{errors.dni}</p>
             )}
@@ -250,6 +278,11 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
               onChange={(e) => onUpdate({ ...data, birthDate: e.target.value })}
               className={`text-base md:text-lg py-4 md:py-6 ${errors.birthDate ? 'border-red-500' : 'border-blue-300'} focus:border-blue-500`}
               max={new Date().toISOString().split('T')[0]}
+            />
+            <AutocompleteSuggestion 
+              field="birthDate" 
+              value={previousData.birthDate} 
+              label="Usar fecha anterior" 
             />
             {errors.birthDate && (
               <p className="text-red-500 text-sm mt-2">{errors.birthDate}</p>
@@ -273,7 +306,11 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
               placeholder="juan@ejemplo.com"
               className={`text-base md:text-lg py-4 md:py-6 ${errors.email ? 'border-red-500' : 'border-blue-300'} focus:border-blue-500`}
             />
-            <AutocompleteSuggestion field="email" value={previousData.email} label="Usar email anterior" />
+            <AutocompleteSuggestion 
+              field="email" 
+              value={previousData.email} 
+              label="Usar email anterior" 
+            />
             {errors.email && (
               <p className="text-red-500 text-sm mt-2">{errors.email}</p>
             )}
@@ -296,7 +333,11 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
               maxLength={9}
               className={`text-base md:text-lg py-4 md:py-6 ${errors.phone ? 'border-red-500' : 'border-blue-300'} focus:border-blue-500`}
             />
-            <AutocompleteSuggestion field="phone" value={previousData.phone} label="Usar teléfono anterior" />
+            <AutocompleteSuggestion 
+              field="phone" 
+              value={previousData.phone} 
+              label="Usar teléfono anterior" 
+            />
             {errors.phone && (
               <p className="text-red-500 text-sm mt-2">{errors.phone}</p>
             )}
@@ -324,6 +365,11 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
                 ))}
               </SelectContent>
             </Select>
+            <AutocompleteSuggestion 
+              field="occupation" 
+              value={previousData.occupation} 
+              label="Usar ocupación anterior" 
+            />
             {errors.occupation && (
               <p className="text-red-500 text-sm mt-2">{errors.occupation}</p>
             )}
@@ -351,6 +397,11 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
                   className={`text-base py-3 ${errors.workYears ? 'border-red-500' : 'border-blue-300'}`}
                 />
                 <span className="text-xs text-gray-500">Años (máx. 40)</span>
+                <AutocompleteSuggestion 
+                  field="workYears" 
+                  value={previousData.workYears} 
+                  label="Usar años anteriores" 
+                />
               </div>
               <div>
                 <Input
@@ -363,6 +414,11 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
                   className={`text-base py-3 ${errors.workMonths ? 'border-red-500' : 'border-blue-300'}`}
                 />
                 <span className="text-xs text-gray-500">Meses (máx. 11)</span>
+                <AutocompleteSuggestion 
+                  field="workMonths" 
+                  value={previousData.workMonths} 
+                  label="Usar meses anteriores" 
+                />
               </div>
             </div>
             {(errors.workYears || errors.workMonths) && (
@@ -389,6 +445,11 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
                 <SelectItem value="USD">$ Dólares Americanos</SelectItem>
               </SelectContent>
             </Select>
+            <AutocompleteSuggestion 
+              field="preferredCurrency" 
+              value={previousData.preferredCurrency} 
+              label="Usar moneda anterior" 
+            />
             {errors.preferredCurrency && (
               <p className="text-red-500 text-sm mt-2">{errors.preferredCurrency}</p>
             )}
@@ -411,6 +472,11 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
             placeholder="Av. Ejemplo 123, Distrito, Provincia, Departamento"
             className={`text-base md:text-lg py-4 md:py-6 ${errors.address ? 'border-red-500' : 'border-blue-300'} focus:border-blue-500`}
           />
+          <AutocompleteSuggestion 
+            field="address" 
+            value={previousData.address} 
+            label="Usar dirección anterior" 
+          />
           {errors.address && (
             <p className="text-red-500 text-sm mt-2">{errors.address}</p>
           )}
@@ -431,8 +497,9 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
         <Button 
           onClick={handleContinue} 
           className="w-full md:flex-1 bg-blue-600 hover:bg-blue-700 py-3 md:py-4 text-base md:text-lg"
+          disabled={showEmailVerification}
         >
-          Continuar
+          {showEmailVerification ? 'Verificando...' : 'Continuar'}
         </Button>
       </div>
     </div>
