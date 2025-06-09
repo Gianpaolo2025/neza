@@ -19,10 +19,10 @@ export const AdminLogin = ({ onLogin }: AdminLoginProps) => {
   const [error, setError] = useState("");
   const [loginMethod, setLoginMethod] = useState<'credentials' | 'token'>('credentials');
 
-  // Credenciales de administrador (en producción esto debería estar en backend)
+  // Credenciales específicas del administrador
   const ADMIN_CREDENTIALS = {
-    email: "admin@neza.com",
-    password: "neza2024admin"
+    email: "gianpaolorossi3d@gmail.com",
+    password: "Gianpaolo18@"
   };
   
   const ADMIN_TOKEN = "NEZA_ADMIN_2024_SECURE_TOKEN";
@@ -31,8 +31,9 @@ export const AdminLogin = ({ onLogin }: AdminLoginProps) => {
     if (email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
       onLogin(ADMIN_TOKEN);
       localStorage.setItem('nezaAdminToken', ADMIN_TOKEN);
+      setError("");
     } else {
-      setError("Credenciales incorrectas. Intenta con admin@neza.com");
+      setError("Credenciales incorrectas. Verifica tu email y contraseña.");
     }
   };
 
@@ -40,6 +41,7 @@ export const AdminLogin = ({ onLogin }: AdminLoginProps) => {
     if (adminToken === ADMIN_TOKEN) {
       onLogin(ADMIN_TOKEN);
       localStorage.setItem('nezaAdminToken', ADMIN_TOKEN);
+      setError("");
     } else {
       setError("Token de administrador inválido");
     }
@@ -84,7 +86,7 @@ export const AdminLogin = ({ onLogin }: AdminLoginProps) => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@neza.com"
+                  placeholder="gianpaolorossi3d@gmail.com"
                   className="border-neza-blue-200 focus:border-neza-blue-400"
                 />
               </div>
@@ -144,11 +146,6 @@ export const AdminLogin = ({ onLogin }: AdminLoginProps) => {
               <AlertDescription className="text-red-700">{error}</AlertDescription>
             </Alert>
           )}
-
-          <div className="text-center text-xs text-neza-blue-500 space-y-1">
-            <p>Demo credentials: admin@neza.com / neza2024admin</p>
-            <p>Demo token: NEZA_ADMIN_2024_SECURE_TOKEN</p>
-          </div>
         </CardContent>
       </Card>
     </div>

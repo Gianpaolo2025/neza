@@ -15,7 +15,12 @@ export interface UserData {
   urgencyLevel: string;
   preferredBank: string;
   emailVerified?: boolean;
-  workDetails?: string;
+  workDetails?: {
+    workSituation: string;
+    companyName: string;
+    jobTitle: string;
+    seniority: string;
+  };
   documents?: {
     dni: File | null;
     payslips: File | null;
