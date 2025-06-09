@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { User, Mail, Phone, MapPin, Calendar, Briefcase } from "lucide-react";
-import { EmailVerification } from "../EmailVerification";
 
 interface PersonalData {
   firstName: string;
@@ -36,7 +35,6 @@ interface PersonalDataStepProps {
 export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUser }: PersonalDataStepProps) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [previousData, setPreviousData] = useState<Partial<PersonalData>>({});
-  const [showEmailVerification, setShowEmailVerification] = useState(false);
 
   useEffect(() => {
     // Cargar datos previos del localStorage
@@ -94,24 +92,10 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
       // Guardar datos en localStorage para futuras sesiones
       localStorage.setItem('nezaPersonalData', JSON.stringify(data));
       
-      // Si el email ha cambiado o no está verificado, mostrar verificación
-      if (!data.otpVerified || data.email !== previousData.email) {
-        console.log('Iniciando verificación de email para:', data.email);
-        setShowEmailVerification(true);
-        return;
-      }
-      
-      // Si ya está verificado, continuar directamente
+      // Continuar directamente sin verificación
       onUpdate({ ...data, isValidated: true, otpVerified: true });
       onNext();
     }
-  };
-
-  const handleEmailVerified = () => {
-    console.log('Email verificado exitosamente');
-    onUpdate({ ...data, isValidated: true, otpVerified: true });
-    setShowEmailVerification(false);
-    onNext();
   };
 
   const fillFromPrevious = (field: keyof PersonalData, value: any) => {
@@ -136,22 +120,6 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
       </div>
     );
   };
-
-  // Si se está mostrando la verificación de email, renderizar solo eso
-  if (showEmailVerification) {
-    return (
-      <div className="max-w-4xl mx-auto px-4">
-        <EmailVerification
-          email={data.email}
-          onVerified={handleEmailVerified}
-          onBack={() => {
-            console.log('Regresando de verificación de email');
-            setShowEmailVerification(false);
-          }}
-        />
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-4xl mx-auto px-4">
@@ -497,9 +465,8 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
         <Button 
           onClick={handleContinue} 
           className="w-full md:flex-1 bg-blue-600 hover:bg-blue-700 py-3 md:py-4 text-base md:text-lg"
-          disabled={showEmailVerification}
         >
-          {showEmailVerification ? 'Verificando...' : 'Continuar'}
+          Continuar
         </Button>
       </div>
     </div>
