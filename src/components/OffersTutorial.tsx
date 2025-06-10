@@ -40,7 +40,7 @@ export const OffersTutorial = ({ isVisible, onClose }: OffersTutorialProps) => {
     },
     {
       id: "preapproved-products",
-      target: "#preapproved-section h3",
+      target: "#preapproved-section",
       title: "Productos Pre-aprobados",
       description: "Productos que requieren verificación adicional y documentación antes de ser contratados.",
       position: "top",
@@ -75,14 +75,6 @@ export const OffersTutorial = ({ isVisible, onClose }: OffersTutorialProps) => {
       target: "button:has(.lucide-settings)",
       title: "Botón Ajustar condiciones",
       description: "Cambia el tipo de producto o monto sin volver a llenar el formulario.",
-      position: "bottom",
-      highlight: true
-    },
-    {
-      id: "tutorial-button",
-      target: "button:has(.lucide-help-circle)",
-      title: "Botón Ver tutorial",
-      description: "Este botón te permite volver a ver esta explicación cuando lo necesites.",
       position: "bottom",
       highlight: true
     },
