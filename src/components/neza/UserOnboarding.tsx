@@ -42,7 +42,7 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
     
     setUserData(convertedData);
     
-    // Continue directly to validation without authentication
+    // Continue directly to offers without authentication
     if (!userTrackingService['currentSessionId']) {
       userTrackingService.startSession(
         convertedData.email, 
@@ -84,7 +84,7 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
       true
     );
     
-    // Go directly to offers without validation step to prevent alternating views
+    // Set view to offers and prevent any further navigation
     setCurrentView('offers');
   };
 
@@ -103,6 +103,7 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
     setCurrentView('advisory');
   };
 
+  // Render offers dashboard - this should be the stable final view
   if (currentView === 'offers' && userData) {
     return (
       <OffersDashboard 
@@ -119,6 +120,7 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
     );
   }
 
+  // This validation view should not be reached anymore since we skip it
   if (currentView === 'validation' && userData) {
     return (
       <AuctionValidator
@@ -137,6 +139,7 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
     );
   }
 
+  // Default view - advisory experience
   return (
     <HumanAdvisoryExperience 
       onBack={() => {
