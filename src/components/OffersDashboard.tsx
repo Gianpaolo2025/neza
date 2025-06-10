@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -66,6 +65,7 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
   const [showTutorial, setShowTutorial] = useState(false);
   const [showDocuments, setShowDocuments] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState({ days: 0, hours: 0, minutes: 0 });
+  const [auctionEndTime, setAuctionEndTime] = useState<Date | null>(null);
 
   // Calculate countdown based on product type
   const getProductCountdown = (productType: string) => {
@@ -86,15 +86,18 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
       'Usuario accedió al dashboard de ofertas'
     );
 
-    // Calculate initial countdown
+    // Calculate auction end time and set countdown
     const days = getProductCountdown(selectedProductType);
     const endTime = new Date();
     endTime.setDate(endTime.getDate() + days);
+    setAuctionEndTime(endTime);
     
     // Update countdown every minute
     const updateCountdown = () => {
+      if (!auctionEndTime) return;
+      
       const now = new Date();
-      const difference = endTime.getTime() - now.getTime();
+      const difference = auctionEndTime.getTime() - now.getTime();
       
       if (difference > 0) {
         const days = Math.floor(difference / (1000 * 60 * 60 * 24));
@@ -119,7 +122,7 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
       clearInterval(interval);
       clearInterval(countdownInterval);
     };
-  }, [selectedProductType, requestedAmount]);
+  }, [selectedProductType, requestedAmount, auctionEndTime]);
 
   const loadOffers = async () => {
     setLoading(true);
@@ -501,6 +504,17 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
                     status="pending"
                     onUpload={() => {}}
                   />
+                </div>
+
+                <div className="flex justify-center mt-6">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowDocuments(false)}
+                    className="border-neza-blue-300 text-neza-blue-600"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Volver
+                  </Button>
                 </div>
               </motion.div>
             </motion.div>

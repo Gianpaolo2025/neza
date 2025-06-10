@@ -26,15 +26,15 @@ export const OffersTutorial = ({ isVisible, onClose }: OffersTutorialProps) => {
     {
       id: "welcome",
       target: "#approved-section",
-      title: "¡Bienvenido a tus Ofertas Personalizadas!",
-      description: "Te explico paso a paso cómo funciona tu dashboard de ofertas financieras personalizadas.",
+      title: "¡Bienvenido a tus Ofertas!",
+      description: "Te explico paso a paso cómo funciona tu dashboard de ofertas financieras.",
       position: "bottom"
     },
     {
       id: "approved-products",
       target: "#approved-section",
       title: "Productos Aprobados",
-      description: "Estos son productos financieros que ya están aprobados para ti. Puedes solicitarlos directamente sin evaluación adicional. Están ordenados por TEA (menor tasa primero).",
+      description: "Productos que ya están aprobados para ti. Puedes solicitarlos directamente.",
       position: "top",
       highlight: true
     },
@@ -42,7 +42,7 @@ export const OffersTutorial = ({ isVisible, onClose }: OffersTutorialProps) => {
       id: "preapproved-products",
       target: "#preapproved-section",
       title: "Productos Pre-aprobados",
-      description: "Estos productos tienen alta probabilidad de aprobación pero requieren documentación adicional. También ordenados por mejor TEA disponible.",
+      description: "Productos con alta probabilidad de aprobación pero requieren documentación adicional.",
       position: "top",
       highlight: true
     },
@@ -50,7 +50,39 @@ export const OffersTutorial = ({ isVisible, onClose }: OffersTutorialProps) => {
       id: "auction-system",
       target: "#auction-section",
       title: "Subasta Activa",
-      description: "Esta es la sección más emocionante: los bancos compiten en tiempo real por ofrecerte las mejores condiciones. Las tarjetas se mueven automáticamente según quién ofrece mejor TEA.",
+      description: "Los bancos compiten en tiempo real por ofrecerte las mejores condiciones.",
+      position: "bottom",
+      highlight: true
+    },
+    {
+      id: "tutorial-button",
+      target: "button:has(.lucide-help-circle)",
+      title: "Botón Ver tutorial",
+      description: "Este botón te permite volver a ver esta explicación cuando lo necesites.",
+      position: "bottom",
+      highlight: true
+    },
+    {
+      id: "upload-documents",
+      target: "button:has(.lucide-upload)",
+      title: "Botón Subir documentos",
+      description: "Aquí puedes subir tu DNI, boletas de pago y otros documentos necesarios.",
+      position: "bottom",
+      highlight: true
+    },
+    {
+      id: "countdown",
+      target: ".bg-neza-blue-100",
+      title: "Contador de días restantes",
+      description: "Tiempo que tienes para revisar y elegir entre las ofertas disponibles.",
+      position: "bottom",
+      highlight: true
+    },
+    {
+      id: "settings-adjustment",
+      target: "button:has(.lucide-settings)",
+      title: "Botón Ajustar condiciones",
+      description: "Cambia el tipo de producto o monto sin volver a llenar el formulario.",
       position: "bottom",
       highlight: true
     },
@@ -58,7 +90,7 @@ export const OffersTutorial = ({ isVisible, onClose }: OffersTutorialProps) => {
       id: "card-details",
       target: "#auction-section .cursor-pointer:first-child",
       title: "Información de cada Tarjeta",
-      description: "Cada tarjeta muestra: nombre del banco, producto específico (ej: 'Crédito Educativo'), TEA, cuota mensual. Haz clic para ver detalles completos y el botón 'Solicitar este producto'.",
+      description: "Cada tarjeta muestra banco, producto, TEA y cuota mensual. Haz clic para ver detalles.",
       position: "top",
       highlight: true
     },
@@ -66,15 +98,7 @@ export const OffersTutorial = ({ isVisible, onClose }: OffersTutorialProps) => {
       id: "best-offer",
       target: "#auction-section .border-yellow-400",
       title: "Marco Dorado - Mejor Oferta",
-      description: "El marco dorado indica la mejor condición disponible en este momento. Esta posición cambia dinámicamente cuando un banco mejora su oferta.",
-      position: "bottom",
-      highlight: true
-    },
-    {
-      id: "settings-adjustment",
-      target: "button:has(.lucide-settings)",
-      title: "Botón de Ajustar (ícono de tuerca)",
-      description: "Este botón te permite cambiar el tipo de producto o el monto solicitado sin volver a llenar todo el formulario. Las ofertas se actualizan automáticamente.",
+      description: "El marco dorado indica la mejor condición disponible en este momento.",
       position: "bottom",
       highlight: true
     },
@@ -82,7 +106,7 @@ export const OffersTutorial = ({ isVisible, onClose }: OffersTutorialProps) => {
       id: "final",
       target: "#auction-section",
       title: "¡Listo para elegir!",
-      description: "Ahora sabes cómo funciona todo. Los bancos seguirán compitiendo y las ofertas mejorarán automáticamente. ¡Elige la que más te convenga!",
+      description: "Los bancos seguirán compitiendo y las ofertas mejorarán automáticamente.",
       position: "bottom"
     }
   ];
@@ -96,6 +120,14 @@ export const OffersTutorial = ({ isVisible, onClose }: OffersTutorialProps) => {
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
         element.classList.add('tutorial-highlight-blue');
+        
+        // If we're explaining card details, open a card for demonstration
+        if (currentStepData.id === "card-details") {
+          const firstCard = document.querySelector("#auction-section .cursor-pointer:first-child") as HTMLElement;
+          if (firstCard) {
+            firstCard.click();
+          }
+        }
       }
       
       const timer = setTimeout(() => {
@@ -146,7 +178,7 @@ export const OffersTutorial = ({ isVisible, onClose }: OffersTutorialProps) => {
 
   return (
     <>
-      {/* Tutorial Card - Fixed bottom bar to avoid covering content */}
+      {/* Tutorial Card - Fixed bottom bar */}
       <div className="fixed bottom-0 left-0 right-0 z-[90] w-full bg-white border-t-2 border-blue-900 shadow-lg">
         <div className="container mx-auto max-w-6xl px-4 py-2">
           <div className="flex items-center justify-between">
@@ -220,7 +252,7 @@ export const OffersTutorial = ({ isVisible, onClose }: OffersTutorialProps) => {
         </div>
       </div>
 
-      {/* Blue highlight CSS */}
+      {/* Enhanced Blue highlight CSS */}
       <style>{`
         .tutorial-highlight-blue {
           position: relative;
@@ -230,16 +262,16 @@ export const OffersTutorial = ({ isVisible, onClose }: OffersTutorialProps) => {
         .tutorial-highlight-blue::before {
           content: '';
           position: absolute;
-          top: -8px;
-          left: -8px;
-          right: -8px;
-          bottom: -8px;
-          border: 4px solid #1e40af;
-          border-radius: 12px;
+          top: -4px;
+          left: -4px;
+          right: -4px;
+          bottom: -4px;
+          border: 3px solid #1e40af;
+          border-radius: 8px;
           background: rgba(30, 64, 175, 0.1);
           z-index: -1;
           animation: tutorial-pulse-blue 2s infinite;
-          box-shadow: 0 0 20px rgba(30, 64, 175, 0.5);
+          box-shadow: 0 0 15px rgba(30, 64, 175, 0.4);
         }
         
         @keyframes tutorial-pulse-blue {
@@ -248,7 +280,7 @@ export const OffersTutorial = ({ isVisible, onClose }: OffersTutorialProps) => {
             opacity: 0.8;
           }
           50% {
-            transform: scale(1.02);
+            transform: scale(1.01);
             opacity: 1;
           }
         }
