@@ -15,18 +15,11 @@ export interface UserData {
   urgencyLevel: string;
   preferredBank: string;
   emailVerified?: boolean;
-  workDetails?: {
-    workSituation: string;
-    companyName: string;
-    jobTitle: string;
-    seniority: string;
-  };
+  workDetails?: string;
   documents?: {
-    [key: string]: {
-      file: File;
-      analysis: any;
-      fileId: string;
-    };
+    dni: File | null;
+    payslips: File | null;
+    others: File | null;
   };
   // New fields for expanded work information
   carrera?: string;

@@ -1,18 +1,43 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
-import { DocumentUpload } from "./DocumentUpload";
 import { Progress } from "@/components/ui/progress";
-import { CircleCheck, ShieldCheck, User2, Briefcase, PiggyBank, FileText } from "lucide-react";
-import { CompletionAnimation } from "./CompletionAnimation";
-import { UserData } from "@/types/user";
+import { ArrowRight, ArrowLeft, Home, Car, CreditCard, Heart, Target, Play, Building2, FileText, Users, Briefcase, AlertCircle, Upload, Eye, EyeOff, GraduationCap, Factory, Stethoscope, Calculator, Gavel } from "lucide-react";
+
+interface UserData {
+  goal: string;
+  amount: number;
+  workSituation: string;
+  workDetails: string;
+  hasPayslips: string;
+  monthlyIncome: number;
+  personalInfo: {
+    firstName: string;
+    lastName: string;
+    dni: string;
+    email: string;
+    phone: string;
+  };
+  preferredBank: string;
+  documents: {
+    dni: File | null;
+    payslips: File | null;
+    others: File | null;
+  };
+  // New fields for expanded work information
+  carrera?: string;
+  ciclo?: string;
+  hacePracticas?: string;
+  empresaPracticas?: string;
+  empresaTrabajo?: string;
+  nombreNegocio?: string;
+  rubroNegocio?: string;
+  actividadPrincipal?: string;
+}
 
 interface HumanAdvisoryExperienceProps {
   onBack: () => void;
@@ -21,692 +46,893 @@ interface HumanAdvisoryExperienceProps {
 }
 
 export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false }: HumanAdvisoryExperienceProps) => {
-  const [currentStep, setCurrentStep] = useState<'welcome' | 'personal' | 'work' | 'goal' | 'documents' | 'summary'>('welcome');
-  const [completedSteps, setCompletedSteps] = useState<string[]>([]);
-  const [showCompletion, setShowCompletion] = useState(false);
-
-  const [personalInfo, setPersonalInfo] = useState({
-    firstName: '',
-    lastName: '',
-    dni: '',
-    email: '',
-    phone: '',
+  const [currentStep, setCurrentStep] = useState(0);
+  const [showVideo, setShowVideo] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [uploadedPayslips, setUploadedPayslips] = useState<File[]>([]);
+  
+  const [data, setData] = useState<UserData>({
+    goal: "",
+    amount: 0,
+    workSituation: "",
+    workDetails: "",
+    hasPayslips: "",
+    monthlyIncome: 0,
+    personalInfo: {
+      firstName: "",
+      lastName: "",
+      dni: "",
+      email: "",
+      phone: ""
+    },
+    preferredBank: "",
+    documents: {
+      dni: null,
+      payslips: null,
+      others: null
+    }
   });
-  const [workDetails, setWorkDetails] = useState({
-    workSituation: '',
-    companyName: '',
-    jobTitle: '',
-    seniority: '',
-  });
-  const [monthlyIncome, setMonthlyIncome] = useState(0);
-  const [amount, setAmount] = useState(5000);
-  const [goal, setGoal] = useState('');
-  const [hasPayslips, setHasPayslips] = useState('si');
-  const [preferredBank, setPreferredBank] = useState('');
-  const [documents, setDocuments] = useState<{ [key: string]: { file: File; analysis: any; fileId: string } }>({});
 
-  const documentTypes = [
+  // Load previous data on component mount
+  useEffect(() => {
+    const savedData = localStorage.getItem('nezaUserData');
+    if (savedData) {
+      try {
+        const parsedData = JSON.parse(savedData);
+        if (parsedData.personalInfo && 
+            (parsedData.personalInfo.dni || parsedData.personalInfo.firstName || 
+             parsedData.personalInfo.lastName || parsedData.personalInfo.email)) {
+          setData(prev => ({
+            ...prev,
+            personalInfo: {
+              ...prev.personalInfo,
+              ...parsedData.personalInfo
+            },
+            // Restore other saved data
+            goal: parsedData.goal || prev.goal,
+            amount: parsedData.amount || prev.amount,
+            workSituation: parsedData.workSituation || prev.workSituation,
+            monthlyIncome: parsedData.monthlyIncome || prev.monthlyIncome,
+            hasPayslips: parsedData.hasPayslips || prev.hasPayslips
+          }));
+        }
+      } catch (error) {
+        console.log('Error loading saved data:', error);
+      }
+    }
+  }, []);
+
+  // Save data to localStorage whenever data changes
+  useEffect(() => {
+    if (data.personalInfo.dni || data.personalInfo.firstName || data.personalInfo.email) {
+      localStorage.setItem('nezaUserData', JSON.stringify(data));
+    }
+  }, [data]);
+
+  const steps = [
     {
-      type: 'dni',
-      title: 'Documento de Identidad',
-      description: 'DNI vigente (ambas caras)',
-      required: true
+      id: "intro",
+      title: forceFlow ? "Completa tu solicitud" : "Hola, empecemos por conocerte",
+      subtitle: forceFlow ? "Para solicitar este producto, necesitamos conocer tu perfil financiero" : "Te voy a hacer unas preguntas sencillas para entender qué necesitas"
     },
     {
-      type: 'income-proof',
-      title: 'Comprobante de Ingresos',
-      description: 'Boletas de pago, recibos por honorarios o declaración jurada',
-      required: true
+      id: "personal",
+      title: "Datos personales",
+      subtitle: "Necesitamos verificar tu identidad"
     },
     {
-      type: 'work-certificate',
-      title: 'Certificado de Trabajo',
-      description: 'Constancia laboral o carta de trabajo',
-      required: false
+      id: "goal",
+      title: "¿Qué quieres lograr? ¿Cuál es tu meta?",
+      subtitle: "Selecciona el producto que necesitas"
     },
     {
-      type: 'bank-statements',
-      title: 'Estados de Cuenta',
-      description: 'Últimos 3 meses de movimientos bancarios',
-      required: false
+      id: "amount",
+      title: "¿Cuánto necesitas?",
+      subtitle: "Aproximadamente, no te preocupes si no estás seguro"
+    },
+    {
+      id: "work",
+      title: "Cuéntame sobre tu trabajo",
+      subtitle: "Necesito entender tu situación laboral"
+    },
+    {
+      id: "payslips",
+      title: "¿Tienes boletas de pago?",
+      subtitle: "Esto me ayuda a saber qué opciones mostrarte"
+    },
+    {
+      id: "income",
+      title: "¿Cuánto ganas al mes?",
+      subtitle: "Solo necesito un estimado para calcular tus opciones"
+    },
+    {
+      id: "documents",
+      title: "Subida de archivos/documentos",
+      subtitle: "Puedes subir tus documentos ahora o después"
     }
   ];
 
-  const handlePersonalInfoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPersonalInfo({ ...personalInfo, [e.target.name]: e.target.value });
+  const currentStepData = steps[currentStep];
+  const progress = ((currentStep + 1) / steps.length) * 100;
+
+  // Validation functions
+  const validateName = (name: string) => {
+    const nameRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
+    return nameRegex.test(name) && name.trim().length >= 2;
   };
 
-  const handleWorkDetailsChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setWorkDetails({ ...workDetails, [e.target.name]: e.target.value });
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   };
 
-  const canProceedFromPersonalStep = () => {
-    const { firstName, lastName, dni, email, phone } = personalInfo;
-    return firstName.length > 0 && lastName.length > 0 && dni.length === 8 && email.includes('@') && phone.length >= 9;
+  const validatePhone = (phone: string) => {
+    return /^\d{9}$/.test(phone);
   };
 
-  const canProceedFromWorkStep = () => {
-    const { workSituation } = workDetails;
-    return workSituation.length > 0 && monthlyIncome > 0;
+  const validateDNI = (dni: string) => {
+    return /^\d{8}$/.test(dni);
   };
 
-  const canProceedFromGoalStep = () => {
-    return goal.length > 0 && amount > 0;
-  };
-
-  const canProceedFromDocuments = () => {
-    // Always allow proceeding from documents step - no longer required
-    return true;
-  };
-
-  const canProceedToNext = () => {
-    switch (currentStep) {
-      case 'welcome':
-        return true;
-      case 'personal':
-        return canProceedFromPersonalStep();
-      case 'work':
-        return canProceedFromWorkStep();
-      case 'goal':
-        return canProceedFromGoalStep();
-      case 'documents':
-        return canProceedFromDocuments(); // Always true now
-      case 'summary':
-        return true;
-      default:
-        return false;
-    }
-  };
-
-  const handleNext = () => {
-    if (canProceedToNext()) {
-      setCompletedSteps(prev => [...prev, currentStep]);
-      switch (currentStep) {
-        case 'welcome':
-          setCurrentStep('personal');
-          break;
-        case 'personal':
-          setCurrentStep('work');
-          break;
-        case 'work':
-          setCurrentStep('goal');
-          break;
-        case 'goal':
-          setCurrentStep('documents');
-          break;
-        case 'documents':
-          setCurrentStep('summary');
-          break;
-        case 'summary':
-          setShowCompletion(true);
-          break;
-      }
-    } else {
-      alert('Por favor, completa todos los campos requeridos.');
-    }
-  };
-
-  const handleBack = () => {
-    if (currentStep === 'welcome') {
-      onBack();
-    } else {
-      const steps = ['welcome', 'personal', 'work', 'goal', 'documents', 'summary'];
-      const currentIndex = steps.indexOf(currentStep);
-      setCurrentStep(steps[currentIndex - 1] as typeof currentStep);
-    }
-  };
-
-  const handleFinalSubmit = () => {
-    const userData: UserData = {
-      dni: personalInfo.dni,
-      firstName: personalInfo.firstName,
-      lastName: personalInfo.lastName,
-      email: personalInfo.email,
-      phone: personalInfo.phone,
-      monthlyIncome,
-      requestedAmount: amount,
-      employmentType: workDetails.workSituation,
-      creditHistory: '',
-      productType: goal,
-      hasOtherDebts: '',
-      bankingRelationship: '',
-      urgencyLevel: '',
-      preferredBank,
-      workDetails,
-      documents
-    };
+  const validateCurrentStep = () => {
+    const errors: Record<string, string> = {};
     
-    onComplete(userData);
+    // Removed all validation for personal step - users can proceed with any data
+    
+    if (currentStep === 4) { // Work step
+      if (data.workSituation === "estudiante") {
+        if (!data.carrera) errors.carrera = "Campo obligatorio";
+        if (!data.ciclo) errors.ciclo = "Campo obligatorio";
+        if (!data.hacePracticas) errors.hacePracticas = "Campo obligatorio";
+        if (data.hacePracticas === "si" && !data.empresaPracticas) {
+          errors.empresaPracticas = "Campo obligatorio";
+        }
+      } else if (data.workSituation === "independiente") {
+        if (!data.workDetails) errors.workDetails = "Describe qué haces";
+        if (!data.empresaTrabajo) errors.empresaTrabajo = "Campo obligatorio";
+      } else if (data.workSituation === "empleado") {
+        if (!data.workDetails) errors.workDetails = "Indica dónde trabajas";
+        if (!data.empresaTrabajo) errors.empresaTrabajo = "Nombre de la empresa";
+      } else if (data.workSituation === "empresario") {
+        if (!data.nombreNegocio) errors.nombreNegocio = "Nombre del negocio";
+        if (!data.rubroNegocio) errors.rubroNegocio = "Rubro del negocio";
+        if (!data.actividadPrincipal) errors.actividadPrincipal = "Actividad principal";
+      }
+    }
+
+    if (currentStep === 7) { // Documents step
+      if (uploadedPayslips.length < 3) {
+        errors.payslips = "Debes adjuntar al menos 3 boletas de pago";
+      }
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
-  const handleDocumentUpload = (documentType: string, file: File, analysis: any, fileId: string) => {
-    setDocuments(prev => ({
+  const handleFileUpload = (type: keyof typeof data.documents, file: File) => {
+    if (type === 'payslips') {
+      setUploadedPayslips(prev => [...prev, file]);
+    }
+    setData(prev => ({
       ...prev,
-      [documentType]: {
-        file,
-        analysis,
-        fileId
-      }
+      documents: { ...prev.documents, [type]: file }
     }));
   };
 
-  const getDocumentStatus = (documentType: string): 'pending' | 'uploaded' | 'verified' | 'rejected' => {
-    const doc = documents[documentType];
-    if (!doc) return 'pending';
-
-    // Simulate verification process
-    if (doc.analysis && doc.analysis.confidence > 0.8) {
-      return 'verified';
-    } else if (doc.analysis && doc.analysis.confidence > 0.5) {
-      return 'uploaded';
+  const handleNext = () => {
+    if (!validateCurrentStep()) return;
+    
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(prev => prev + 1);
     } else {
-      return 'rejected';
+      onComplete(data);
     }
   };
 
-  const ProgressIndicator = ({ currentStep, completedSteps }: { currentStep: string; completedSteps: string[] }) => {
-    const steps = [
-      { id: 'welcome', label: 'Bienvenida' },
-      { id: 'personal', label: 'Datos Personales' },
-      { id: 'work', label: 'Datos Laborales' },
-      { id: 'goal', label: 'Objetivo' },
-      { id: 'documents', label: 'Documentos' },
-      { id: 'summary', label: 'Resumen' },
-    ];
-
-    return (
-      <div className="relative pt-1">
-        <div className="flex mb-2 items-center justify-between">
-          {steps.map((step, index) => (
-            <div key={step.id} className="w-full flex items-center">
-              {index > 0 && (
-                <div className="flex-auto border-t-2 transition duration-500 ease-in-out"
-                  style={{
-                    borderColor: completedSteps.includes(steps[index - 1].id) ? '#34D399' : '#E5E7EB',
-                  }}
-                ></div>
-              )}
-              <div className="relative">
-                <div className={`
-                  rounded-full transition duration-500 ease-in-out border-2 h-7 w-7 flex items-center justify-center
-                  ${completedSteps.includes(step.id) || currentStep === step.id
-                      ? 'bg-green-500 text-white border-green-500'
-                      : 'bg-white border-gray-300 text-gray-500'
-                  }
-                `}>
-                  {completedSteps.includes(step.id) ? (
-                    <CircleCheck className="w-4 h-4" />
-                  ) : (
-                    <span>{index + 1}</span>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="flex mb-2 items-center justify-between">
-          {steps.map(step => (
-            <div key={step.id} className="w-1/6 text-center">
-              <span className="text-xs font-semibold uppercase">{step.label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
+  const handlePrev = () => {
+    if (currentStep > 0) {
+      setCurrentStep(prev => prev - 1);
+    } else if (forceFlow) {
+      if (confirm('¿Estás seguro de que quieres salir? Debes completar este formulario para solicitar el producto.')) {
+        onBack();
+      }
+    }
   };
 
-  const renderWelcomeStep = () => (
-    <motion.div
-      key="welcome"
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      className="space-y-6"
-    >
-      <div className="text-center">
-        <h2 className="text-3xl font-bold text-neza-blue-800 mb-4">¡Bienvenido a NEZA!</h2>
-        <p className="text-neza-silver-600">
-          Estamos aquí para ayudarte a encontrar el producto financiero perfecto para ti.
-        </p>
-      </div>
-      <div className="flex justify-center">
-        <User2 className="w-20 h-20 text-neza-blue-500" />
-      </div>
-      <div className="space-y-2">
-        <p className="text-lg font-semibold text-neza-blue-700">¿Qué te ofrecemos?</p>
-        <ul className="list-disc list-inside text-neza-silver-700">
-          <li>Asesoramiento personalizado</li>
-          <li>Comparación de productos de diferentes entidades</li>
-          <li>Proceso 100% online y seguro</li>
-        </ul>
-      </div>
-      <Button onClick={handleNext} className="w-full bg-neza-blue-600 hover:bg-neza-blue-700 text-white">
-        Comenzar
-      </Button>
-    </motion.div>
-  );
+  const canProceed = () => {
+    switch (steps[currentStep].id) {
+      case "intro": return true;
+      case "personal": return true; // Always allow proceeding from personal step
+      case "goal": return data.goal !== "";
+      case "amount": return data.amount > 0;
+      case "work": 
+        if (data.workSituation === "estudiante") {
+          return data.carrera && data.ciclo && data.hacePracticas && 
+                 (data.hacePracticas === "no" || data.empresaPracticas);
+        } else if (data.workSituation === "independiente") {
+          return data.workDetails && data.empresaTrabajo;
+        } else if (data.workSituation === "empleado") {
+          return data.workDetails && data.empresaTrabajo;
+        } else if (data.workSituation === "empresario") {
+          return data.nombreNegocio && data.rubroNegocio && data.actividadPrincipal;
+        }
+        return data.workSituation !== "";
+      case "payslips": return data.hasPayslips !== "";
+      case "income": return data.monthlyIncome > 0;
+      case "documents": return true; // Optional step
+      default: return false;
+    }
+  };
 
-  const renderPersonalStep = () => (
-    <motion.div
-      key="personal"
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      className="space-y-6"
-    >
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-neza-blue-800 mb-2">Datos Personales</h2>
-        <p className="text-neza-silver-600">
-          Necesitamos algunos datos para personalizar tu experiencia.
-        </p>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="firstName">Nombre</Label>
-          <Input
-            type="text"
-            id="firstName"
-            name="firstName"
-            value={personalInfo.firstName}
-            onChange={handlePersonalInfoChange}
-          />
-        </div>
-        <div>
-          <Label htmlFor="lastName">Apellido</Label>
-          <Input
-            type="text"
-            id="lastName"
-            name="lastName"
-            value={personalInfo.lastName}
-            onChange={handlePersonalInfoChange}
-          />
-        </div>
-        <div>
-          <Label htmlFor="dni">DNI</Label>
-          <Input
-            type="number"
-            id="dni"
-            name="dni"
-            placeholder="Sin puntos ni guiones"
-            value={personalInfo.dni}
-            onChange={(e) => {
-              const value = e.target.value;
-              if (/^\d*$/.test(value)) {
-                setPersonalInfo({ ...personalInfo, dni: value });
-              }
-            }}
-          />
-        </div>
-        <div>
-          <Label htmlFor="phone">Teléfono</Label>
-          <Input
-            type="tel"
-            id="phone"
-            name="phone"
-            placeholder="9 dígitos"
-            value={personalInfo.phone}
-            onChange={(e) => {
-              const value = e.target.value;
-              if (/^\d*$/.test(value)) {
-                setPersonalInfo({ ...personalInfo, phone: value });
-              }
-            }}
-          />
-        </div>
-        <div>
-          <Label htmlFor="email">Correo Electrónico</Label>
-          <Input
-            type="email"
-            id="email"
-            name="email"
-            value={personalInfo.email}
-            onChange={handlePersonalInfoChange}
-          />
-        </div>
-      </div>
-      <div className="flex justify-between pt-6">
-        <Button variant="outline" onClick={handleBack} className="border-neza-silver-300 text-neza-silver-700">
-          Anterior
-        </Button>
-        <Button onClick={handleNext} className="bg-neza-blue-600 hover:bg-neza-blue-700 text-white">
-          Siguiente
-        </Button>
-      </div>
-    </motion.div>
-  );
-
-  const renderWorkStep = () => (
-    <motion.div
-      key="work"
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      className="space-y-6"
-    >
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-neza-blue-800 mb-2">Datos Laborales</h2>
-        <p className="text-neza-silver-600">
-          Cuéntanos sobre tu situación laboral actual.
-        </p>
-      </div>
-      <div className="space-y-4">
-        <div>
-          <Label htmlFor="workSituation">Situación Laboral</Label>
-          <Select onValueChange={(value) => setWorkDetails({ ...workDetails, workSituation: value })}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Selecciona una opción" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="empleado">Empleado</SelectItem>
-              <SelectItem value="independiente">Independiente</SelectItem>
-              <SelectItem value="empresario">Empresario</SelectItem>
-              <SelectItem value="estudiante">Estudiante</SelectItem>
-              <SelectItem value="otro">Otro</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        {workDetails.workSituation === 'empleado' && (
-          <>
-            <div>
-              <Label htmlFor="companyName">Nombre de la Empresa</Label>
-              <Input
-                type="text"
-                id="companyName"
-                name="companyName"
-                value={workDetails.companyName}
-                onChange={handleWorkDetailsChange}
-              />
-            </div>
-            <div>
-              <Label htmlFor="jobTitle">Cargo</Label>
-              <Input
-                type="text"
-                id="jobTitle"
-                name="jobTitle"
-                value={workDetails.jobTitle}
-                onChange={handleWorkDetailsChange}
-              />
-            </div>
-            <div>
-              <Label htmlFor="seniority">Antigüedad (años)</Label>
-              <Input
-                type="number"
-                id="seniority"
-                name="seniority"
-                value={workDetails.seniority}
-                onChange={handleWorkDetailsChange}
-              />
-            </div>
-          </>
-        )}
-        <div>
-          <Label htmlFor="monthlyIncome">Ingreso Mensual (S/)</Label>
-          <Input
-            type="number"
-            id="monthlyIncome"
-            name="monthlyIncome"
-            value={monthlyIncome}
-            onChange={(e) => setMonthlyIncome(Number(e.target.value))}
-          />
-        </div>
-      </div>
-      <div className="flex justify-between pt-6">
-        <Button variant="outline" onClick={handleBack} className="border-neza-silver-300 text-neza-silver-700">
-          Anterior
-        </Button>
-        <Button onClick={handleNext} className="bg-neza-blue-600 hover:bg-neza-blue-700 text-white">
-          Siguiente
-        </Button>
-      </div>
-    </motion.div>
-  );
-
-  const renderGoalStep = () => (
-    <motion.div
-      key="goal"
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      className="space-y-6"
-    >
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-neza-blue-800 mb-2">¿Cuál es tu Objetivo?</h2>
-        <p className="text-neza-silver-600">
-          Selecciona el producto financiero que estás buscando.
-        </p>
-      </div>
-      <div className="space-y-4">
-        <div>
-          <Label htmlFor="goal">Producto Financiero</Label>
-          <Select onValueChange={setGoal}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Selecciona una opción" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="credito-personal">Crédito Personal</SelectItem>
-              <SelectItem value="credito-vehicular">Crédito Vehicular</SelectItem>
-              <SelectItem value="credito-hipotecario">Crédito Hipotecario</SelectItem>
-              <SelectItem value="credito-empresarial">Crédito Empresarial</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label htmlFor="amount">Monto Deseado (S/)</Label>
-          <Input
-            type="number"
-            id="amount"
-            name="amount"
-            value={amount}
-            onChange={(e) => setAmount(Number(e.target.value))}
-          />
-        </div>
-        <div>
-          <Label>¿Cuentas con Boletas de Pago?</Label>
-          <RadioGroup defaultValue={hasPayslips} className="flex flex-col space-y-1.5" onValueChange={setHasPayslips}>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="si" id="payslips-si" className="peer h-4 w-4 shrink-0 rounded-full border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground" />
-              <Label htmlFor="payslips-si" className="cursor-pointer peer-data-[state=checked]:text-primary">Sí</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="no" id="payslips-no" className="peer h-4 w-4 shrink-0 rounded-full border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground" />
-              <Label htmlFor="payslips-no" className="cursor-pointer peer-data-[state=checked]:text-primary">No</Label>
-            </div>
-          </RadioGroup>
-        </div>
-        <div>
-          <Label htmlFor="preferredBank">Banco de Preferencia (Opcional)</Label>
-          <Select onValueChange={setPreferredBank}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Selecciona una opción" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="bcp">BCP</SelectItem>
-              <SelectItem value="interbank">Interbank</SelectItem>
-              <SelectItem value="scotiabank">Scotiabank</SelectItem>
-              <SelectItem value="bbva">BBVA</SelectItem>
-              <SelectItem value="falabella">Banco Falabella</SelectItem>
-              <SelectItem value="ripley">Banco Ripley</SelectItem>
-              <SelectItem value="pichincha">Banco Pichincha</SelectItem>
-              <SelectItem value="otros">Otros</SelectItem>
-              <SelectItem value="ninguno">Ninguno</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      <div className="flex justify-between pt-6">
-        <Button variant="outline" onClick={handleBack} className="border-neza-silver-300 text-neza-silver-700">
-          Anterior
-        </Button>
-        <Button onClick={handleNext} className="bg-neza-blue-600 hover:bg-neza-blue-700 text-white">
-          Siguiente
-        </Button>
-      </div>
-    </motion.div>
-  );
-
-  const renderDocumentsStep = () => (
-    <motion.div
-      key="documents"
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      className="space-y-6"
-    >
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-neza-blue-800 mb-2">Documentos (Opcional)</h2>
-        <p className="text-neza-silver-600">
-          Puedes subir tus documentos ahora o hacerlo más tarde en el sistema de subastas para obtener mejores ofertas.
-        </p>
-      </div>
-
-      <div className="bg-neza-blue-50 border border-neza-blue-200 rounded-lg p-4">
-        <div className="flex items-start">
-          <div className="flex-shrink-0">
-            <svg className="w-5 h-5 text-neza-blue-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
-          </div>
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-neza-blue-800">Subir documentos mejora tus ofertas</h3>
-            <p className="mt-1 text-sm text-neza-blue-700">
-              Los documentos verificados te permiten acceder a mejores tasas y condiciones. Puedes continuar sin subirlos y hacerlo después.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        {documentTypes.map((docType) => (
-          <DocumentUpload
-            key={docType.type}
-            title={docType.title}
-            description={docType.description}
-            required={false}
-            documentType={docType.type}
-            status={getDocumentStatus(docType.type)}
-            onUpload={(file, analysis, fileId) => handleDocumentUpload(docType.type, file, analysis, fileId)}
-          />
-        ))}
-      </div>
-
-      <div className="flex justify-between pt-6">
-        <Button
-          variant="outline"
-          onClick={() => setCurrentStep('goal')}
-          className="border-neza-silver-300 text-neza-silver-700"
-        >
-          Anterior
-        </Button>
-        <Button
-          onClick={() => setCurrentStep('summary')}
-          className="bg-neza-blue-600 hover:bg-neza-blue-700 text-white"
-        >
-          Continuar al Sistema de Subastas
-        </Button>
-      </div>
-    </motion.div>
-  );
-
-  const renderSummaryStep = () => (
-    <motion.div
-      key="summary"
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      className="space-y-6"
-    >
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-neza-blue-800 mb-2">Resumen de tu Solicitud</h2>
-        <p className="text-neza-silver-600">
-          Revisa los datos ingresados antes de continuar.
-        </p>
-      </div>
-      <div className="space-y-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Información Personal</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <p><strong>Nombre:</strong> {personalInfo.firstName} {personalInfo.lastName}</p>
-              <p><strong>DNI:</strong> {personalInfo.dni}</p>
-              <p><strong>Email:</strong> {personalInfo.email}</p>
-              <p><strong>Teléfono:</strong> {personalInfo.phone}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Información Laboral</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <p><strong>Situación Laboral:</strong> {workDetails.workSituation}</p>
-              {workDetails.workSituation === 'empleado' && (
-                <>
-                  <p><strong>Empresa:</strong> {workDetails.companyName}</p>
-                  <p><strong>Cargo:</strong> {workDetails.jobTitle}</p>
-                  <p><strong>Antigüedad:</strong> {workDetails.seniority} años</p>
-                </>
-              )}
-              <p><strong>Ingreso Mensual:</strong> S/ {monthlyIncome}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Objetivo Financiero</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <p><strong>Producto:</strong> {goal}</p>
-              <p><strong>Monto Deseado:</strong> S/ {amount}</p>
-              <p><strong>Boletas de Pago:</strong> {hasPayslips === 'si' ? 'Sí' : 'No'}</p>
-              <p><strong>Banco de Preferencia:</strong> {preferredBank || 'Ninguno'}</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      <div className="flex justify-between pt-6">
-        <Button variant="outline" onClick={handleBack} className="border-neza-silver-300 text-neza-silver-700">
-          Anterior
-        </Button>
-        <Button onClick={handleNext} className="bg-neza-blue-600 hover:bg-neza-blue-700 text-white">
-          Confirmar y Continuar
-        </Button>
-      </div>
-    </motion.div>
-  );
+  const productOptions = [
+    { id: "credito-personal", title: "Crédito Personal", icon: "💰", desc: "Para gastos personales" },
+    { id: "credito-vehicular", title: "Crédito Vehicular", icon: "🚗", desc: "Para comprar auto" },
+    { id: "credito-hipotecario", title: "Crédito Hipotecario", icon: "🏠", desc: "Para vivienda" },
+    { id: "tarjeta-credito", title: "Tarjeta de Crédito", icon: "💳", desc: "Línea de crédito" },
+    { id: "credito-empresarial", title: "Crédito Empresarial", icon: "🏢", desc: "Para negocios" },
+    { id: "credito-educativo", title: "Crédito Educativo", icon: "🎓", desc: "Para estudios" },
+    { id: "credito-medico", title: "Crédito Médico", icon: "🏥", desc: "Para gastos médicos" },
+    { id: "credito-viaje", title: "Crédito de Viaje", icon: "✈️", desc: "Para viajes" },
+    { id: "refinanciamiento", title: "Refinanciamiento", icon: "🔄", desc: "Consolidar deudas" },
+    { id: "credito-construccion", title: "Crédito Construcción", icon: "🏗️", desc: "Para construcción" },
+    { id: "credito-rural", title: "Crédito Rural", icon: "🌾", desc: "Para actividades rurales" }
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neza-blue-50 to-neza-cyan-50">
-      <div className="container mx-auto px-4 py-6">
-        <div className="max-w-4xl mx-auto">
-          {!showCompletion ? (
-            <Card className="shadow-lg border-0">
-              <CardContent className="p-8">
-                <div className="mb-8">
-                  <ProgressIndicator 
-                    currentStep={currentStep}
-                    completedSteps={completedSteps}
-                  />
-                </div>
-
-                <AnimatePresence mode="wait">
-                  {currentStep === 'welcome' && renderWelcomeStep()}
-                  {currentStep === 'personal' && renderPersonalStep()}
-                  {currentStep === 'work' && renderWorkStep()}
-                  {currentStep === 'goal' && renderGoalStep()}
-                  {currentStep === 'documents' && renderDocumentsStep()}
-                  {currentStep === 'summary' && renderSummaryStep()}
-                </AnimatePresence>
-              </CardContent>
-            </Card>
-          ) : (
-            <CompletionAnimation onComplete={handleFinalSubmit} />
-          )}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
+      {/* Mensaje de Transparencia Fijo - CAMBIADO A AZUL FUERTE */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-blue-600 border-b-2 border-blue-700 py-2 px-4">
+        <div className="container mx-auto max-w-4xl">
+          <p className="text-sm text-white text-center font-medium">
+            ⚠️ Este formulario no debe contener información falsa. La precisión de los datos es fundamental para ayudarte correctamente. Tardas menos de 2 minutos en completarlo. Sé honesto, es por tu beneficio.
+          </p>
         </div>
       </div>
+
+      {/* Header con padding-top para el mensaje fijo */}
+      <div className="bg-white border-b border-blue-100 py-4 px-4 mt-12">
+        <div className="container mx-auto max-w-4xl">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-blue-800">NEZA</h1>
+              <p className="text-sm text-blue-600">
+                {forceFlow ? 'Formulario obligatorio para solicitud' : 'Tu aliado financiero de confianza'}
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              {forceFlow && (
+                <div className="flex items-center gap-2 bg-orange-50 px-3 py-2 rounded-lg">
+                  <AlertCircle className="w-4 h-4 text-orange-600" />
+                  <span className="text-sm text-orange-700 font-medium">Completar es obligatorio</span>
+                </div>
+              )}
+              
+              <Button
+                onClick={() => setShowTutorial(!showTutorial)}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1 text-xs"
+              >
+                {showTutorial ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                Ver tutorial
+              </Button>
+              
+              {!forceFlow && (
+                <Button
+                  onClick={() => setShowVideo(true)}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-1 text-xs"
+                >
+                  <Play className="w-3 h-3" />
+                  Tutorial (1 min)
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Tutorial Box */}
+      {showTutorial && (
+        <div className="bg-blue-50 border-b border-blue-200 py-3 px-4">
+          <div className="container mx-auto max-w-4xl">
+            <div className="text-sm text-blue-800">
+              <strong>Paso {currentStep + 1} de {steps.length}:</strong> {currentStepData.subtitle}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="container mx-auto px-4 py-8 max-w-3xl">
+        {/* Progress */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm text-blue-600 font-medium">
+              Paso {currentStep + 1} de {steps.length}
+            </span>
+            <span className="text-sm text-blue-600">{Math.round(progress)}% completado</span>
+          </div>
+          <Progress value={progress} className="h-2" />
+        </div>
+
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentStep}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Card className="border-blue-200 shadow-lg">
+              <CardHeader className="text-center pb-4">
+                <CardTitle className="text-xl text-blue-800">
+                  {currentStepData.title}
+                </CardTitle>
+                <p className="text-blue-600">{currentStepData.subtitle}</p>
+              </CardHeader>
+              
+              <CardContent className="space-y-6">
+                {/* Paso 0: Introducción */}
+                {currentStep === 0 && (
+                  <div className="text-center space-y-4">
+                    <div className="text-6xl mb-4">👋</div>
+                    <p className="text-lg text-gray-700">
+                      {forceFlow ? 
+                        "Para procesar tu solicitud, necesitamos conocer tu perfil financiero. Este proceso es obligatorio y toma menos de 2 minutos." :
+                        "Soy tu asesor financiero personal. Te voy a acompañar para encontrar la mejor opción para ti entre todos los bancos disponibles."
+                      }
+                    </p>
+                    <p className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
+                      {forceFlow ? 
+                        "Al completar este formulario, las entidades financieras podrán hacer ofertas personalizadas para ti." :
+                        "Todo el proceso toma menos de 2 minutos y es completamente gratuito."
+                      }
+                    </p>
+                  </div>
+                )}
+
+                {/* Paso 1: Datos Personales - SIMPLIFICADO */}
+                {currentStep === 1 && (
+                  <div className="space-y-4">
+                    <div>
+                      <Label>DNI</Label>
+                      <Input
+                        placeholder="12345678"
+                        value={data.personalInfo.dni}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, '').slice(0, 8);
+                          setData(prev => ({ 
+                            ...prev, 
+                            personalInfo: { ...prev.personalInfo, dni: value }
+                          }));
+                        }}
+                        maxLength={8}
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label>Nombres</Label>
+                        <Input
+                          placeholder="Tu nombre"
+                          value={data.personalInfo.firstName}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+                            setData(prev => ({ 
+                              ...prev, 
+                              personalInfo: { ...prev.personalInfo, firstName: value }
+                            }));
+                          }}
+                        />
+                      </div>
+                      
+                      <div>
+                        <Label>Apellidos</Label>
+                        <Input
+                          placeholder="Tus apellidos"
+                          value={data.personalInfo.lastName}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+                            setData(prev => ({ 
+                              ...prev, 
+                              personalInfo: { ...prev.personalInfo, lastName: value }
+                            }));
+                          }}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label>Correo Electrónico</Label>
+                      <Input
+                        type="email"
+                        placeholder="tu@email.com"
+                        value={data.personalInfo.email}
+                        onChange={(e) => {
+                          setData(prev => ({ 
+                            ...prev, 
+                            personalInfo: { ...prev.personalInfo, email: e.target.value }
+                          }));
+                        }}
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label>Teléfono</Label>
+                      <Input
+                        placeholder="987654321"
+                        value={data.personalInfo.phone}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, '').slice(0, 9);
+                          setData(prev => ({ 
+                            ...prev, 
+                            personalInfo: { ...prev.personalInfo, phone: value }
+                          }));
+                        }}
+                        maxLength={9}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Paso 2: Objetivo - Productos CON SCROLL */}
+                {currentStep === 2 && (
+                  <div className="space-y-4">
+                    <div className="max-h-80 overflow-y-auto border border-gray-200 rounded-lg p-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {productOptions.map((product) => (
+                          <Card 
+                            key={product.id}
+                            className={`cursor-pointer transition-all p-2 ${data.goal === product.id ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300'}`}
+                            onClick={() => setData(prev => ({ ...prev, goal: product.id }))}
+                          >
+                            <CardContent className="p-2 text-center">
+                              <div className="text-xl mb-1">{product.icon}</div>
+                              <h4 className="font-medium text-xs">{product.title}</h4>
+                              <p className="text-xs text-gray-600">{product.desc}</p>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 text-center">Desplaza hacia abajo para ver todos los productos disponibles</p>
+                  </div>
+                )}
+
+                {/* Paso 3: Monto */}
+                {currentStep === 3 && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {[5000, 10000, 25000, 50000, 100000, 200000].map((amount) => (
+                        <Card 
+                          key={amount}
+                          className={`cursor-pointer transition-all ${data.amount === amount ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300'}`}
+                          onClick={() => setData(prev => ({ ...prev, amount }))}
+                        >
+                          <CardContent className="p-3 text-center">
+                            <p className="font-medium">S/ {amount.toLocaleString()}</p>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                    
+                    <div className="mt-4">
+                      <Label>O ingresa un monto específico:</Label>
+                      <Input
+                        type="number"
+                        placeholder="Ejemplo: 15000"
+                        value={data.amount || ""}
+                        onChange={(e) => setData(prev => ({ ...prev, amount: Number(e.target.value) }))}
+                        className="mt-2"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Paso 4: Trabajo EXPANDIDO */}
+                {currentStep === 4 && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {[
+                        { id: 'empleado', title: 'Trabajo en planilla', icon: Building2 },
+                        { id: 'independiente', title: 'Trabajo independiente', icon: Users },
+                        { id: 'empresario', title: 'Tengo mi negocio', icon: Briefcase },
+                        { id: 'estudiante', title: 'Soy estudiante', icon: GraduationCap }
+                      ].map((work) => (
+                        <Card 
+                          key={work.id}
+                          className={`cursor-pointer transition-all ${data.workSituation === work.id ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300'}`}
+                          onClick={() => setData(prev => ({ ...prev, workSituation: work.id }))}
+                        >
+                          <CardContent className="p-4 text-center">
+                            <work.icon className="w-8 h-8 mx-auto mb-2 text-blue-600" />
+                            <h4 className="font-medium">{work.title}</h4>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+
+                    {/* Conditional fields based on work situation */}
+                    {data.workSituation === 'estudiante' && (
+                      <div className="space-y-4 border-t pt-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label>Carrera *</Label>
+                            <Input
+                              placeholder="Ingeniería, Administración, etc."
+                              value={data.carrera || ""}
+                              onChange={(e) => setData(prev => ({ ...prev, carrera: e.target.value }))}
+                              className={validationErrors.carrera ? "border-red-500" : ""}
+                            />
+                            {validationErrors.carrera && (
+                              <p className="text-red-500 text-sm mt-1">{validationErrors.carrera}</p>
+                            )}
+                          </div>
+                          <div>
+                            <Label>Ciclo *</Label>
+                            <Input
+                              placeholder="1er, 2do, 3er, etc."
+                              value={data.ciclo || ""}
+                              onChange={(e) => setData(prev => ({ ...prev, ciclo: e.target.value }))}
+                              className={validationErrors.ciclo ? "border-red-500" : ""}
+                            />
+                            {validationErrors.ciclo && (
+                              <p className="text-red-500 text-sm mt-1">{validationErrors.ciclo}</p>
+                            )}
+                          </div>
+                        </div>
+                        <div>
+                          <Label>¿Hace prácticas profesionales? *</Label>
+                          <Select onValueChange={(value) => setData(prev => ({ ...prev, hacePracticas: value }))}>
+                            <SelectTrigger className={validationErrors.hacePracticas ? "border-red-500" : ""}>
+                              <SelectValue placeholder="Selecciona una opción" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="si">Sí</SelectItem>
+                              <SelectItem value="no">No</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          {validationErrors.hacePracticas && (
+                            <p className="text-red-500 text-sm mt-1">{validationErrors.hacePracticas}</p>
+                          )}
+                        </div>
+                        {data.hacePracticas === 'si' && (
+                          <div>
+                            <Label>¿Dónde las realiza? *</Label>
+                            <Input
+                              placeholder="Nombre de la empresa"
+                              value={data.empresaPracticas || ""}
+                              onChange={(e) => setData(prev => ({ ...prev, empresaPracticas: e.target.value }))}
+                              className={validationErrors.empresaPracticas ? "border-red-500" : ""}
+                            />
+                            {validationErrors.empresaPracticas && (
+                              <p className="text-red-500 text-sm mt-1">{validationErrors.empresaPracticas}</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {data.workSituation === 'independiente' && (
+                      <div className="space-y-4 border-t pt-4">
+                        <div>
+                          <Label>¿Qué hace? *</Label>
+                          <Input
+                            placeholder="Describe tu actividad independiente"
+                            value={data.workDetails}
+                            onChange={(e) => setData(prev => ({ ...prev, workDetails: e.target.value }))}
+                            className={validationErrors.workDetails ? "border-red-500" : ""}
+                          />
+                          {validationErrors.workDetails && (
+                            <p className="text-red-500 text-sm mt-1">{validationErrors.workDetails}</p>
+                          )}
+                        </div>
+                        <div>
+                          <Label>¿En qué empresa? *</Label>
+                          <Input
+                            placeholder="Nombre de la empresa o N/A"
+                            value={data.empresaTrabajo || ""}
+                            onChange={(e) => setData(prev => ({ ...prev, empresaTrabajo: e.target.value }))}
+                            className={validationErrors.empresaTrabajo ? "border-red-500" : ""}
+                          />
+                          {validationErrors.empresaTrabajo && (
+                            <p className="text-red-500 text-sm mt-1">{validationErrors.empresaTrabajo}</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {data.workSituation === 'empleado' && (
+                      <div className="space-y-4 border-t pt-4">
+                        <div>
+                          <Label>¿Dónde trabaja? *</Label>
+                          <Input
+                            placeholder="Describe tu puesto de trabajo"
+                            value={data.workDetails}
+                            onChange={(e) => setData(prev => ({ ...prev, workDetails: e.target.value }))}
+                            className={validationErrors.workDetails ? "border-red-500" : ""}
+                          />
+                          {validationErrors.workDetails && (
+                            <p className="text-red-500 text-sm mt-1">{validationErrors.workDetails}</p>
+                          )}
+                        </div>
+                        <div>
+                          <Label>¿En qué empresa? *</Label>
+                          <Input
+                            placeholder="Empresa donde trabajas"
+                            value={data.empresaTrabajo || ""}
+                            onChange={(e) => setData(prev => ({ ...prev, empresaTrabajo: e.target.value }))}
+                            className={validationErrors.empresaTrabajo ? "border-red-500" : ""}
+                          />
+                          {validationErrors.empresaTrabajo && (
+                            <p className="text-red-500 text-sm mt-1">{validationErrors.empresaTrabajo}</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {data.workSituation === 'empresario' && (
+                      <div className="space-y-4 border-t pt-4">
+                        <div>
+                          <Label>Nombre del negocio *</Label>
+                          <Input
+                            placeholder="Nombre de tu negocio"
+                            value={data.nombreNegocio || ""}
+                            onChange={(e) => setData(prev => ({ ...prev, nombreNegocio: e.target.value }))}
+                            className={validationErrors.nombreNegocio ? "border-red-500" : ""}
+                          />
+                          {validationErrors.nombreNegocio && (
+                            <p className="text-red-500 text-sm mt-1">{validationErrors.nombreNegocio}</p>
+                          )}
+                        </div>
+                        <div>
+                          <Label>Rubro *</Label>
+                          <Input
+                            placeholder="Comercio, servicios, manufactura, etc."
+                            value={data.rubroNegocio || ""}
+                            onChange={(e) => setData(prev => ({ ...prev, rubroNegocio: e.target.value }))}
+                            className={validationErrors.rubroNegocio ? "border-red-500" : ""}
+                          />
+                          {validationErrors.rubroNegocio && (
+                            <p className="text-red-500 text-sm mt-1">{validationErrors.rubroNegocio}</p>
+                          )}
+                        </div>
+                        <div>
+                          <Label>Actividad *</Label>
+                          <Input
+                            placeholder="Describe la actividad principal"
+                            value={data.actividadPrincipal || ""}
+                            onChange={(e) => setData(prev => ({ ...prev, actividadPrincipal: e.target.value }))}
+                            className={validationErrors.actividadPrincipal ? "border-red-500" : ""}
+                          />
+                          {validationErrors.actividadPrincipal && (
+                            <p className="text-red-500 text-sm mt-1">{validationErrors.actividadPrincipal}</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Paso 5: Boletas */}
+                {currentStep === 5 && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Card 
+                        className={`cursor-pointer transition-all ${data.hasPayslips === 'si' ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300'}`}
+                        onClick={() => setData(prev => ({ ...prev, hasPayslips: 'si' }))}
+                      >
+                        <CardContent className="p-4 text-center">
+                          <FileText className="w-8 h-8 mx-auto mb-2 text-blue-600" />
+                          <h4 className="font-medium">Sí, tengo boletas</h4>
+                          <p className="text-xs text-gray-600">Puedo mostrar mis ingresos</p>
+                        </CardContent>
+                      </Card>
+
+                      <Card 
+                        className={`cursor-pointer transition-all ${data.hasPayslips === 'no' ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300'}`}
+                        onClick={() => setData(prev => ({ ...prev, hasPayslips: 'no' }))}
+                      >
+                        <CardContent className="p-4 text-center">
+                          <Users className="w-8 h-8 mx-auto mb-2 text-blue-600" />
+                          <h4 className="font-medium">No tengo boletas</h4>
+                          <p className="text-xs text-gray-600">Trabajo independiente</p>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+                )}
+
+                {/* Paso 6: Ingresos */}
+                {currentStep === 6 && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {[1000, 1500, 2500, 4000, 6000, 10000].map((income) => (
+                        <Card 
+                          key={income}
+                          className={`cursor-pointer transition-all ${data.monthlyIncome === income ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300'}`}
+                          onClick={() => setData(prev => ({ ...prev, monthlyIncome: income }))}
+                        >
+                          <CardContent className="p-3 text-center">
+                            <p className="font-medium">S/ {income.toLocaleString()}</p>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                    
+                    <div className="mt-4">
+                      <Label>O ingresa tu ingreso exacto:</Label>
+                      <Input
+                        type="number"
+                        placeholder="Ejemplo: 3500"
+                        value={data.monthlyIncome || ""}
+                        onChange={(e) => setData(prev => ({ ...prev, monthlyIncome: Number(e.target.value) }))}
+                        className="mt-2"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Paso 7: Documentos CON REQUISITO DE 3 BOLETAS */}
+                {currentStep === 7 && (
+                  <div className="space-y-4">
+                    <div className="bg-blue-600 border border-blue-300 rounded-lg p-4 mb-4">
+                      <p className="text-white text-sm">
+                        <strong>Importante:</strong> Subir documentos no es obligatorio para ir a la subasta, pero sí para cerrar con un banco.
+                      </p>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="flex items-center gap-2">
+                          <span>DNI (ambas caras - obligatorio para validar)</span>
+                          <span className="text-red-500">*</span>
+                        </Label>
+                        <div className="mt-2 p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
+                          <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                          <input
+                            type="file"
+                            accept="image/*,.pdf"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleFileUpload('dni', file);
+                            }}
+                            className="hidden"
+                            id="dni-upload"
+                          />
+                          <label htmlFor="dni-upload" className="cursor-pointer">
+                            <Button variant="outline" size="sm" asChild>
+                              <span>Subir DNI</span>
+                            </Button>
+                          </label>
+                          {data.documents.dni && (
+                            <p className="text-sm text-green-600 mt-2">✅ {data.documents.dni.name}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label>Adjunta tus 3 últimas boletas de pago como requisito mínimo *</Label>
+                        <p className="text-sm text-blue-600 mb-2">Se requieren las últimas 3 boletas de pago mínimo</p>
+                        <div className="mt-2 p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
+                          <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                          <input
+                            type="file"
+                            accept="image/*,.pdf"
+                            multiple
+                            onChange={(e) => {
+                              const files = Array.from(e.target.files || []);
+                              files.forEach(file => {
+                                setUploadedPayslips(prev => [...prev, file]);
+                              });
+                              if (files.length > 0) {
+                                handleFileUpload('payslips', files[0]);
+                              }
+                            }}
+                            className="hidden"
+                            id="payslips-upload"
+                          />
+                          <label htmlFor="payslips-upload" className="cursor-pointer">
+                            <Button variant="outline" size="sm" asChild>
+                              <span>Subir Boletas</span>
+                            </Button>
+                          </label>
+                          {uploadedPayslips.length > 0 && (
+                            <div className="mt-2">
+                              <p className="text-sm text-green-600">✅ {uploadedPayslips.length} archivo(s) subido(s)</p>
+                              {uploadedPayslips.length < 3 && (
+                                <p className="text-sm text-orange-600">⚠️ Se requieren mínimo 3 boletas</p>
+                              )}
+                            </div>
+                          )}
+                          {validationErrors.payslips && (
+                            <p className="text-red-500 text-sm mt-1">{validationErrors.payslips}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label>Otros documentos</Label>
+                        <div className="mt-2 p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
+                          <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                          <input
+                            type="file"
+                            accept="image/*,.pdf"
+                            multiple
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleFileUpload('others', file);
+                            }}
+                            className="hidden"
+                            id="others-upload"
+                          />
+                          <label htmlFor="others-upload" className="cursor-pointer">
+                            <Button variant="outline" size="sm" asChild>
+                              <span>Subir Documentos</span>
+                            </Button>
+                          </label>
+                          {data.documents.others && (
+                            <p className="text-sm text-green-600 mt-2">✅ {data.documents.others.name}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <p className="text-green-800 text-sm">
+                        <strong>Sistema de gestión:</strong> Cada usuario tiene una carpeta individual donde se almacenan datos y documentos. Si regresas por otro producto, tu información se mantiene actualizada.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Navigation */}
+        <div className="flex justify-between items-center mt-8">
+          <Button
+            variant="outline"
+            onClick={currentStep === 0 ? onBack : handlePrev}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            {currentStep === 0 ? (forceFlow ? 'Cancelar' : 'Volver') : 'Anterior'}
+          </Button>
+          
+          <Button
+            onClick={handleNext}
+            disabled={!canProceed()}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+          >
+            {currentStep === steps.length - 1 ? 
+              (forceFlow ? 'Proceder a la subasta' : 'Ver mis opciones') : 
+              'Siguiente'
+            }
+            <ArrowRight className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Video Modal */}
+      {showVideo && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-bold mb-4">Tutorial NEZA</h3>
+            <div className="aspect-video bg-gray-200 rounded-lg flex items-center justify-center mb-4">
+              <p className="text-gray-600">Video tutorial aquí</p>
+            </div>
+            <Button onClick={() => setShowVideo(false)} className="w-full">
+              Cerrar
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
