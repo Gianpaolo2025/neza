@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -570,6 +569,13 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
                           <SelectItem value="credito-vehicular">Crédito Vehicular</SelectItem>
                           <SelectItem value="credito-hipotecario">Crédito Hipotecario</SelectItem>
                           <SelectItem value="tarjeta-credito">Tarjeta de Crédito</SelectItem>
+                          <SelectItem value="prestamo-pyme">Préstamo PYME</SelectItem>
+                          <SelectItem value="credito-comercial">Crédito Comercial</SelectItem>
+                          <SelectItem value="leasing-vehicular">Leasing Vehicular</SelectItem>
+                          <SelectItem value="leasing-inmobiliario">Leasing Inmobiliario</SelectItem>
+                          <SelectItem value="factoring">Factoring</SelectItem>
+                          <SelectItem value="carta-fianza">Carta Fianza</SelectItem>
+                          <SelectItem value="linea-credito">Línea de Crédito</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

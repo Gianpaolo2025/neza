@@ -111,6 +111,13 @@ export const OffersTutorial = ({ isVisible, onClose }: OffersTutorialProps) => {
     }
   ];
 
+  // Reset to step 1 whenever tutorial becomes visible
+  useEffect(() => {
+    if (isVisible) {
+      setCurrentStep(0);
+    }
+  }, [isVisible]);
+
   const currentStepData = tutorialSteps[currentStep];
 
   useEffect(() => {
