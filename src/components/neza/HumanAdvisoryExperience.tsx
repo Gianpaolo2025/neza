@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ interface UserData {
     dni: string;
     email: string;
     phone: string;
+    birthDate: string;
   };
   preferredBank: string;
   documents: {
@@ -37,6 +39,8 @@ interface UserData {
   nombreNegocio?: string;
   rubroNegocio?: string;
   actividadPrincipal?: string;
+  trabajoEnPlanilla?: string;
+  otroTrabajo?: string;
 }
 
 interface HumanAdvisoryExperienceProps {
@@ -64,7 +68,8 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
       lastName: "",
       dni: "",
       email: "",
-      phone: ""
+      phone: "",
+      birthDate: ""
     },
     preferredBank: "",
     documents: {
@@ -94,7 +99,17 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
             amount: parsedData.amount || prev.amount,
             workSituation: parsedData.workSituation || prev.workSituation,
             monthlyIncome: parsedData.monthlyIncome || prev.monthlyIncome,
-            hasPayslips: parsedData.hasPayslips || prev.hasPayslips
+            hasPayslips: parsedData.hasPayslips || prev.hasPayslips,
+            carrera: parsedData.carrera || prev.carrera,
+            ciclo: parsedData.ciclo || prev.ciclo,
+            hacePracticas: parsedData.hacePracticas || prev.hacePracticas,
+            empresaPracticas: parsedData.empresaPracticas || prev.empresaPracticas,
+            empresaTrabajo: parsedData.empresaTrabajo || prev.empresaTrabajo,
+            nombreNegocio: parsedData.nombreNegocio || prev.nombreNegocio,
+            rubroNegocio: parsedData.rubroNegocio || prev.rubroNegocio,
+            actividadPrincipal: parsedData.actividadPrincipal || prev.actividadPrincipal,
+            trabajoEnPlanilla: parsedData.trabajoEnPlanilla || prev.trabajoEnPlanilla,
+            otroTrabajo: parsedData.otroTrabajo || prev.otroTrabajo
           }));
         }
       } catch (error) {
@@ -194,16 +209,14 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
       } else if (data.workSituation === "empleado") {
         if (!data.workDetails) errors.workDetails = "Indica dónde trabajas";
         if (!data.empresaTrabajo) errors.empresaTrabajo = "Nombre de la empresa";
+        if (!data.trabajoEnPlanilla) errors.trabajoEnPlanilla = "Selecciona tu ocupación";
+        if (data.trabajoEnPlanilla === "Otros" && !data.otroTrabajo) {
+          errors.otroTrabajo = "Especifica tu ocupación";
+        }
       } else if (data.workSituation === "empresario") {
         if (!data.nombreNegocio) errors.nombreNegocio = "Nombre del negocio";
         if (!data.rubroNegocio) errors.rubroNegocio = "Rubro del negocio";
         if (!data.actividadPrincipal) errors.actividadPrincipal = "Actividad principal";
-      }
-    }
-
-    if (currentStep === 7) { // Documents step
-      if (uploadedPayslips.length < 3) {
-        errors.payslips = "Debes adjuntar al menos 3 boletas de pago";
       }
     }
 
@@ -254,14 +267,15 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
         } else if (data.workSituation === "independiente") {
           return data.workDetails && data.empresaTrabajo;
         } else if (data.workSituation === "empleado") {
-          return data.workDetails && data.empresaTrabajo;
+          return data.workDetails && data.empresaTrabajo && data.trabajoEnPlanilla &&
+                 (data.trabajoEnPlanilla !== "Otros" || data.otroTrabajo);
         } else if (data.workSituation === "empresario") {
           return data.nombreNegocio && data.rubroNegocio && data.actividadPrincipal;
         }
         return data.workSituation !== "";
       case "payslips": return data.hasPayslips !== "";
       case "income": return data.monthlyIncome > 0;
-      case "documents": return true; // Optional step
+      case "documents": return true; // No longer mandatory
       default: return false;
     }
   };
@@ -278,6 +292,20 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
     { id: "refinanciamiento", title: "Refinanciamiento", icon: "🔄", desc: "Consolidar deudas" },
     { id: "credito-construccion", title: "Crédito Construcción", icon: "🏗️", desc: "Para construcción" },
     { id: "credito-rural", title: "Crédito Rural", icon: "🌾", desc: "Para actividades rurales" }
+  ];
+
+  const jobPositions = [
+    "Asistente",
+    "Analista", 
+    "Ejecutivo de ventas",
+    "Practicante",
+    "Contador",
+    "Supervisor",
+    "Coordinador",
+    "Jefe",
+    "Gerente",
+    "Director",
+    "Otros"
   ];
 
   return (
@@ -395,7 +423,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                   </div>
                 )}
 
-                {/* Paso 1: Datos Personales - SIMPLIFICADO */}
+                {/* Paso 1: Datos Personales - AGREGADO FECHA DE NACIMIENTO */}
                 {currentStep === 1 && (
                   <div className="space-y-4">
                     <div>
@@ -444,6 +472,20 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                           }}
                         />
                       </div>
+                    </div>
+
+                    <div>
+                      <Label>Fecha de nacimiento</Label>
+                      <Input
+                        type="date"
+                        value={data.personalInfo.birthDate}
+                        onChange={(e) => {
+                          setData(prev => ({ 
+                            ...prev, 
+                            personalInfo: { ...prev.personalInfo, birthDate: e.target.value }
+                          }));
+                        }}
+                      />
                     </div>
                     
                     <div>
@@ -533,7 +575,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                   </div>
                 )}
 
-                {/* Paso 4: Trabajo EXPANDIDO */}
+                {/* Paso 4: Trabajo EXPANDIDO CON CAMBIOS SOLICITADOS */}
                 {currentStep === 4 && (
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -573,13 +615,19 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                             )}
                           </div>
                           <div>
-                            <Label>Ciclo *</Label>
-                            <Input
-                              placeholder="1er, 2do, 3er, etc."
-                              value={data.ciclo || ""}
-                              onChange={(e) => setData(prev => ({ ...prev, ciclo: e.target.value }))}
-                              className={validationErrors.ciclo ? "border-red-500" : ""}
-                            />
+                            <Label>¿En qué ciclo estudias? *</Label>
+                            <Select onValueChange={(value) => setData(prev => ({ ...prev, ciclo: value }))}>
+                              <SelectTrigger className={validationErrors.ciclo ? "border-red-500" : ""}>
+                                <SelectValue placeholder="Selecciona el ciclo" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Array.from({ length: 12 }, (_, i) => (
+                                  <SelectItem key={i + 1} value={`Ciclo ${i + 1}`}>
+                                    Ciclo {i + 1}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                             {validationErrors.ciclo && (
                               <p className="text-red-500 text-sm mt-1">{validationErrors.ciclo}</p>
                             )}
@@ -672,6 +720,38 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                             <p className="text-red-500 text-sm mt-1">{validationErrors.empresaTrabajo}</p>
                           )}
                         </div>
+                        <div>
+                          <Label>¿Trabajas en planilla? *</Label>
+                          <Select onValueChange={(value) => setData(prev => ({ ...prev, trabajoEnPlanilla: value }))}>
+                            <SelectTrigger className={validationErrors.trabajoEnPlanilla ? "border-red-500" : ""}>
+                              <SelectValue placeholder="Selecciona tu ocupación" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {jobPositions.map((position) => (
+                                <SelectItem key={position} value={position}>
+                                  {position}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {validationErrors.trabajoEnPlanilla && (
+                            <p className="text-red-500 text-sm mt-1">{validationErrors.trabajoEnPlanilla}</p>
+                          )}
+                        </div>
+                        {data.trabajoEnPlanilla === "Otros" && (
+                          <div>
+                            <Label>Especifica tu ocupación *</Label>
+                            <Input
+                              placeholder="Describe tu ocupación"
+                              value={data.otroTrabajo || ""}
+                              onChange={(e) => setData(prev => ({ ...prev, otroTrabajo: e.target.value }))}
+                              className={validationErrors.otroTrabajo ? "border-red-500" : ""}
+                            />
+                            {validationErrors.otroTrabajo && (
+                              <p className="text-red-500 text-sm mt-1">{validationErrors.otroTrabajo}</p>
+                            )}
+                          </div>
+                        )}
                       </div>
                     )}
 
@@ -777,9 +857,15 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                   </div>
                 )}
 
-                {/* Paso 7: Documentos CON REQUISITO DE 3 BOLETAS */}
+                {/* Paso 7: Documentos OPCIONAL AHORA */}
                 {currentStep === 7 && (
                   <div className="space-y-4">
+                    <div className="bg-orange-50 border border-orange-300 rounded-lg p-4 mb-4">
+                      <p className="text-orange-800 text-sm">
+                        <strong>Para acceder a un producto financiero, deberás completar esta información más adelante.</strong>
+                      </p>
+                    </div>
+
                     <div className="bg-blue-600 border border-blue-300 rounded-lg p-4 mb-4">
                       <p className="text-white text-sm">
                         <strong>Importante:</strong> Subir documentos no es obligatorio para ir a la subasta, pero sí para cerrar con un banco.
@@ -790,7 +876,6 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                       <div>
                         <Label className="flex items-center gap-2">
                           <span>DNI (ambas caras - obligatorio para validar)</span>
-                          <span className="text-red-500">*</span>
                         </Label>
                         <div className="mt-2 p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
                           <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
@@ -816,8 +901,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                       </div>
 
                       <div>
-                        <Label>Adjunta tus 3 últimas boletas de pago como requisito mínimo *</Label>
-                        <p className="text-sm text-blue-600 mb-2">Se requieren las últimas 3 boletas de pago mínimo</p>
+                        <Label>Adjunta tus boletas de pago</Label>
                         <div className="mt-2 p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
                           <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
                           <input
@@ -844,13 +928,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
                           {uploadedPayslips.length > 0 && (
                             <div className="mt-2">
                               <p className="text-sm text-green-600">✅ {uploadedPayslips.length} archivo(s) subido(s)</p>
-                              {uploadedPayslips.length < 3 && (
-                                <p className="text-sm text-orange-600">⚠️ Se requieren mínimo 3 boletas</p>
-                              )}
                             </div>
-                          )}
-                          {validationErrors.payslips && (
-                            <p className="text-red-500 text-sm mt-1">{validationErrors.payslips}</p>
                           )}
                         </div>
                       </div>

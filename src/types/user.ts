@@ -30,4 +30,7 @@ export interface UserData {
   nombreNegocio?: string;
   rubroNegocio?: string;
   actividadPrincipal?: string;
+  trabajoEnPlanilla?: string;
+  otroTrabajo?: string;
+  birthDate?: string;
 }
