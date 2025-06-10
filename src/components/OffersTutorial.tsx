@@ -40,7 +40,7 @@ export const OffersTutorial = ({ isVisible, onClose }: OffersTutorialProps) => {
     },
     {
       id: "preapproved-products",
-      target: "#preapproved-section",
+      target: "#preapproved-section h3",
       title: "Productos Pre-aprobados",
       description: "Productos que requieren verificación adicional y documentación antes de ser contratados.",
       position: "top",
@@ -52,14 +52,6 @@ export const OffersTutorial = ({ isVisible, onClose }: OffersTutorialProps) => {
       title: "Subasta Activa",
       description: "Aquí es donde los bancos compiten en tiempo real ofreciendo las mejores condiciones para ti.",
       position: "top",
-      highlight: true
-    },
-    {
-      id: "tutorial-button",
-      target: "button:has(.lucide-help-circle)",
-      title: "Botón Ver tutorial",
-      description: "Este botón te permite volver a ver esta explicación cuando lo necesites.",
-      position: "bottom",
       highlight: true
     },
     {
@@ -83,6 +75,14 @@ export const OffersTutorial = ({ isVisible, onClose }: OffersTutorialProps) => {
       target: "button:has(.lucide-settings)",
       title: "Botón Ajustar condiciones",
       description: "Cambia el tipo de producto o monto sin volver a llenar el formulario.",
+      position: "bottom",
+      highlight: true
+    },
+    {
+      id: "tutorial-button",
+      target: "button:has(.lucide-help-circle)",
+      title: "Botón Ver tutorial",
+      description: "Este botón te permite volver a ver esta explicación cuando lo necesites.",
       position: "bottom",
       highlight: true
     },
