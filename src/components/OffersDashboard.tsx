@@ -4,10 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Trophy, TrendingUp, AlertTriangle, ExternalLink, RefreshCw, Clock, Settings, ChevronDown, ChevronUp, Star } from "lucide-react";
+import { ArrowLeft, Trophy, TrendingUp, AlertTriangle, ExternalLink, RefreshCw, Clock, Settings, ChevronDown, ChevronUp, Star, HelpCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { generateOffers } from "@/utils/offerGenerator";
 import { userTrackingService } from "@/services/userTracking";
+import { OffersTutorial } from "./OffersTutorial";
 
 interface User {
   firstName: string;
@@ -61,6 +62,7 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
   const [showSettings, setShowSettings] = useState(false);
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [auctionCount, setAuctionCount] = useState(0);
+  const [showTutorial, setShowTutorial] = useState(false);
 
   useEffect(() => {
     loadOffers();
@@ -79,9 +81,9 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
     };
     setCountdownDays(urgencyMap[user.urgencyLevel as keyof typeof urgencyMap] || 7);
 
-    // Auto-refresh auction offers every 30 seconds
+    // Auto-refresh auction offers every 30 seconds with smooth animations
     const interval = setInterval(() => {
-      updateAuctionOffers();
+      updateAuctionOffersWithAnimation();
     }, 30000);
 
     return () => clearInterval(interval);
@@ -117,12 +119,15 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
       return acc;
     }, []);
 
-    setOffers(uniqueOffers);
-    setAuctionCount(uniqueOffers.filter(offer => offer.status === 'auction').length);
+    // Sort offers by TEA (interest rate) - lower rates first
+    const sortedOffers = uniqueOffers.sort((a, b) => a.interestRate - b.interestRate);
+
+    setOffers(sortedOffers);
+    setAuctionCount(sortedOffers.filter(offer => offer.status === 'auction').length);
     setLoading(false);
   };
 
-  const updateAuctionOffers = () => {
+  const updateAuctionOffersWithAnimation = () => {
     setOffers(prev => {
       const updated = prev.map(offer => {
         if (offer.status === 'auction') {
@@ -139,7 +144,7 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
         return offer;
       });
       
-      // Sort by interest rate to simulate dynamic positioning
+      // Sort by TEA (interest rate) to simulate dynamic positioning
       return updated.sort((a, b) => a.interestRate - b.interestRate);
     });
   };
@@ -188,9 +193,9 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
     , offersList[0]);
   };
 
-  const preApprovedOffers = getOffersByStatus('pre-approved');
-  const approvedOffers = getOffersByStatus('approved');
-  const auctionOffers = getOffersByStatus('auction');
+  const preApprovedOffers = getOffersByStatus('pre-approved').sort((a, b) => a.interestRate - b.interestRate);
+  const approvedOffers = getOffersByStatus('approved').sort((a, b) => a.interestRate - b.interestRate);
+  const auctionOffers = getOffersByStatus('auction').sort((a, b) => a.interestRate - b.interestRate);
 
   const renderExpandableCard = (offer: Offer, index: number, isBestOffer: boolean = false) => {
     const isExpanded = expandedCard === offer.id;
@@ -199,18 +204,31 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
       <motion.div 
         key={offer.id}
         layout
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ 
+          duration: 0.8,
+          delay: index * 0.1,
+          layout: { duration: 0.6, ease: "easeInOut" }
+        }}
         className={`
           p-4 rounded-lg border-2 transition-all cursor-pointer
           ${isBestOffer ? 'border-yellow-400 bg-gradient-to-r from-yellow-50 to-amber-50 shadow-lg' : 'border-neza-silver-200 bg-white'}
           ${isExpanded ? 'ring-2 ring-blue-500' : ''}
         `}
         onClick={() => setExpandedCard(isExpanded ? null : offer.id)}
-        animate={{ scale: isBestOffer ? [1, 1.02, 1] : 1 }}
-        transition={{ duration: 2, repeat: Infinity }}
+        whileHover={{ scale: 1.01 }}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            {isBestOffer && <Star className="w-5 h-5 text-yellow-600 mr-2 fill-current" />}
+            {isBestOffer && (
+              <motion.div
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <Star className="w-5 h-5 text-yellow-600 mr-2 fill-current" />
+              </motion.div>
+            )}
             <div>
               <h3 className="font-semibold text-neza-blue-900 flex items-center gap-2">
                 {offer.bankName}
@@ -227,9 +245,13 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
                     {offer.originalRate}%
                   </span>
                 )}
-                <div className="text-lg font-bold text-green-600">
+                <motion.div 
+                  className="text-lg font-bold text-green-600"
+                  animate={isBestOffer ? { scale: [1, 1.05, 1] } : {}}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
                   {offer.interestRate}% TEA
-                </div>
+                </motion.div>
               </div>
               <div className="text-sm text-neza-silver-600">
                 S/. {offer.monthlyPayment.toLocaleString()}/mes
@@ -327,7 +349,7 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-neza-blue-50 to-neza-cyan-100">
       <div className="container mx-auto px-4 py-6">
-        {/* Header with countdown and settings */}
+        {/* Header with countdown, settings and tutorial */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center">
             <Button variant="ghost" onClick={onBack} className="mr-4 text-neza-blue-600">
@@ -345,6 +367,16 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
           </div>
           
           <div className="flex items-center gap-4">
+            {/* Tutorial Button */}
+            <Button
+              variant="outline"
+              onClick={() => setShowTutorial(true)}
+              className="border-blue-300 text-blue-600 hover:bg-blue-50"
+            >
+              <HelpCircle className="w-4 h-4 mr-2" />
+              Ver tutorial
+            </Button>
+
             {/* Countdown */}
             <div className="bg-neza-blue-100 border border-neza-blue-300 rounded-lg px-4 py-2 text-center">
               <div className="flex items-center gap-1 text-neza-blue-700">
@@ -365,6 +397,12 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
             </Button>
           </div>
         </div>
+
+        {/* Tutorial Component */}
+        <OffersTutorial 
+          isVisible={showTutorial}
+          onClose={() => setShowTutorial(false)}
+        />
 
         {/* Quick adjustment settings */}
         <AnimatePresence>
@@ -453,7 +491,7 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
 
         {/* Dynamic Auction Section */}
         {auctionOffers.length > 0 && (
-          <Card className="mb-6 border-yellow-300 bg-gradient-to-r from-yellow-50 to-orange-50">
+          <Card id="auction-section" className="mb-6 border-yellow-300 bg-gradient-to-r from-yellow-50 to-orange-50">
             <CardHeader>
               <CardTitle className="flex items-center text-yellow-800">
                 <Trophy className="w-5 h-5 mr-2" />
@@ -475,7 +513,7 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
 
         {/* Approved Offers */}
         {approvedOffers.length > 0 && (
-          <Card className="mb-6 border-green-200">
+          <Card id="approved-section" className="mb-6 border-green-200">
             <CardHeader>
               <CardTitle className="text-green-800">
                 ✅ Productos Aprobados ({approvedOffers.length} opciones disponibles)
@@ -494,7 +532,7 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
 
         {/* Pre-approved Offers */}
         {preApprovedOffers.length > 0 && (
-          <Card className="border-yellow-200">
+          <Card id="preapproved-section" className="border-yellow-200">
             <CardHeader>
               <CardTitle className="text-yellow-800">
                 ⏳ Pre-aprobados ({preApprovedOffers.length} opciones disponibles)
