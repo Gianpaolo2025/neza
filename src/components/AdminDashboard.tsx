@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +7,7 @@ import { Users, CreditCard, FileText, TrendingUp, MessageSquare, Settings, BarCh
 import { UserSuggestions } from "./admin/UserSuggestions";
 import { AdminLogin } from "./admin/AdminLogin";
 import { AdvancedMetrics } from "./admin/AdvancedMetrics";
+import { UserManagement } from "./admin/UserManagement";
 import { userTrackingService } from "@/services/userTracking";
 
 export const AdminDashboard = () => {
@@ -162,7 +162,7 @@ export const AdminDashboard = () => {
               className="flex items-center gap-2 data-[state=active]:bg-neza-blue-600 data-[state=active]:text-white"
             >
               <Users className="w-4 h-4" />
-              Usuarios
+              Gestión de Usuarios
             </TabsTrigger>
             <TabsTrigger 
               value="applications" 
@@ -332,18 +332,7 @@ export const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="users">
-            <Card className="border-neza-blue-200 bg-white/60 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="text-neza-blue-800">Gestión de Usuarios</CardTitle>
-                <CardDescription>Usuarios reales registrados en NEZA</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-neza-blue-600">Funcionalidad de gestión de usuarios en desarrollo...</p>
-                <p className="text-sm text-gray-500 mt-2">
-                  Usuarios totales registrados: {realTimeStats?.totalUsers || 0}
-                </p>
-              </CardContent>
-            </Card>
+            <UserManagement />
           </TabsContent>
 
           <TabsContent value="applications">

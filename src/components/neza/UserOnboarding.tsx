@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { HumanAdvisoryExperience } from "./HumanAdvisoryExperience";
 import { AuctionValidator } from "./AuctionValidator";
@@ -15,6 +14,43 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
   const [currentView, setCurrentView] = useState<'advisory' | 'validation' | 'offers'>('advisory');
   const [userData, setUserData] = useState<UserData | null>(null);
 
+  const saveUserToAdmin = (data: UserData) => {
+    const adminUsers = JSON.parse(localStorage.getItem('nezaAdminUsers') || '[]');
+    
+    const userRecord = {
+      id: Date.now().toString(),
+      fullName: `${data.firstName} ${data.lastName}`,
+      dni: data.dni,
+      email: data.email,
+      birthDate: data.birthDate || '',
+      phone: data.phone,
+      monthlyIncome: data.monthlyIncome,
+      requestedAmount: data.requestedAmount,
+      productType: data.productType,
+      employmentType: data.employmentType,
+      workDetails: data.workDetails || '',
+      documents: {
+        dni: data.documents?.dni ? data.documents.dni.name : null,
+        payslips: data.documents?.payslips ? data.documents.payslips.name : null,
+        others: data.documents?.others ? data.documents.others.name : null
+      },
+      processStatus: 'Completó formulario',
+      currentStep: 'Ofertas disponibles',
+      registrationDate: new Date().toISOString(),
+      lastUpdate: new Date().toISOString()
+    };
+
+    const existingUserIndex = adminUsers.findIndex((user: any) => user.email === data.email);
+    
+    if (existingUserIndex >= 0) {
+      adminUsers[existingUserIndex] = { ...adminUsers[existingUserIndex], ...userRecord };
+    } else {
+      adminUsers.push(userRecord);
+    }
+    
+    localStorage.setItem('nezaAdminUsers', JSON.stringify(adminUsers));
+  };
+
   const handleComplete = (data: any) => {
     // Convert data from the experience to expected format
     const convertedData: UserData = {
@@ -23,6 +59,7 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
       dni: data.personalInfo.dni,
       email: data.personalInfo.email,
       phone: data.personalInfo.phone,
+      birthDate: data.personalInfo.birthDate,
       monthlyIncome: data.monthlyIncome,
       requestedAmount: data.amount,
       productType: data.goal,
@@ -40,9 +77,12 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
       documents: data.documents
     };
     
+    // Save to admin
+    saveUserToAdmin(convertedData);
+    
     setUserData(convertedData);
     
-    // Continue directly to offers without authentication
+    // Continue with existing tracking logic
     if (!userTrackingService['currentSessionId']) {
       userTrackingService.startSession(
         convertedData.email, 
