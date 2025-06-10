@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -78,6 +79,7 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
     return countdownMap[productType as keyof typeof countdownMap] || 7;
   };
 
+  // Initial load effect - only runs once
   useEffect(() => {
     loadOffers();
     userTrackingService.trackActivity(
@@ -86,16 +88,18 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
       'Usuario accedió al dashboard de ofertas'
     );
 
-    // Calculate auction end time and set countdown
+    // Calculate auction end time only once on mount
     const days = getProductCountdown(selectedProductType);
     const endTime = new Date();
     endTime.setDate(endTime.getDate() + days);
     setAuctionEndTime(endTime);
+  }, []); // Empty dependency array to run only once
+
+  // Separate effect for countdown updates
+  useEffect(() => {
+    if (!auctionEndTime) return;
     
-    // Update countdown every minute
     const updateCountdown = () => {
-      if (!auctionEndTime) return;
-      
       const now = new Date();
       const difference = auctionEndTime.getTime() - now.getTime();
       
@@ -111,18 +115,32 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
     };
 
     updateCountdown();
-    const countdownInterval = setInterval(updateCountdown, 60000); // Update every minute
+    const countdownInterval = setInterval(updateCountdown, 60000);
 
-    // Auto-refresh auction offers every 30 seconds with smooth animations
+    return () => clearInterval(countdownInterval);
+  }, [auctionEndTime]); // Only depends on auctionEndTime
+
+  // Separate effect for auction updates
+  useEffect(() => {
     const interval = setInterval(() => {
       updateAuctionOffersWithAnimation();
     }, 30000);
 
-    return () => {
-      clearInterval(interval);
-      clearInterval(countdownInterval);
-    };
-  }, [selectedProductType, requestedAmount, auctionEndTime]);
+    return () => clearInterval(interval);
+  }, [requestedAmount]); // Only depends on requestedAmount for calculations
+
+  // Effect for handling product type or amount changes
+  useEffect(() => {
+    if (selectedProductType !== user.productType || requestedAmount !== user.requestedAmount) {
+      loadOffers();
+      
+      // Recalculate auction end time when product type changes
+      const days = getProductCountdown(selectedProductType);
+      const endTime = new Date();
+      endTime.setDate(endTime.getDate() + days);
+      setAuctionEndTime(endTime);
+    }
+  }, [selectedProductType, requestedAmount, user.productType, user.requestedAmount]);
 
   const loadOffers = async () => {
     setLoading(true);
