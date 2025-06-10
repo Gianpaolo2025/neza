@@ -120,7 +120,7 @@ export const OffersTutorial = ({ isVisible, onClose }: OffersTutorialProps) => {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
         element.classList.add('tutorial-highlight-blue');
         
-        // If we're explaining card details, open a card for demonstration
+        // If we're explaining card details, open a non-golden card for demonstration
         if (currentStepData.id === "card-details") {
           const secondCard = document.querySelector("#auction-section .cursor-pointer:nth-child(2)") as HTMLElement;
           if (secondCard) {
@@ -128,7 +128,7 @@ export const OffersTutorial = ({ isVisible, onClose }: OffersTutorialProps) => {
           }
         }
         
-        // If we're explaining best offer access, open a non-golden card
+        // If we're explaining best offer access, open a different non-golden card
         if (currentStepData.id === "best-offer") {
           const thirdCard = document.querySelector("#auction-section .cursor-pointer:nth-child(3)") as HTMLElement;
           if (thirdCard) {
