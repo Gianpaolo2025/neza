@@ -47,14 +47,6 @@ export const OffersTutorial = ({ isVisible, onClose }: OffersTutorialProps) => {
       highlight: true
     },
     {
-      id: "auction-system",
-      target: "#auction-section",
-      title: "Subasta Activa",
-      description: "Los bancos compiten en tiempo real por ofrecerte las mejores condiciones.",
-      position: "bottom",
-      highlight: true
-    },
-    {
       id: "tutorial-button",
       target: "button:has(.lucide-help-circle)",
       title: "Botón Ver tutorial",
@@ -88,7 +80,7 @@ export const OffersTutorial = ({ isVisible, onClose }: OffersTutorialProps) => {
     },
     {
       id: "card-details",
-      target: "#auction-section .cursor-pointer:first-child",
+      target: "#auction-section .cursor-pointer:nth-child(2)",
       title: "Información de cada Tarjeta",
       description: "Cada tarjeta muestra banco, producto, TEA y cuota mensual. Haz clic para ver detalles.",
       position: "top",
@@ -96,9 +88,9 @@ export const OffersTutorial = ({ isVisible, onClose }: OffersTutorialProps) => {
     },
     {
       id: "best-offer",
-      target: "#auction-section .border-yellow-400",
-      title: "Marco Dorado - Mejor Oferta",
-      description: "El marco dorado indica la mejor condición disponible en este momento.",
+      target: "#auction-section .cursor-pointer:nth-child(3)",
+      title: "Acceso a detalles de cualquier oferta",
+      description: "Puedes acceder a los detalles de cualquier tarjeta, no solo la mejor oferta.",
       position: "bottom",
       highlight: true
     },
@@ -130,9 +122,17 @@ export const OffersTutorial = ({ isVisible, onClose }: OffersTutorialProps) => {
         
         // If we're explaining card details, open a card for demonstration
         if (currentStepData.id === "card-details") {
-          const firstCard = document.querySelector("#auction-section .cursor-pointer:first-child") as HTMLElement;
-          if (firstCard) {
-            firstCard.click();
+          const secondCard = document.querySelector("#auction-section .cursor-pointer:nth-child(2)") as HTMLElement;
+          if (secondCard) {
+            secondCard.click();
+          }
+        }
+        
+        // If we're explaining best offer access, open a non-golden card
+        if (currentStepData.id === "best-offer") {
+          const thirdCard = document.querySelector("#auction-section .cursor-pointer:nth-child(3)") as HTMLElement;
+          if (thirdCard) {
+            thirdCard.click();
           }
         }
       }
