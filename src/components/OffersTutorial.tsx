@@ -34,7 +34,7 @@ export const OffersTutorial = ({ isVisible, onClose }: OffersTutorialProps) => {
       id: "approved-products",
       target: "#approved-section",
       title: "Productos Aprobados",
-      description: "Productos que ya están aprobados para ti. Puedes solicitarlos directamente.",
+      description: "Productos que ya han sido aprobados por las entidades financieras y están listos para contratar directamente.",
       position: "top",
       highlight: true
     },
@@ -42,7 +42,15 @@ export const OffersTutorial = ({ isVisible, onClose }: OffersTutorialProps) => {
       id: "preapproved-products",
       target: "#preapproved-section",
       title: "Productos Pre-aprobados",
-      description: "Productos con alta probabilidad de aprobación pero requieren documentación adicional.",
+      description: "Productos que requieren verificación adicional y documentación antes de ser contratados.",
+      position: "top",
+      highlight: true
+    },
+    {
+      id: "auction-section",
+      target: "#auction-section",
+      title: "Subasta Activa",
+      description: "Aquí es donde los bancos compiten en tiempo real ofreciendo las mejores condiciones para ti.",
       position: "top",
       highlight: true
     },
@@ -82,16 +90,8 @@ export const OffersTutorial = ({ isVisible, onClose }: OffersTutorialProps) => {
       id: "card-details",
       target: "#auction-section .cursor-pointer:nth-child(2)",
       title: "Información de cada Tarjeta",
-      description: "Cada tarjeta muestra banco, producto, TEA y cuota mensual. Haz clic para ver detalles.",
+      description: "Cada tarjeta muestra banco, producto, TEA y cuota mensual. Haz clic para ver detalles completos.",
       position: "top",
-      highlight: true
-    },
-    {
-      id: "best-offer",
-      target: "#auction-section .cursor-pointer:nth-child(3)",
-      title: "Acceso a detalles de cualquier oferta",
-      description: "Puedes acceder a los detalles de cualquier tarjeta, no solo la mejor oferta.",
-      position: "bottom",
       highlight: true
     },
     {
@@ -103,7 +103,7 @@ export const OffersTutorial = ({ isVisible, onClose }: OffersTutorialProps) => {
     }
   ];
 
-  // Reset to step 1 whenever tutorial becomes visible
+  // Reset to step 0 whenever tutorial becomes visible
   useEffect(() => {
     if (isVisible) {
       setCurrentStep(0);
@@ -120,19 +120,11 @@ export const OffersTutorial = ({ isVisible, onClose }: OffersTutorialProps) => {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
         element.classList.add('tutorial-highlight-blue');
         
-        // If we're explaining card details, open a non-golden card for demonstration
+        // If we're explaining card details, open the second card for demonstration
         if (currentStepData.id === "card-details") {
           const secondCard = document.querySelector("#auction-section .cursor-pointer:nth-child(2)") as HTMLElement;
           if (secondCard) {
             secondCard.click();
-          }
-        }
-        
-        // If we're explaining best offer access, open a different non-golden card
-        if (currentStepData.id === "best-offer") {
-          const thirdCard = document.querySelector("#auction-section .cursor-pointer:nth-child(3)") as HTMLElement;
-          if (thirdCard) {
-            thirdCard.click();
           }
         }
       }
