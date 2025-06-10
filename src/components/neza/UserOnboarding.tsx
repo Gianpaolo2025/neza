@@ -84,7 +84,8 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
       true
     );
     
-    setCurrentView('validation');
+    // Go directly to offers without validation step to prevent alternating views
+    setCurrentView('offers');
   };
 
   const handleValidationSuccess = () => {
