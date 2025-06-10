@@ -1,14 +1,16 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Trophy, TrendingUp, AlertTriangle, ExternalLink, RefreshCw, Clock, Settings, ChevronDown, ChevronUp, Star, HelpCircle } from "lucide-react";
+import { ArrowLeft, Trophy, TrendingUp, AlertTriangle, ExternalLink, RefreshCw, Clock, Settings, ChevronDown, ChevronUp, Star, HelpCircle, Upload } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { generateOffers } from "@/utils/offerGenerator";
 import { userTrackingService } from "@/services/userTracking";
 import { OffersTutorial } from "./OffersTutorial";
+import { DocumentUpload } from "./neza/DocumentUpload";
 
 interface User {
   firstName: string;
@@ -58,11 +60,23 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
   const [loading, setLoading] = useState(true);
   const [selectedProductType, setSelectedProductType] = useState(user.productType);
   const [requestedAmount, setRequestedAmount] = useState(user.requestedAmount);
-  const [countdownDays, setCountdownDays] = useState(7);
   const [showSettings, setShowSettings] = useState(false);
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const [auctionCount, setAuctionCount] = useState(0);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showDocuments, setShowDocuments] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState({ days: 0, hours: 0, minutes: 0 });
+
+  // Calculate countdown based on product type
+  const getProductCountdown = (productType: string) => {
+    const countdownMap = {
+      'credito-hipotecario': 10,
+      'credito-vehicular': 5,
+      'credito-personal': 2,
+      'tarjeta-credito': 1
+    };
+    return countdownMap[productType as keyof typeof countdownMap] || 7;
+  };
 
   useEffect(() => {
     loadOffers();
@@ -72,21 +86,39 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
       'Usuario accedió al dashboard de ofertas'
     );
 
-    // Countdown timer basado en urgencia
-    const urgencyMap = {
-      'inmediato': 3,
-      'una-semana': 7,
-      'un-mes': 30,
-      'no-urgente': 90
+    // Calculate initial countdown
+    const days = getProductCountdown(selectedProductType);
+    const endTime = new Date();
+    endTime.setDate(endTime.getDate() + days);
+    
+    // Update countdown every minute
+    const updateCountdown = () => {
+      const now = new Date();
+      const difference = endTime.getTime() - now.getTime();
+      
+      if (difference > 0) {
+        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+        
+        setTimeRemaining({ days, hours, minutes });
+      } else {
+        setTimeRemaining({ days: 0, hours: 0, minutes: 0 });
+      }
     };
-    setCountdownDays(urgencyMap[user.urgencyLevel as keyof typeof urgencyMap] || 7);
+
+    updateCountdown();
+    const countdownInterval = setInterval(updateCountdown, 60000); // Update every minute
 
     // Auto-refresh auction offers every 30 seconds with smooth animations
     const interval = setInterval(() => {
       updateAuctionOffersWithAnimation();
     }, 30000);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      clearInterval(countdownInterval);
+    };
   }, [selectedProductType, requestedAmount]);
 
   const loadOffers = async () => {
@@ -349,7 +381,7 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-neza-blue-50 to-neza-cyan-100">
       <div className="container mx-auto px-4 py-6">
-        {/* Header with countdown, settings and tutorial */}
+        {/* Header with countdown, settings, tutorial and documents */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center">
             <Button variant="ghost" onClick={onBack} className="mr-4 text-neza-blue-600">
@@ -377,13 +409,25 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
               Ver tutorial
             </Button>
 
-            {/* Countdown */}
+            {/* Upload Documents Button */}
+            <Button
+              variant="outline"
+              onClick={() => setShowDocuments(true)}
+              className="border-green-300 text-green-600 hover:bg-green-50"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Subir documentos
+            </Button>
+
+            {/* Enhanced Countdown */}
             <div className="bg-neza-blue-100 border border-neza-blue-300 rounded-lg px-4 py-2 text-center">
               <div className="flex items-center gap-1 text-neza-blue-700">
                 <Clock className="w-4 h-4" />
-                <span className="font-bold text-lg">{countdownDays}</span>
+                <div className="text-sm font-bold">
+                  {timeRemaining.days}d {timeRemaining.hours}h {timeRemaining.minutes}m
+                </div>
               </div>
-              <div className="text-xs text-neza-blue-600">días restantes</div>
+              <div className="text-xs text-neza-blue-600">tiempo restante</div>
             </div>
 
             {/* Quick Settings */}
@@ -403,6 +447,65 @@ export const OffersDashboard = ({ user, onBack }: OffersDashboardProps) => {
           isVisible={showTutorial}
           onClose={() => setShowTutorial(false)}
         />
+
+        {/* Document Upload Modal */}
+        <AnimatePresence>
+          {showDocuments && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="bg-white rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+              >
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-2xl font-bold text-neza-blue-800">Subir Documentos</h2>
+                  <Button
+                    variant="ghost"
+                    onClick={() => setShowDocuments(false)}
+                    className="text-neza-blue-600"
+                  >
+                    ✕
+                  </Button>
+                </div>
+                
+                <div className="space-y-6">
+                  <DocumentUpload
+                    title="DNI"
+                    description="Sube tu documento nacional de identidad"
+                    required={true}
+                    documentType="dni"
+                    status="pending"
+                    onUpload={() => {}}
+                  />
+                  
+                  <DocumentUpload
+                    title="Boletas de Pago"
+                    description="Últimas 3 boletas de pago"
+                    required={true}
+                    documentType="payslips"
+                    status="pending"
+                    onUpload={() => {}}
+                  />
+                  
+                  <DocumentUpload
+                    title="Otros Documentos"
+                    description="Documentos adicionales que consideres relevantes"
+                    required={false}
+                    documentType="others"
+                    status="pending"
+                    onUpload={() => {}}
+                  />
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Quick adjustment settings */}
         <AnimatePresence>

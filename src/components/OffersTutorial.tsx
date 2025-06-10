@@ -135,7 +135,7 @@ export const OffersTutorial = ({ isVisible, onClose }: OffersTutorialProps) => {
 
   const handleClose = () => {
     userTrackingService.trackActivity(
-      'offers_tutorial_completed',
+      'tutorial_completed',
       { totalSteps: tutorialSteps.length, completedSteps: currentStep + 1 },
       'Usuario completó o cerró el tutorial de ofertas'
     );
@@ -146,8 +146,8 @@ export const OffersTutorial = ({ isVisible, onClose }: OffersTutorialProps) => {
 
   return (
     <>
-      {/* Tutorial Card - Fixed top bar */}
-      <div className="fixed top-0 left-0 right-0 z-[90] w-full bg-white border-b-2 border-blue-900 shadow-lg">
+      {/* Tutorial Card - Fixed bottom bar to avoid covering content */}
+      <div className="fixed bottom-0 left-0 right-0 z-[90] w-full bg-white border-t-2 border-blue-900 shadow-lg">
         <div className="container mx-auto max-w-6xl px-4 py-2">
           <div className="flex items-center justify-between">
             {/* Tutorial info */}
