@@ -109,10 +109,10 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
         onBack={() => {
           userTrackingService.trackActivity(
             'button_click',
-            { action: 'back_to_validation', forceFlow },
-            'Usuario regresó del dashboard de ofertas a la validación'
+            { action: 'back_to_questions', forceFlow },
+            'Usuario regresó del dashboard de ofertas a las preguntas'
           );
-          setCurrentView('validation');
+          setCurrentView('advisory');
         }}
       />
     );

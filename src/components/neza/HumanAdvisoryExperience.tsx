@@ -251,6 +251,8 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
       if (confirm('¿Estás seguro de que quieres salir? Debes completar este formulario para solicitar el producto.')) {
         onBack();
       }
+    } else {
+      onBack();
     }
   };
 
@@ -976,11 +978,11 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
         <div className="flex justify-between items-center mt-8">
           <Button
             variant="outline"
-            onClick={currentStep === 0 ? onBack : handlePrev}
+            onClick={handlePrev}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="w-4 h-4" />
-            {currentStep === 0 ? (forceFlow ? 'Cancelar' : 'Volver') : 'Anterior'}
+            {currentStep === 0 ? (forceFlow ? 'Cancelar' : 'Volver') : 'Atrás'}
           </Button>
           
           <Button
