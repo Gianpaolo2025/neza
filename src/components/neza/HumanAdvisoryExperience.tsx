@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, ArrowLeft, ArrowRight, User, Briefcase, DollarSign, Lightbulb, FileText, Calendar, Phone, MapPin, Mail, ChevronRight, Target, School, Building, Zap } from "lucide-react";
+import { CheckCircle, ArrowLeft, ArrowRight, User, Briefcase, DollarSign, Lightbulb, FileText, Calendar, Phone, MapPin, Mail, ChevronRight, Target, School, Building, Zap, AlertCircle } from "lucide-react";
 import { InteractiveTutorial } from "./InteractiveTutorial";
 import { userTrackingService } from "@/services/userTracking";
 
@@ -57,6 +57,7 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
   const [currentStep, setCurrentStep] = useState(1);
   const [showTutorial, setShowTutorial] = useState(false);
   const [uploadedPayslips, setUploadedPayslips] = useState<File[]>([]);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [data, setData] = useState<FormData>({
     goal: "",
     amount: 0,
@@ -80,45 +81,36 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
     }
   });
 
-  // Clear all user data on component mount to prevent pre-filling for new users
+  // Check for returning user and load their data
   useEffect(() => {
-    console.log('HumanAdvisoryExperience: Clearing all user data on mount');
+    const savedEmail = localStorage.getItem('nezaUserEmail');
+    const savedData = localStorage.getItem('nezaPersonalData');
     
-    // Clear localStorage completely for new sessions
-    localStorage.removeItem('nezaUserData');
-    localStorage.removeItem('nezaPersonalData');
-    localStorage.removeItem('nezaHumanAdvisoryData');
-    localStorage.removeItem('nezaUserEmail');
-    
-    // Reset component state to ensure clean slate
-    setData({
-      goal: "",
-      amount: 0,
-      workSituation: "",
-      workDetails: "",
-      hasPayslips: "",
-      monthlyIncome: 0,
-      personalInfo: {
-        firstName: "",
-        lastName: "",
-        dni: "",
-        email: "",
-        phone: "",
-        birthDate: ""
-      },
-      preferredBank: "",
-      documents: {
-        dni: null,
-        payslips: null,
-        others: null
+    if (savedEmail && savedData && isReturningUser) {
+      try {
+        const parsedData = JSON.parse(savedData);
+        // Pre-fill data for returning user
+        setData(prev => ({
+          ...prev,
+          personalInfo: {
+            ...prev.personalInfo,
+            ...parsedData
+          }
+        }));
+        console.log('Datos precargados para usuario que regresa:', parsedData);
+      } catch (error) {
+        console.error('Error loading saved data:', error);
       }
-    });
-    
-    // Clear uploaded files state
-    setUploadedPayslips([]);
-    
-    console.log('HumanAdvisoryExperience: All user data cleared successfully');
-  }, []); // Empty dependency array ensures this runs only once on mount
+    } else {
+      // Clear all data for new user
+      console.log('HumanAdvisoryExperience: Clearing all user data for new user');
+      localStorage.removeItem('nezaUserData');
+      localStorage.removeItem('nezaPersonalData');
+      localStorage.removeItem('nezaHumanAdvisoryData');
+      localStorage.removeItem('nezaUserEmail');
+      setUploadedPayslips([]);
+    }
+  }, [isReturningUser]);
 
   // Save user to admin when step 2 (personal data) is completed
   const saveUserToAdmin = (personalData: any) => {
@@ -206,9 +198,27 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
   const validateCurrentStep = () => {
     const errors: Record<string, string> = {};
     
-    // No validation for personal step - users can proceed with any data
+    if (currentStep === 1) { // Goal step
+      if (!data.goal) errors.goal = "Debes seleccionar un producto financiero";
+    }
+    
+    if (currentStep === 2) { // Personal data step
+      if (!data.personalInfo.firstName.trim()) errors.firstName = "Nombre es requerido";
+      if (!data.personalInfo.lastName.trim()) errors.lastName = "Apellidos son requeridos";
+      if (!data.personalInfo.dni.trim() || data.personalInfo.dni.length !== 8) errors.dni = "DNI debe tener 8 dígitos";
+      if (!data.personalInfo.birthDate) errors.birthDate = "Fecha de nacimiento es requerida";
+      if (!data.personalInfo.email.trim() || !data.personalInfo.email.includes('@')) errors.email = "Email válido es requerido";
+      if (!data.personalInfo.phone.trim() || data.personalInfo.phone.length < 9) errors.phone = "Teléfono debe tener al menos 9 dígitos";
+    }
+    
+    if (currentStep === 3) { // Amount step
+      if (!data.amount || data.amount <= 0) errors.amount = "Debes especificar un monto válido";
+    }
     
     if (currentStep === 4) { // Work step
+      if (!data.workSituation) errors.workSituation = "Debes seleccionar tu situación laboral";
+      if (!data.monthlyIncome || data.monthlyIncome <= 0) errors.monthlyIncome = "Debes especificar tus ingresos";
+      
       if (data.workSituation === "estudiante") {
         if (!data.carrera) errors.carrera = "Carrera es requerida para estudiantes";
         if (!data.ciclo) errors.ciclo = "Ciclo es requerido para estudiantes";
@@ -222,6 +232,7 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
       }
     }
     
+    setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
@@ -290,6 +301,65 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
     }
   };
 
+  // Generate birth year options for faster selection
+  const generateYearOptions = () => {
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let year = currentYear; year >= currentYear - 100; year--) {
+      years.push(year);
+    }
+    return years;
+  };
+
+  const generateMonthOptions = () => {
+    return [
+      { value: '01', label: 'Enero' },
+      { value: '02', label: 'Febrero' },
+      { value: '03', label: 'Marzo' },
+      { value: '04', label: 'Abril' },
+      { value: '05', label: 'Mayo' },
+      { value: '06', label: 'Junio' },
+      { value: '07', label: 'Julio' },
+      { value: '08', label: 'Agosto' },
+      { value: '09', label: 'Septiembre' },
+      { value: '10', label: 'Octubre' },
+      { value: '11', label: 'Noviembre' },
+      { value: '12', label: 'Diciembre' }
+    ];
+  };
+
+  const generateDayOptions = (year: string, month: string) => {
+    if (!year || !month) return [];
+    const daysInMonth = new Date(parseInt(year), parseInt(month), 0).getDate();
+    const days = [];
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push(day.toString().padStart(2, '0'));
+    }
+    return days;
+  };
+
+  const handleBirthDateChange = (type: 'year' | 'month' | 'day', value: string) => {
+    const [currentYear, currentMonth, currentDay] = data.personalInfo.birthDate.split('-');
+    
+    let newYear = type === 'year' ? value : currentYear || '';
+    let newMonth = type === 'month' ? value : currentMonth || '';
+    let newDay = type === 'day' ? value : currentDay || '';
+    
+    // Validate day exists in selected month/year
+    if (newYear && newMonth && newDay) {
+      const daysInMonth = new Date(parseInt(newYear), parseInt(newMonth), 0).getDate();
+      if (parseInt(newDay) > daysInMonth) {
+        newDay = daysInMonth.toString().padStart(2, '0');
+      }
+    }
+    
+    const newDate = newYear && newMonth && newDay ? `${newYear}-${newMonth}-${newDay}` : '';
+    setData({
+      ...data,
+      personalInfo: { ...data.personalInfo, birthDate: newDate }
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
       {/* Mensaje de Transparencia Fijo */}
@@ -354,66 +424,74 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
                     </p>
                   </div>
 
-                {/* Paso 0: Objetivo financiero */}
+                {/* Paso 1: Objetivo financiero - MOSTRAR 11 PRODUCTOS */}
                 {currentStep === 1 && (
                   <div className="space-y-6">
                     <Label className="text-lg font-medium text-slate-700">
                       ¿Qué tipo de producto financiero estás buscando?
                     </Label>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {[
-                        { id: "prestamo-personal", label: "Préstamo Personal", icon: "💰", desc: "Para gastos personales" },
-                        { id: "prestamo-vehicular", label: "Préstamo Vehicular", icon: "🚗", desc: "Para comprar tu auto" },
-                        { id: "hipotecario", label: "Crédito Hipotecario", icon: "🏠", desc: "Para tu casa" },
-                        { id: "tarjeta-credito", label: "Tarjeta de Crédito", icon: "💳", desc: "Para compras y pagos" },
-                        { id: "prestamo-negocio", label: "Préstamo para Negocio", icon: "📊", desc: "Para tu empresa" },
-                        { id: "microfinanzas", label: "Microfinanzas", icon: "🏪", desc: "Para pequeños negocios" }
-                      ].map((option) => (
-                        <motion.div
-                          key={option.id}
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          <Button
-                            variant={data.goal === option.id ? "default" : "outline"}
-                            onClick={() => setData({ ...data, goal: option.id })}
-                            className={`h-24 w-full flex flex-col items-center justify-center space-y-2 ${
-                              data.goal === option.id 
-                                ? "bg-blue-600 hover:bg-blue-700 text-white" 
-                                : "border-blue-300 hover:bg-blue-50"
-                            }`}
+                    {validationErrors.goal && (
+                      <div className="flex items-center gap-2 text-red-600 text-sm">
+                        <AlertCircle className="w-4 h-4" />
+                        {validationErrors.goal}
+                      </div>
+                    )}
+                    <div className="max-h-96 overflow-y-auto">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {[
+                          { id: "prestamo-personal", label: "Préstamo Personal", icon: "💰", desc: "Para gastos personales" },
+                          { id: "prestamo-vehicular", label: "Préstamo Vehicular", icon: "🚗", desc: "Para comprar tu auto" },
+                          { id: "hipotecario", label: "Crédito Hipotecario", icon: "🏠", desc: "Para tu casa" },
+                          { id: "tarjeta-credito", label: "Tarjeta de Crédito", icon: "💳", desc: "Para compras y pagos" },
+                          { id: "prestamo-negocio", label: "Préstamo para Negocio", icon: "📊", desc: "Para tu empresa" },
+                          { id: "microfinanzas", label: "Microfinanzas", icon: "🏪", desc: "Para pequeños negocios" },
+                          { id: "cuenta-ahorros", label: "Cuenta de Ahorros", icon: "🏦", desc: "Para ahorrar dinero" },
+                          { id: "deposito-plazo", label: "Depósito a Plazo", icon: "📈", desc: "Inversión a plazo fijo" },
+                          { id: "credito-estudios", label: "Crédito Educativo", icon: "🎓", desc: "Para financiar estudios" },
+                          { id: "seguro-vida", label: "Seguro de Vida", icon: "🛡️", desc: "Protección familiar" },
+                          { id: "credito-consumo", label: "Crédito de Consumo", icon: "🛒", desc: "Para compras específicas" }
+                        ].map((option) => (
+                          <motion.div
+                            key={option.id}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
                           >
-                            <span className="text-2xl">{option.icon}</span>
-                            <div className="text-center">
-                              <div className="font-semibold text-sm">{option.label}</div>
-                              <div className="text-xs opacity-70">{option.desc}</div>
-                            </div>
-                          </Button>
-                        </motion.div>
-                      ))}
+                            <Button
+                              variant={data.goal === option.id ? "default" : "outline"}
+                              onClick={() => setData({ ...data, goal: option.id })}
+                              className={`h-24 w-full flex flex-col items-center justify-center space-y-2 ${
+                                data.goal === option.id 
+                                  ? "bg-blue-600 hover:bg-blue-700 text-white" 
+                                  : "border-blue-300 hover:bg-blue-50"
+                              } ${validationErrors.goal ? 'border-red-500' : ''}`}
+                            >
+                              <span className="text-2xl">{option.icon}</span>
+                              <div className="text-center">
+                                <div className="font-semibold text-sm">{option.label}</div>
+                                <div className="text-xs opacity-70">{option.desc}</div>
+                              </div>
+                            </Button>
+                          </motion.div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 )}
 
-                {/* Paso 1: Datos Personales */}
+                {/* Paso 2: Datos Personales - MEJORAR SELECTOR DE FECHA */}
                 {currentStep === 2 && (
                   <div className="space-y-4">
                     <div>
                       <Label className="text-base font-medium text-slate-700 mb-3 block">
                         📝 Información Personal Básica
                       </Label>
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                        <p className="text-sm text-blue-800">
-                          <strong>✅ Todos los campos son opcionales:</strong> Puedes llenar solo los que desees o completar todo más tarde.
-                        </p>
-                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="firstName" className="flex items-center gap-2 text-slate-700 mb-2">
                           <User className="w-4 h-4" />
-                          Nombres
+                          Nombres *
                         </Label>
                         <Input
                           id="firstName"
@@ -423,14 +501,20 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
                             personalInfo: { ...data.personalInfo, firstName: e.target.value }
                           })}
                           placeholder="Ej: Juan Carlos"
-                          className="border-blue-300 focus:border-blue-500"
+                          className={`border-blue-300 focus:border-blue-500 ${validationErrors.firstName ? 'border-red-500' : ''}`}
                         />
+                        {validationErrors.firstName && (
+                          <div className="flex items-center gap-2 text-red-600 text-sm mt-1">
+                            <AlertCircle className="w-4 h-4" />
+                            {validationErrors.firstName}
+                          </div>
+                        )}
                       </div>
 
                       <div>
                         <Label htmlFor="lastName" className="flex items-center gap-2 text-slate-700 mb-2">
                           <User className="w-4 h-4" />
-                          Apellidos
+                          Apellidos *
                         </Label>
                         <Input
                           id="lastName"
@@ -440,14 +524,20 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
                             personalInfo: { ...data.personalInfo, lastName: e.target.value }
                           })}
                           placeholder="Ej: Pérez García"
-                          className="border-blue-300 focus:border-blue-500"
+                          className={`border-blue-300 focus:border-blue-500 ${validationErrors.lastName ? 'border-red-500' : ''}`}
                         />
+                        {validationErrors.lastName && (
+                          <div className="flex items-center gap-2 text-red-600 text-sm mt-1">
+                            <AlertCircle className="w-4 h-4" />
+                            {validationErrors.lastName}
+                          </div>
+                        )}
                       </div>
 
                       <div>
                         <Label htmlFor="dni" className="flex items-center gap-2 text-slate-700 mb-2">
                           <FileText className="w-4 h-4" />
-                          DNI
+                          DNI *
                         </Label>
                         <Input
                           id="dni"
@@ -458,32 +548,76 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
                           })}
                           placeholder="12345678"
                           maxLength={8}
-                          className="border-blue-300 focus:border-blue-500"
+                          className={`border-blue-300 focus:border-blue-500 ${validationErrors.dni ? 'border-red-500' : ''}`}
                         />
+                        {validationErrors.dni && (
+                          <div className="flex items-center gap-2 text-red-600 text-sm mt-1">
+                            <AlertCircle className="w-4 h-4" />
+                            {validationErrors.dni}
+                          </div>
+                        )}
                       </div>
 
                       <div>
-                        <Label htmlFor="birthDate" className="flex items-center gap-2 text-slate-700 mb-2">
+                        <Label className="flex items-center gap-2 text-slate-700 mb-2">
                           <Calendar className="w-4 h-4" />
-                          Fecha de Nacimiento
+                          Fecha de Nacimiento *
                         </Label>
-                        <Input
-                          id="birthDate"
-                          type="date"
-                          value={data.personalInfo.birthDate}
-                          onChange={(e) => setData({
-                            ...data,
-                            personalInfo: { ...data.personalInfo, birthDate: e.target.value }
-                          })}
-                          className="border-blue-300 focus:border-blue-500"
-                          max={new Date().toISOString().split('T')[0]}
-                        />
+                        <div className="grid grid-cols-3 gap-2">
+                          <Select 
+                            value={data.personalInfo.birthDate.split('-')[2] || ''} 
+                            onValueChange={(value) => handleBirthDateChange('day', value)}
+                          >
+                            <SelectTrigger className={`border-blue-300 focus:border-blue-500 ${validationErrors.birthDate ? 'border-red-500' : ''}`}>
+                              <SelectValue placeholder="Día" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {generateDayOptions(data.personalInfo.birthDate.split('-')[0] || '', data.personalInfo.birthDate.split('-')[1] || '').map((day) => (
+                                <SelectItem key={day} value={day}>{day}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          
+                          <Select 
+                            value={data.personalInfo.birthDate.split('-')[1] || ''} 
+                            onValueChange={(value) => handleBirthDateChange('month', value)}
+                          >
+                            <SelectTrigger className={`border-blue-300 focus:border-blue-500 ${validationErrors.birthDate ? 'border-red-500' : ''}`}>
+                              <SelectValue placeholder="Mes" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {generateMonthOptions().map((month) => (
+                                <SelectItem key={month.value} value={month.value}>{month.label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          
+                          <Select 
+                            value={data.personalInfo.birthDate.split('-')[0] || ''} 
+                            onValueChange={(value) => handleBirthDateChange('year', value)}
+                          >
+                            <SelectTrigger className={`border-blue-300 focus:border-blue-500 ${validationErrors.birthDate ? 'border-red-500' : ''}`}>
+                              <SelectValue placeholder="Año" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {generateYearOptions().map((year) => (
+                                <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        {validationErrors.birthDate && (
+                          <div className="flex items-center gap-2 text-red-600 text-sm mt-1">
+                            <AlertCircle className="w-4 h-4" />
+                            {validationErrors.birthDate}
+                          </div>
+                        )}
                       </div>
 
                       <div>
                         <Label htmlFor="email" className="flex items-center gap-2 text-slate-700 mb-2">
                           <Mail className="w-4 h-4" />
-                          Correo Electrónico
+                          Correo Electrónico *
                         </Label>
                         <Input
                           id="email"
@@ -494,14 +628,20 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
                             personalInfo: { ...data.personalInfo, email: e.target.value }
                           })}
                           placeholder="juan@ejemplo.com"
-                          className="border-blue-300 focus:border-blue-500"
+                          className={`border-blue-300 focus:border-blue-500 ${validationErrors.email ? 'border-red-500' : ''}`}
                         />
+                        {validationErrors.email && (
+                          <div className="flex items-center gap-2 text-red-600 text-sm mt-1">
+                            <AlertCircle className="w-4 h-4" />
+                            {validationErrors.email}
+                          </div>
+                        )}
                       </div>
 
                       <div>
                         <Label htmlFor="phone" className="flex items-center gap-2 text-slate-700 mb-2">
                           <Phone className="w-4 h-4" />
-                          Teléfono
+                          Teléfono *
                         </Label>
                         <Input
                           id="phone"
@@ -512,8 +652,14 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
                           })}
                           placeholder="987654321"
                           maxLength={9}
-                          className="border-blue-300 focus:border-blue-500"
+                          className={`border-blue-300 focus:border-blue-500 ${validationErrors.phone ? 'border-red-500' : ''}`}
                         />
+                        {validationErrors.phone && (
+                          <div className="flex items-center gap-2 text-red-600 text-sm mt-1">
+                            <AlertCircle className="w-4 h-4" />
+                            {validationErrors.phone}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -525,6 +671,12 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
                     <Label className="text-lg font-medium text-slate-700">
                       💰 ¿Cuánto dinero necesitas?
                     </Label>
+                    {validationErrors.amount && (
+                      <div className="flex items-center gap-2 text-red-600 text-sm">
+                        <AlertCircle className="w-4 h-4" />
+                        {validationErrors.amount}
+                      </div>
+                    )}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {[5000, 10000, 20000, 50000, 100000, 200000].map((amount) => (
                         <Button
@@ -543,14 +695,14 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
                     </div>
                     <div>
                       <Label className="text-base font-medium text-slate-700 mb-3 block">
-                        Otro monto específico:
+                        Otro monto específico: *
                       </Label>
                       <Input
                         type="number"
                         value={data.amount || ""}
                         onChange={(e) => setData({ ...data, amount: Number(e.target.value) })}
                         placeholder="Escribe el monto que necesitas"
-                        className="border-blue-300 focus:border-blue-500"
+                        className={`border-blue-300 focus:border-blue-500 ${validationErrors.amount ? 'border-red-500' : ''}`}
                       />
                     </div>
                   </div>
@@ -562,10 +714,10 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <Label className="text-base font-medium text-slate-700 mb-3 block">
-                          💼 ¿Cuál es tu situación laboral actual?
+                          💼 ¿Cuál es tu situación laboral actual? *
                         </Label>
                         <Select value={data.workSituation} onValueChange={(value) => setData({ ...data, workSituation: value })}>
-                          <SelectTrigger className="border-blue-300 focus:border-blue-500">
+                          <SelectTrigger className={`border-blue-300 focus:border-blue-500 ${validationErrors.workSituation ? 'border-red-500' : ''}`}>
                             <SelectValue placeholder="Selecciona tu situación" />
                           </SelectTrigger>
                           <SelectContent>
@@ -578,14 +730,20 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
                             <SelectItem value="otro">❓ Otro</SelectItem>
                           </SelectContent>
                         </Select>
+                        {validationErrors.workSituation && (
+                          <div className="flex items-center gap-2 text-red-600 text-sm mt-1">
+                            <AlertCircle className="w-4 h-4" />
+                            {validationErrors.workSituation}
+                          </div>
+                        )}
                       </div>
 
                       <div>
                         <Label className="text-base font-medium text-slate-700 mb-3 block">
-                          💰 ¿Cuáles son tus ingresos mensuales aproximados?
+                          💰 ¿Cuáles son tus ingresos mensuales aproximados? *
                         </Label>
                         <Select value={data.monthlyIncome.toString()} onValueChange={(value) => setData({ ...data, monthlyIncome: Number(value) })}>
-                          <SelectTrigger className="border-blue-300 focus:border-blue-500">
+                          <SelectTrigger className={`border-blue-300 focus:border-blue-500 ${validationErrors.monthlyIncome ? 'border-red-500' : ''}`}>
                             <SelectValue placeholder="Selecciona tu rango de ingresos" />
                           </SelectTrigger>
                           <SelectContent>
@@ -598,6 +756,12 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
                             <SelectItem value="15000">Más de S/ 10,000</SelectItem>
                           </SelectContent>
                         </Select>
+                        {validationErrors.monthlyIncome && (
+                          <div className="flex items-center gap-2 text-red-600 text-sm mt-1">
+                            <AlertCircle className="w-4 h-4" />
+                            {validationErrors.monthlyIncome}
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -773,16 +937,26 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
                       <p className="text-slate-600">Estos documentos nos ayudarán a encontrar las mejores ofertas para ti</p>
                     </div>
 
+                    {/* MENSAJE OBLIGATORIO DE DOCUMENTOS */}
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+                      <div className="flex items-center gap-2 text-amber-800">
+                        <AlertCircle className="w-5 h-5" />
+                        <p className="font-medium">
+                          Recuerda que más adelante deberás subir tus documentos para poder acceder a un producto financiero.
+                        </p>
+                      </div>
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       {[
-                        { type: 'dni', label: 'DNI', icon: '🆔', required: true },
+                        { type: 'dni', label: 'DNI', icon: '🆔', required: false },
                         { type: 'payslips', label: 'Boletas de pago', icon: '💰', required: false },
                         { type: 'others', label: 'Otros documentos', icon: '📄', required: false }
                       ].map((doc) => (
                         <div key={doc.type} className="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center hover:border-blue-500 transition-colors">
                           <div className="text-4xl mb-3">{doc.icon}</div>
                           <h4 className="font-semibold text-slate-800 mb-2">{doc.label}</h4>
-                          {doc.required && <Badge variant="destructive" className="mb-3">Requerido</Badge>}
+                          <Badge variant="outline" className="mb-3">Opcional</Badge>
                           
                           <Input
                             type="file"
@@ -803,13 +977,6 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
                           )}
                         </div>
                       ))}
-                    </div>
-
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <p className="text-sm text-blue-800">
-                        <strong>📌 Importante:</strong> Todos los documentos son opcionales en esta etapa. 
-                        Puedes subirlos ahora o más tarde durante el proceso de evaluación.
-                      </p>
                     </div>
                   </div>
                 )}
