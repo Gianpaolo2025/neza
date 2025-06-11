@@ -79,51 +79,45 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false,
     }
   });
 
-  // Load previous data on component mount
+  // Clear all user data on component mount to prevent pre-filling for new users
   useEffect(() => {
-    const savedData = localStorage.getItem('nezaUserData');
-    if (savedData) {
-      try {
-        const parsedData = JSON.parse(savedData);
-        if (parsedData.personalInfo && 
-            (parsedData.personalInfo.dni || parsedData.personalInfo.firstName || 
-             parsedData.personalInfo.lastName || parsedData.personalInfo.email)) {
-          setData(prev => ({
-            ...prev,
-            personalInfo: {
-              ...prev.personalInfo,
-              ...parsedData.personalInfo
-            },
-            // Restore other saved data
-            goal: parsedData.goal || prev.goal,
-            amount: parsedData.amount || prev.amount,
-            workSituation: parsedData.workSituation || prev.workSituation,
-            monthlyIncome: parsedData.monthlyIncome || prev.monthlyIncome,
-            hasPayslips: parsedData.hasPayslips || prev.hasPayslips,
-            carrera: parsedData.carrera || prev.carrera,
-            ciclo: parsedData.ciclo || prev.ciclo,
-            hacePracticas: parsedData.hacePracticas || prev.hacePracticas,
-            empresaPracticas: parsedData.empresaPracticas || prev.empresaPracticas,
-            empresaTrabajo: parsedData.empresaTrabajo || prev.empresaTrabajo,
-            nombreNegocio: parsedData.nombreNegocio || prev.nombreNegocio,
-            rubroNegocio: parsedData.rubroNegocio || prev.rubroNegocio,
-            actividadPrincipal: parsedData.actividadPrincipal || prev.actividadPrincipal,
-            trabajoEnPlanilla: parsedData.trabajoEnPlanilla || prev.trabajoEnPlanilla,
-            otroTrabajo: parsedData.otroTrabajo || prev.otroTrabajo
-          }));
-        }
-      } catch (error) {
-        console.log('Error loading saved data:', error);
+    console.log('HumanAdvisoryExperience: Clearing all user data on mount');
+    
+    // Clear localStorage completely for new sessions
+    localStorage.removeItem('nezaUserData');
+    localStorage.removeItem('nezaPersonalData');
+    localStorage.removeItem('nezaHumanAdvisoryData');
+    localStorage.removeItem('nezaUserEmail');
+    
+    // Reset component state to ensure clean slate
+    setData({
+      goal: "",
+      amount: 0,
+      workSituation: "",
+      workDetails: "",
+      hasPayslips: "",
+      monthlyIncome: 0,
+      personalInfo: {
+        firstName: "",
+        lastName: "",
+        dni: "",
+        email: "",
+        phone: "",
+        birthDate: ""
+      },
+      preferredBank: "",
+      documents: {
+        dni: null,
+        payslips: null,
+        others: null
       }
-    }
-  }, []);
-
-  // Save data to localStorage whenever data changes
-  useEffect(() => {
-    if (data.personalInfo.dni || data.personalInfo.firstName || data.personalInfo.email) {
-      localStorage.setItem('nezaUserData', JSON.stringify(data));
-    }
-  }, [data]);
+    });
+    
+    // Clear uploaded files state
+    setUploadedPayslips([]);
+    
+    console.log('HumanAdvisoryExperience: All user data cleared successfully');
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   const steps = [
     {
@@ -193,7 +187,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false,
   const validateCurrentStep = () => {
     const errors: Record<string, string> = {};
     
-    // Removed all validation for personal step - users can proceed with any data
+    // No validation for personal step - users can proceed with any data
     
     if (currentStep === 4) { // Work step
       if (data.workSituation === "estudiante") {
@@ -312,7 +306,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false,
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
-      {/* Mensaje de Transparencia Fijo - CAMBIADO A AZUL FUERTE */}
+      {/* Mensaje de Transparencia Fijo */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-blue-600 border-b-2 border-blue-700 py-2 px-4">
         <div className="container mx-auto max-w-4xl">
           <p className="text-sm text-white text-center font-medium">
@@ -425,7 +419,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false,
                   </div>
                 )}
 
-                {/* Paso 1: Datos Personales - AGREGADO FECHA DE NACIMIENTO */}
+                {/* Paso 1: Datos Personales */}
                 {currentStep === 1 && (
                   <div className="space-y-4">
                     <div>
@@ -577,7 +571,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false,
                   </div>
                 )}
 
-                {/* Paso 4: Trabajo EXPANDIDO CON CAMBIOS SOLICITADOS */}
+                {/* Paso 4: Trabajo EXPANDIDO */}
                 {currentStep === 4 && (
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
