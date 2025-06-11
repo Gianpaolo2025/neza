@@ -70,12 +70,12 @@ export class EnhancedMatchingEngine {
     // Calculate compatibility score based on user profile
     let compatibilityScore = 80; // Base score for real data
     
-    const incomeRatio = userProfile.monthlyIncome / product.profileRequirements.minIncome;
+    const incomeRatio = userProfile.income / product.profileRequirements.minIncome;
     if (incomeRatio >= 2) compatibilityScore += 15;
     else if (incomeRatio >= 1.5) compatibilityScore += 10;
     else if (incomeRatio >= 1) compatibilityScore += 5;
     
-    if (product.profileRequirements.employmentType.includes(userProfile.employmentType || 'dependiente')) {
+    if (product.profileRequirements.employmentType.includes(userProfile.employment || 'dependiente')) {
       compatibilityScore += 5;
     }
     
@@ -83,33 +83,33 @@ export class EnhancedMatchingEngine {
     const missingRequirements: string[] = [];
     let meetsRequirements = true;
     
-    if (userProfile.monthlyIncome < product.profileRequirements.minIncome) {
+    if (userProfile.income < product.profileRequirements.minIncome) {
       missingRequirements.push(`Ingreso mínimo requerido: S/ ${product.profileRequirements.minIncome.toLocaleString()}`);
       meetsRequirements = false;
     }
     
-    if (!product.profileRequirements.employmentType.includes(userProfile.employmentType || 'dependiente')) {
+    if (!product.profileRequirements.employmentType.includes(userProfile.employment || 'dependiente')) {
       missingRequirements.push('Tipo de empleo no compatible');
       meetsRequirements = false;
     }
     
-    if (!product.profileRequirements.creditHistory.includes(userProfile.creditHistory || 'bueno')) {
+    if (!product.profileRequirements.creditHistory.includes(userProfile.creditScore || 'bueno')) {
       missingRequirements.push('Historial crediticio insuficiente');
       meetsRequirements = false;
     }
     
     // Calculate recommended amount
-    const maxByIncome = userProfile.monthlyIncome * 5;
+    const maxByIncome = userProfile.income * 5;
     const recommendedAmount = Math.min(
-      userProfile.requestedAmount || product.maxAmount,
+      userProfile.loanAmount || product.maxAmount,
       Math.min(maxByIncome, product.maxAmount)
     );
     
     // Risk level based on income ratio and requested amount
     let riskLevel: 'bajo' | 'medio' | 'alto' = 'medio';
-    if (incomeRatio >= 2 && recommendedAmount <= userProfile.monthlyIncome * 3) {
+    if (incomeRatio >= 2 && recommendedAmount <= userProfile.income * 3) {
       riskLevel = 'bajo';
-    } else if (incomeRatio < 1.2 || recommendedAmount > userProfile.monthlyIncome * 4) {
+    } else if (incomeRatio < 1.2 || recommendedAmount > userProfile.income * 4) {
       riskLevel = 'alto';
     }
     

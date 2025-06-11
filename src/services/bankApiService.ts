@@ -1,4 +1,3 @@
-
 export interface BankApiConfig {
   id: string;
   bankName: string;
@@ -271,9 +270,9 @@ class BankApiService {
   getProductsByUserProfile(userProfile: any): BankProduct[] {
     return this.bankProducts
       .filter(product => {
-        const meetsIncome = userProfile.monthlyIncome >= product.profileRequirements.minIncome;
-        const meetsEmployment = product.profileRequirements.employmentType.includes(userProfile.employmentType);
-        const meetsCreditHistory = product.profileRequirements.creditHistory.includes(userProfile.creditHistory);
+        const meetsIncome = userProfile.income >= product.profileRequirements.minIncome;
+        const meetsEmployment = product.profileRequirements.employmentType.includes(userProfile.employment);
+        const meetsCreditHistory = product.profileRequirements.creditHistory.includes(userProfile.creditScore);
         
         return meetsIncome && meetsEmployment && meetsCreditHistory;
       })
