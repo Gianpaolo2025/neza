@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { HumanAdvisoryExperience } from "./HumanAdvisoryExperience";
 import { AuctionValidator } from "./AuctionValidator";
 import { OffersDashboard } from "@/components/OffersDashboard";
@@ -13,6 +14,35 @@ interface UserOnboardingProps {
 export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProps) => {
   const [currentView, setCurrentView] = useState<'advisory' | 'validation' | 'offers'>('advisory');
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [isReturningUser, setIsReturningUser] = useState(false);
+
+  useEffect(() => {
+    // Detectar si es un usuario nuevo o que regresa
+    const savedEmail = localStorage.getItem('nezaUserEmail');
+    const savedData = localStorage.getItem('nezaPersonalData');
+    const hasSessionData = localStorage.getItem('nezaSessionData');
+    
+    // Es usuario que regresa si tiene email guardado Y datos guardados Y datos de sesión
+    const returning = !!(savedEmail && savedData && hasSessionData);
+    setIsReturningUser(returning);
+    
+    console.log('Detección de usuario:', {
+      isReturning: returning,
+      hasSavedEmail: !!savedEmail,
+      hasSavedData: !!savedData,
+      hasSessionData: !!hasSessionData
+    });
+    
+    // Si es usuario completamente nuevo, limpiar todo al inicio
+    if (!returning && (savedData || savedEmail)) {
+      console.log('Usuario nuevo detectado - Limpiando datos previos en UserOnboarding');
+      localStorage.removeItem('nezaPersonalData');
+      localStorage.removeItem('nezaHumanAdvisoryData');
+      localStorage.removeItem('nezaUserEmail');
+      localStorage.removeItem('nezaSessionData');
+      localStorage.removeItem('nezaAdminUsers');
+    }
+  }, []);
 
   const saveUserToAdmin = (data: UserData) => {
     const adminUsers = JSON.parse(localStorage.getItem('nezaAdminUsers') || '[]');
@@ -77,6 +107,14 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
       documents: data.documents
     };
     
+    // Marcar usuario como confirmado y guardar datos de sesión
+    localStorage.setItem('nezaUserEmail', convertedData.email);
+    localStorage.setItem('nezaSessionData', JSON.stringify({
+      email: convertedData.email,
+      timestamp: Date.now(),
+      confirmed: true
+    }));
+    
     // Save to admin
     saveUserToAdmin(convertedData);
     
@@ -93,7 +131,7 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
 
     userTrackingService.trackActivity(
       'form_submit',
-      { ...convertedData, forceFlow },
+      { ...convertedData, forceFlow, isReturningUser },
       `Onboarding completado - Solicitud de ${convertedData.productType}`,
       convertedData.productType
     );
@@ -119,7 +157,8 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
         requestedAmount: convertedData.requestedAmount,
         monthlyIncome: convertedData.monthlyIncome,
         urgencyLevel: convertedData.urgencyLevel,
-        forceFlow
+        forceFlow,
+        isReturningUser
       },
       true
     );
@@ -151,7 +190,7 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
         onBack={() => {
           userTrackingService.trackActivity(
             'button_click',
-            { action: 'back_to_questions', forceFlow },
+            { action: 'back_to_questions', forceFlow, isReturningUser },
             'Usuario regresó del dashboard de ofertas a las preguntas'
           );
           setCurrentView('advisory');
@@ -169,7 +208,7 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
         onBack={() => {
           userTrackingService.trackActivity(
             'button_click',
-            { action: 'back_to_onboarding_from_validation', forceFlow },
+            { action: 'back_to_onboarding_from_validation', forceFlow, isReturningUser },
             'Usuario regresó de validación al onboarding'
           );
           setCurrentView('advisory');
@@ -179,19 +218,20 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
     );
   }
 
-  // Default view - advisory experience
+  // Default view - advisory experience - pasar isReturningUser como prop
   return (
     <HumanAdvisoryExperience 
       onBack={() => {
         userTrackingService.trackActivity(
           'form_abandon',
-          { step: 'advisory', reason: 'user_back_button', forceFlow },
+          { step: 'advisory', reason: 'user_back_button', forceFlow, isReturningUser },
           forceFlow ? 'Usuario abandonó el flujo obligatorio de solicitud' : 'Usuario abandonó el proceso de onboarding'
         );
         onBack();
       }}
       onComplete={handleComplete}
       forceFlow={forceFlow}
+      isReturningUser={isReturningUser}
     />
   );
 };
