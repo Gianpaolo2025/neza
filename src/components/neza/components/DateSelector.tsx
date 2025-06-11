@@ -48,6 +48,11 @@ export const DateSelector = ({ birthDate, onBirthDateChange, validationError, ca
     return Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString().padStart(2, '0'));
   };
 
+  const dateParts = birthDate ? birthDate.split('-') : ['', '', ''];
+  const selectedYear = dateParts[0] || '';
+  const selectedMonth = dateParts[1] || '';
+  const selectedDay = dateParts[2] || '';
+
   return (
     <div>
       <Label className="flex items-center gap-2 text-slate-700 mb-2">
@@ -57,18 +62,17 @@ export const DateSelector = ({ birthDate, onBirthDateChange, validationError, ca
       <div className="grid grid-cols-3 gap-3">
         <div>
           <Select 
-            value={birthDate.split('-')[2] || ''} 
+            value={selectedDay} 
             onValueChange={(value) => onBirthDateChange('day', value)}
           >
             <SelectTrigger className={`border-blue-300 focus:border-blue-500 ${validationError ? 'border-red-500' : ''}`}>
               <SelectValue placeholder="Día" />
             </SelectTrigger>
-            <SelectContent className="max-h-60 overflow-y-auto bg-white z-50">
-              {generateDayOptions(
-                birthDate.split('-')[0] || '', 
-                birthDate.split('-')[1] || ''
-              ).map((day) => (
-                <SelectItem key={day} value={day}>{day}</SelectItem>
+            <SelectContent className="max-h-60 overflow-y-auto bg-white z-50 border border-gray-200 shadow-lg">
+              {generateDayOptions(selectedYear, selectedMonth).map((day) => (
+                <SelectItem key={day} value={day} className="cursor-pointer hover:bg-blue-50">
+                  {day}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -76,15 +80,17 @@ export const DateSelector = ({ birthDate, onBirthDateChange, validationError, ca
         
         <div>
           <Select 
-            value={birthDate.split('-')[1] || ''} 
+            value={selectedMonth} 
             onValueChange={(value) => onBirthDateChange('month', value)}
           >
             <SelectTrigger className={`border-blue-300 focus:border-blue-500 ${validationError ? 'border-red-500' : ''}`}>
               <SelectValue placeholder="Mes" />
             </SelectTrigger>
-            <SelectContent className="max-h-60 overflow-y-auto bg-white z-50">
+            <SelectContent className="max-h-60 overflow-y-auto bg-white z-50 border border-gray-200 shadow-lg">
               {generateMonthOptions().map((month) => (
-                <SelectItem key={month.value} value={month.value}>{month.label}</SelectItem>
+                <SelectItem key={month.value} value={month.value} className="cursor-pointer hover:bg-blue-50">
+                  {month.label}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -92,15 +98,17 @@ export const DateSelector = ({ birthDate, onBirthDateChange, validationError, ca
         
         <div>
           <Select 
-            value={birthDate.split('-')[0] || ''} 
+            value={selectedYear} 
             onValueChange={(value) => onBirthDateChange('year', value)}
           >
             <SelectTrigger className={`border-blue-300 focus:border-blue-500 ${validationError ? 'border-red-500' : ''}`}>
               <SelectValue placeholder="Año" />
             </SelectTrigger>
-            <SelectContent className="max-h-60 overflow-y-auto bg-white z-50">
+            <SelectContent className="max-h-60 overflow-y-auto bg-white z-50 border border-gray-200 shadow-lg">
               {generateYearOptions().map((year) => (
-                <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                <SelectItem key={year} value={year.toString()} className="cursor-pointer hover:bg-blue-50">
+                  {year}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
