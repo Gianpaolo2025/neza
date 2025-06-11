@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -47,9 +46,10 @@ interface HumanAdvisoryExperienceProps {
   onBack: () => void;
   onComplete: (data: UserData) => void;
   forceFlow?: boolean;
+  isReturningUser?: boolean;
 }
 
-export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false }: HumanAdvisoryExperienceProps) => {
+export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false, isReturningUser = false }: HumanAdvisoryExperienceProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [showVideo, setShowVideo] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
