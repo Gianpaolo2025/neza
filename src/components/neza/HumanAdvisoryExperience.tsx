@@ -61,7 +61,7 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
   const nextStep = () => {
     if (currentStep < totalSteps) {
       userTrackingService.trackActivity(
-        'form_step_complete',
+        'form_submit',
         { step: currentStep, formData: getCurrentStepData() },
         `Usuario completó paso ${currentStep} del onboarding`
       );
@@ -72,8 +72,8 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
   const prevStep = () => {
     if (currentStep > 1) {
       userTrackingService.trackActivity(
-        'form_step_back',
-        { step: currentStep },
+        'button_click',
+        { step: currentStep, action: 'form_step_back' },
         `Usuario regresó del paso ${currentStep} al paso ${currentStep - 1}`
       );
       setCurrentStep(currentStep - 1);
@@ -111,14 +111,14 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
 
   const handleComplete = () => {
     userTrackingService.trackActivity(
-      'form_complete',
-      formData,
+      'form_submit',
+      { ...formData, action: 'form_complete' },
       'Usuario completó todo el formulario de onboarding'
     );
     onComplete(formData);
   };
 
-  const handleDocumentUpload = (type: 'dni' | 'payslips' | 'others', file: File | null) => {
+  const handleDocumentUpload = (type: 'dni' | 'payslips' | 'others', file: File | null, analysis?: any, fileId?: string) => {
     setFormData(prev => ({
       ...prev,
       documents: {
@@ -434,26 +434,32 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false 
             
             <div className="space-y-6">
               <DocumentUpload
-                label="📄 Copia de DNI"
+                title="📄 Copia de DNI"
                 description="Foto clara de tu DNI por ambos lados"
-                onFileUpload={(file) => handleDocumentUpload('dni', file)}
-                acceptedTypes=".jpg,.jpeg,.png,.pdf"
+                required={false}
+                documentType="dni"
+                status="pending"
+                onUpload={(file, analysis, fileId) => handleDocumentUpload('dni', file, analysis, fileId)}
               />
               
               {formData.hasPayslips === 'si' && (
                 <DocumentUpload
-                  label="💰 Boletas de pago"
+                  title="💰 Boletas de pago"
                   description="Últimas 3 boletas de pago"
-                  onFileUpload={(file) => handleDocumentUpload('payslips', file)}
-                  acceptedTypes=".jpg,.jpeg,.png,.pdf"
+                  required={false}
+                  documentType="payslips"
+                  status="pending"
+                  onUpload={(file, analysis, fileId) => handleDocumentUpload('payslips', file, analysis, fileId)}
                 />
               )}
               
               <DocumentUpload
-                label="📋 Otros documentos"
+                title="📋 Otros documentos"
                 description="Cualquier documento adicional que consideres relevante"
-                onFileUpload={(file) => handleDocumentUpload('others', file)}
-                acceptedTypes=".jpg,.jpeg,.png,.pdf"
+                required={false}
+                documentType="others"
+                status="pending"
+                onUpload={(file, analysis, fileId) => handleDocumentUpload('others', file, analysis, fileId)}
               />
             </div>
           </div>
