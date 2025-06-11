@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -120,29 +119,23 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false,
   }, [forceFlow]);
 
   const handleComplete = () => {
-    // Convert the local data structure to match UserData interface
-    const userData: UserData = {
-      dni: personalData.dni,
-      firstName: personalData.firstName,
-      lastName: personalData.lastName,
-      email: personalData.email,
-      phone: personalData.phone,
-      birthDate: personalData.birthDate,
+    const data = {
+      personalInfo: personalData,
       monthlyIncome: financialInfo.monthlyIncome,
-      requestedAmount: productSelection.amount,
-      employmentType: productSelection.workSituation,
-      creditHistory: clientProfile.creditHistory,
-      productType: productSelection.goal,
       hasOtherDebts: financialInfo.hasOtherDebts,
+      otherDebtsAmount: financialInfo.otherDebtsAmount,
       bankingRelationship: financialInfo.bankingRelationship,
-      urgencyLevel: clientProfile.urgencyLevel,
       preferredBank: financialInfo.preferredBank,
-      emailVerified: personalData.otpVerified,
+      creditHistory: clientProfile.creditHistory,
+      urgencyLevel: clientProfile.urgencyLevel,
+      amount: productSelection.amount,
+      goal: productSelection.goal,
+      workSituation: productSelection.workSituation,
       workDetails: productSelection.workDetails,
+      hasPayslips: productSelection.hasPayslips,
       documents: productSelection.documents
     };
-    
-    onComplete(userData);
+    onComplete(data as UserData);
   };
 
   const renderStep = () => {
@@ -177,6 +170,8 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false,
       case 3:
         return (
           <ProductListView
+            data={productSelection}
+            onUpdate={setProductSelection}
             onNext={() => setCurrentStep(4)}
             onPrev={() => setCurrentStep(2)}
           />
@@ -184,12 +179,12 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false,
       case 4:
         return (
           <DocumentUpload
-            title="Subir Documentos"
-            description="Sube los documentos requeridos"
-            required={true}
-            documentType="general"
-            status="pending"
-            onUpload={() => handleComplete()}
+            onComplete={handleComplete}
+            onPrev={() => setCurrentStep(3)}
+            personalData={personalData}
+            financialInfo={financialInfo}
+            clientProfile={clientProfile}
+            productSelection={productSelection}
           />
         );
       default:
@@ -201,9 +196,9 @@ export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false,
     <div className="flex flex-col min-h-screen bg-gray-50">
       <VideoModal open={videoOpen} onClose={() => setVideoOpen(false)} />
       <InteractiveTutorial
-        isOpen={showTutorial}
+        open={showTutorial}
         onClose={() => setShowTutorial(false)}
-        onOpenVideo={() => setVideoOpen(true)}
+        onVideo={() => setVideoOpen(true)}
       />
 
       <header className="bg-white shadow-md py-4">
