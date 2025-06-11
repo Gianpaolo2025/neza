@@ -4,11 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, CreditCard, FileText, TrendingUp, MessageSquare, Settings, BarChart3, LogOut, Shield, RefreshCw } from "lucide-react";
+import { Users, CreditCard, FileText, TrendingUp, MessageSquare, Settings, BarChart3, LogOut, Shield, RefreshCw, Link } from "lucide-react";
 import { UserSuggestions } from "./admin/UserSuggestions";
 import { AdminLogin } from "./admin/AdminLogin";
 import { AdvancedMetrics } from "./admin/AdvancedMetrics";
 import { UserManagement } from "./admin/UserManagement";
+import { BankApiManagement } from "./admin/BankApiManagement";
 import { userTrackingService } from "@/services/userTracking";
 
 export const AdminDashboard = () => {
@@ -153,7 +154,7 @@ export const AdminDashboard = () => {
 
       <div className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-white/60 backdrop-blur-sm border border-neza-blue-200">
+          <TabsList className="grid w-full grid-cols-6 bg-white/60 backdrop-blur-sm border border-neza-blue-200">
             <TabsTrigger 
               value="overview" 
               className="flex items-center gap-2 data-[state=active]:bg-neza-blue-600 data-[state=active]:text-white"
@@ -174,6 +175,13 @@ export const AdminDashboard = () => {
             >
               <Users className="w-4 h-4" />
               Gestión de Usuarios
+            </TabsTrigger>
+            <TabsTrigger 
+              value="bank-apis" 
+              className="flex items-center gap-2 data-[state=active]:bg-neza-blue-600 data-[state=active]:text-white"
+            >
+              <Link className="w-4 h-4" />
+              APIs Bancarias
             </TabsTrigger>
             <TabsTrigger 
               value="applications" 
@@ -344,6 +352,10 @@ export const AdminDashboard = () => {
 
           <TabsContent value="users">
             <UserManagement />
+          </TabsContent>
+
+          <TabsContent value="bank-apis">
+            <BankApiManagement />
           </TabsContent>
 
           <TabsContent value="applications">

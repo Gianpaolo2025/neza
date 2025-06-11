@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Trophy, TrendingUp, Shield, Clock, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Trophy, TrendingUp, Shield, Clock, AlertTriangle, Zap } from "lucide-react";
 import { UserProfile, DocumentAnalyzer } from "@/services/documentAnalyzer";
-import { MatchingEngine, ProductMatch, AuctionOffer } from "@/services/matchingEngine";
+import { EnhancedMatchingEngine, EnhancedProductMatch, EnhancedAuctionOffer } from "@/services/enhancedMatchingEngine";
+import { bankApiService } from "@/services/bankApiService";
 
 interface IntelligentSystemProps {
   userProfile: UserProfile;
@@ -14,10 +15,11 @@ interface IntelligentSystemProps {
 }
 
 export const IntelligentSystem = ({ userProfile, onBack }: IntelligentSystemProps) => {
-  const [matches, setMatches] = useState<ProductMatch[]>([]);
-  const [auctionOffers, setAuctionOffers] = useState<AuctionOffer[]>([]);
+  const [matches, setMatches] = useState<EnhancedProductMatch[]>([]);
+  const [auctionOffers, setAuctionOffers] = useState<EnhancedAuctionOffer[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProductType, setSelectedProductType] = useState<string>('');
+  const [hasRealData, setHasRealData] = useState(false);
 
   useEffect(() => {
     loadMatches();
@@ -30,10 +32,15 @@ export const IntelligentSystem = ({ userProfile, onBack }: IntelligentSystemProp
     setLoading(true);
     await new Promise(resolve => setTimeout(resolve, 1500)); // Simular carga
     
-    const productMatches = MatchingEngine.findCompatibleProducts(userProfile, selectedProductType);
+    // Check if we have real bank data
+    const bankProducts = bankApiService.getBankProducts();
+    const hasReal = bankProducts.length > 0;
+    setHasRealData(hasReal);
+    
+    const productMatches = EnhancedMatchingEngine.findCompatibleProducts(userProfile, selectedProductType);
     setMatches(productMatches);
     
-    const auction = MatchingEngine.createDynamicAuction(productMatches);
+    const auction = EnhancedMatchingEngine.createDynamicAuction(productMatches);
     setAuctionOffers(auction);
     
     setLoading(false);
@@ -41,7 +48,7 @@ export const IntelligentSystem = ({ userProfile, onBack }: IntelligentSystemProp
 
   const updateAuction = () => {
     if (matches.length > 0) {
-      const updatedAuction = MatchingEngine.createDynamicAuction(matches);
+      const updatedAuction = EnhancedMatchingEngine.createDynamicAuction(matches);
       setAuctionOffers(updatedAuction);
     }
   };
@@ -55,6 +62,7 @@ export const IntelligentSystem = ({ userProfile, onBack }: IntelligentSystemProp
   const quality = getQualityLevel(userProfile.qualityScore);
   const eligibleProducts = matches.filter(m => m.meetsRequirements);
   const totalProducts = matches.length;
+  const realDataProducts = matches.filter(m => m.isRealData).length;
 
   if (loading) {
     return (
@@ -63,7 +71,7 @@ export const IntelligentSystem = ({ userProfile, onBack }: IntelligentSystemProp
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
             <h2 className="text-2xl font-bold text-emerald-800 mb-2">
-              Analizando tu perfil financiero...
+              {hasRealData ? 'Conectando con APIs bancarias...' : 'Analizando tu perfil financiero...'}
             </h2>
             <p className="text-emerald-600">
               Evaluando compatibilidad con {totalProducts} productos de entidades SBS
@@ -88,6 +96,16 @@ export const IntelligentSystem = ({ userProfile, onBack }: IntelligentSystemProp
             <p className="text-emerald-600">Productos personalizados según tu perfil SBS</p>
           </div>
         </div>
+
+        {/* Data Source Badge (Only shown if real data is present) */}
+        {realDataProducts > 0 && (
+          <div className="mb-4">
+            <Badge className="bg-purple-100 text-purple-800 border border-purple-200 flex items-center w-fit gap-1 px-3 py-1">
+              <Zap className="w-4 h-4" />
+              {realDataProducts} productos con datos reales de APIs bancarias
+            </Badge>
+          </div>
+        )}
 
         {/* Quality Score */}
         <Card className="mb-6">
@@ -195,7 +213,7 @@ export const IntelligentSystem = ({ userProfile, onBack }: IntelligentSystemProp
             <CardContent>
               <div className="space-y-4">
                 {auctionOffers.slice(0, 3).map((offer, index) => (
-                  <div key={offer.match.product.id} className={`
+                  <div key={offer.match.id} className={`
                     p-4 rounded-lg border-2 transition-all
                     ${index === 0 ? 'border-yellow-400 bg-yellow-100' : 'border-gray-200 bg-white'}
                   `}>
@@ -203,9 +221,16 @@ export const IntelligentSystem = ({ userProfile, onBack }: IntelligentSystemProp
                       <div className="flex items-center">
                         {index === 0 && <Trophy className="w-5 h-5 text-yellow-600 mr-2" />}
                         <div>
-                          <h3 className="font-semibold text-gray-900">
-                            {offer.match.entity.name}
-                          </h3>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold text-gray-900">
+                              {offer.match.entity.name}
+                            </h3>
+                            {offer.isRealTimeData && (
+                              <Badge variant="outline" className="text-purple-600 border-purple-300 text-[10px]">
+                                API
+                              </Badge>
+                            )}
+                          </div>
                           <p className="text-sm text-gray-600">{offer.match.product.name}</p>
                         </div>
                       </div>
@@ -256,7 +281,7 @@ export const IntelligentSystem = ({ userProfile, onBack }: IntelligentSystemProp
           <CardContent>
             <div className="space-y-4">
               {matches.map((match) => (
-                <div key={match.product.id} className={`
+                <div key={match.id} className={`
                   p-4 rounded-lg border transition-all
                   ${match.meetsRequirements 
                     ? 'border-green-200 bg-green-50' 
@@ -271,6 +296,11 @@ export const IntelligentSystem = ({ userProfile, onBack }: IntelligentSystemProp
                         <Badge variant="outline" className="text-xs">
                           {match.entity.type.toUpperCase()}
                         </Badge>
+                        {match.isRealData && (
+                          <Badge variant="outline" className="ml-2 text-xs text-purple-600 border-purple-300">
+                            DATOS API
+                          </Badge>
+                        )}
                         {!match.meetsRequirements && (
                           <Badge variant="destructive" className="ml-2 text-xs">
                             No Califica
