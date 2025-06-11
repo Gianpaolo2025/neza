@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Target, User, DollarSign, Briefcase, FileText } from "lucide-react";
 import { InteractiveTutorial } from "./InteractiveTutorial";
+import { QuestionsTutorial } from "./components/QuestionsTutorial";
 import { GoalSelectionStep } from "./steps/GoalSelectionStep";
 import { PersonalInfoStep } from "./steps/PersonalInfoStep";
 import { AmountStep } from "./steps/AmountStep";
@@ -55,6 +56,7 @@ interface FormData {
 export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false, isReturningUser = false }: HumanAdvisoryExperienceProps) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showQuestionsTutorial, setShowQuestionsTutorial] = useState(false);
   const [uploadedPayslips, setUploadedPayslips] = useState<File[]>([]);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [data, setData] = useState<FormData>({
@@ -521,7 +523,7 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
             </motion.div>
           </AnimatePresence>
 
-          {/* Tutorial Modal */}
+          {/* Tutorial Modal - Original de la sección 1 */}
           {showTutorial && (
             <InteractiveTutorial
               isVisible={showTutorial}
@@ -531,7 +533,26 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
               }}
             />
           )}
+
+          {/* Nuevo Tutorial para Preguntas */}
+          <QuestionsTutorial
+            isVisible={showQuestionsTutorial}
+            onClose={() => setShowQuestionsTutorial(false)}
+            currentFormStep={currentStep}
+          />
         </div>
+      </div>
+
+      {/* Botón Tutorial específico para esta sección - Esquina inferior izquierda */}
+      <div className="fixed bottom-4 left-4 z-40">
+        <Button
+          onClick={() => setShowQuestionsTutorial(true)}
+          variant="outline"
+          className="border-blue-300 text-blue-600 hover:bg-blue-50 flex items-center gap-2 shadow-lg bg-white"
+        >
+          <Target className="w-4 h-4" />
+          Ver Tutorial
+        </Button>
       </div>
     </div>
   );
