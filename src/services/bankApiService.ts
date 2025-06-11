@@ -270,9 +270,28 @@ class BankApiService {
   getProductsByUserProfile(userProfile: any): BankProduct[] {
     return this.bankProducts
       .filter(product => {
-        const meetsIncome = userProfile.income >= product.profileRequirements.minIncome;
-        const meetsEmployment = product.profileRequirements.employmentType.includes(userProfile.employment);
-        const meetsCreditHistory = product.profileRequirements.creditHistory.includes(userProfile.creditScore);
+        const userIncome = userProfile.employment?.monthlyIncome || 0;
+        const userEmploymentType = userProfile.employment?.type || 'dependiente';
+        const userCreditScore = userProfile.credit?.score || 300;
+        
+        // Map credit score to status
+        const creditScoreMap: { [key: number]: string } = {
+          300: 'malo',
+          350: 'regular', 
+          420: 'bueno',
+          500: 'excelente'
+        };
+        
+        let creditStatus = 'malo';
+        for (const [score, status] of Object.entries(creditScoreMap)) {
+          if (userCreditScore >= parseInt(score)) {
+            creditStatus = status;
+          }
+        }
+        
+        const meetsIncome = userIncome >= product.profileRequirements.minIncome;
+        const meetsEmployment = product.profileRequirements.employmentType.includes(userEmploymentType);
+        const meetsCreditHistory = product.profileRequirements.creditHistory.includes(creditStatus);
         
         return meetsIncome && meetsEmployment && meetsCreditHistory;
       })

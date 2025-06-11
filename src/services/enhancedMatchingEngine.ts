@@ -70,12 +70,13 @@ export class EnhancedMatchingEngine {
     // Calculate compatibility score based on user profile
     let compatibilityScore = 80; // Base score for real data
     
-    const incomeRatio = userProfile.income / product.profileRequirements.minIncome;
+    const userIncome = userProfile.employment?.monthlyIncome || 0;
+    const incomeRatio = userIncome / product.profileRequirements.minIncome;
     if (incomeRatio >= 2) compatibilityScore += 15;
     else if (incomeRatio >= 1.5) compatibilityScore += 10;
     else if (incomeRatio >= 1) compatibilityScore += 5;
     
-    if (product.profileRequirements.employmentType.includes(userProfile.employment || 'dependiente')) {
+    if (product.profileRequirements.employmentType.includes(userProfile.employment?.type || 'dependiente')) {
       compatibilityScore += 5;
     }
     
@@ -83,33 +84,49 @@ export class EnhancedMatchingEngine {
     const missingRequirements: string[] = [];
     let meetsRequirements = true;
     
-    if (userProfile.income < product.profileRequirements.minIncome) {
+    if (userIncome < product.profileRequirements.minIncome) {
       missingRequirements.push(`Ingreso mínimo requerido: S/ ${product.profileRequirements.minIncome.toLocaleString()}`);
       meetsRequirements = false;
     }
     
-    if (!product.profileRequirements.employmentType.includes(userProfile.employment || 'dependiente')) {
+    if (!product.profileRequirements.employmentType.includes(userProfile.employment?.type || 'dependiente')) {
       missingRequirements.push('Tipo de empleo no compatible');
       meetsRequirements = false;
     }
     
-    if (!product.profileRequirements.creditHistory.includes(userProfile.creditScore || 'bueno')) {
+    const userCreditScore = userProfile.credit?.score || 300;
+    const creditScoreMap: { [key: number]: string } = {
+      300: 'malo',
+      350: 'regular',
+      420: 'bueno',
+      500: 'excelente'
+    };
+    
+    let creditStatus = 'malo';
+    for (const [score, status] of Object.entries(creditScoreMap)) {
+      if (userCreditScore >= parseInt(score)) {
+        creditStatus = status;
+      }
+    }
+    
+    if (!product.profileRequirements.creditHistory.includes(creditStatus)) {
       missingRequirements.push('Historial crediticio insuficiente');
       meetsRequirements = false;
     }
     
-    // Calculate recommended amount
-    const maxByIncome = userProfile.income * 5;
+    // Calculate recommended amount - use a default amount if not provided
+    const maxByIncome = userIncome * 5;
+    const defaultRequestedAmount = Math.min(50000, maxByIncome); // Default to 50k or income-based limit
     const recommendedAmount = Math.min(
-      userProfile.loanAmount || product.maxAmount,
+      defaultRequestedAmount,
       Math.min(maxByIncome, product.maxAmount)
     );
     
     // Risk level based on income ratio and requested amount
     let riskLevel: 'bajo' | 'medio' | 'alto' = 'medio';
-    if (incomeRatio >= 2 && recommendedAmount <= userProfile.income * 3) {
+    if (incomeRatio >= 2 && recommendedAmount <= userIncome * 3) {
       riskLevel = 'bajo';
-    } else if (incomeRatio < 1.2 || recommendedAmount > userProfile.income * 4) {
+    } else if (incomeRatio < 1.2 || recommendedAmount > userIncome * 4) {
       riskLevel = 'alto';
     }
     
