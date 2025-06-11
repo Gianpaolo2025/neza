@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -862,8 +861,8 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
           {/* Tutorial Modal */}
           {showTutorial && (
             <InteractiveTutorial
-              onClose={() => setShowTutorial(false)}
-              onCompleted={() => {
+              isVisible={showTutorial}
+              onClose={() => {
                 setShowTutorial(false);
                 handleComplete();
               }}
