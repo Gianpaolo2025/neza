@@ -1,13 +1,13 @@
 
 import React from "react";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, LucideIcon } from "lucide-react";
 
 interface Step {
   number: number;
   title: string;
   description: string;
-  icon: React.ComponentType<{ size?: number }>;
+  icon: LucideIcon;
   color: string;
 }
 
