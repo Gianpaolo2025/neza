@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +45,9 @@ export const AdminDashboard = () => {
       const suggestions = JSON.parse(localStorage.getItem('nezaPlatformSuggestions') || '[]');
       const pendingSuggestions = suggestions.filter((s: any) => s.status === 'pending').length;
       
+      // Get admin users for accurate statistics
+      const adminUsers = JSON.parse(localStorage.getItem('nezaAdminUsers') || '[]');
+      
       // Calcular usuarios activos (con sesiones en las últimas 24 horas)
       const now = new Date();
       const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -52,13 +56,20 @@ export const AdminDashboard = () => {
         profile => new Date(profile.lastVisit) > yesterday
       );
 
-      // Calcular solicitudes activas y completadas
-      const profiles = Array.from(userTrackingService['profiles'].values());
-      const activeSolicitudes = profiles.filter(p => p.currentStatus === 'applying' || p.currentStatus === 'pending' || p.currentStatus === 'validating').length;
-      const completedSolicitudes = profiles.filter(p => p.currentStatus === 'approved' || p.currentStatus === 'qualified').length;
+      // Calculate solicitudes from admin users (real form completions)
+      const activeSolicitudes = adminUsers.filter((user: any) => 
+        user.processStatus === 'Completó formulario' || 
+        user.processStatus === 'En proceso' ||
+        user.currentStep === 'Ofertas disponibles'
+      ).length;
+      
+      const completedSolicitudes = adminUsers.filter((user: any) => 
+        user.processStatus === 'Aprobado' || 
+        user.processStatus === 'Completado'
+      ).length;
 
       setRealTimeStats({
-        totalUsers: metrics.totalUsers,
+        totalUsers: Math.max(metrics.totalUsers, adminUsers.length), // Use the higher count
         activeUsers: recentUsers.length,
         activeSolicitudes,
         completedSolicitudes,
@@ -281,7 +292,7 @@ export const AdminDashboard = () => {
                         <div key={index} className="flex items-center justify-between">
                           <span className="text-sm text-neza-blue-800 capitalize">{product.product}</span>
                           <Badge className="bg-neza-blue-100 text-neza-blue-800">
-                            {product.views} vistas
+                            {product.views} solicitudes
                           </Badge>
                         </div>
                       ))}

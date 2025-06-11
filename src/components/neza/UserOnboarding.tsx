@@ -40,11 +40,11 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
       localStorage.removeItem('nezaHumanAdvisoryData');
       localStorage.removeItem('nezaUserEmail');
       localStorage.removeItem('nezaSessionData');
-      localStorage.removeItem('nezaAdminUsers');
     }
   }, []);
 
   const saveUserToAdmin = (data: UserData) => {
+    // Get existing admin users array
     const adminUsers = JSON.parse(localStorage.getItem('nezaAdminUsers') || '[]');
     
     const userRecord = {
@@ -70,15 +70,22 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
       lastUpdate: new Date().toISOString()
     };
 
+    // Check if user already exists (by email)
     const existingUserIndex = adminUsers.findIndex((user: any) => user.email === data.email);
     
     if (existingUserIndex >= 0) {
-      adminUsers[existingUserIndex] = { ...adminUsers[existingUserIndex], ...userRecord };
+      // Update existing user
+      adminUsers[existingUserIndex] = { ...adminUsers[existingUserIndex], ...userRecord, lastUpdate: new Date().toISOString() };
+      console.log('Usuario actualizado en admin:', userRecord.email);
     } else {
+      // Add new user to the array
       adminUsers.push(userRecord);
+      console.log('Nuevo usuario guardado en admin:', userRecord.email);
     }
     
+    // Save updated array back to localStorage
     localStorage.setItem('nezaAdminUsers', JSON.stringify(adminUsers));
+    console.log('Total usuarios en admin:', adminUsers.length);
   };
 
   const handleComplete = (data: any) => {
@@ -115,7 +122,7 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
       confirmed: true
     }));
     
-    // Save to admin
+    // Save to admin IMMEDIATELY when step 2 is completed
     saveUserToAdmin(convertedData);
     
     setUserData(convertedData);
