@@ -148,14 +148,14 @@ export const InteractiveFAQ = () => {
   if (isSubmitted) {
     return (
       <Card className="bg-green-50 border-green-200 max-w-4xl mx-auto">
-        <CardContent className="p-6 text-center">
+        <CardContent className="md:p-6 p-4 text-center">
           <div className="flex items-center justify-center gap-3 mb-3">
-            <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-              <CheckCircle className="w-6 h-6 text-white" />
+            <div className="md:w-12 md:h-12 w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+              <CheckCircle className="md:w-6 md:h-6 w-5 h-5 text-white" />
             </div>
             <div>
-              <h4 className="font-semibold text-green-800">¡Sugerencia enviada!</h4>
-              <p className="text-sm text-green-600">
+              <h4 className="font-semibold text-green-800 md:text-base text-sm">¡Sugerencia enviada!</h4>
+              <p className="md:text-sm text-xs text-green-600">
                 Tu sugerencia ha sido enviada y podrá aparecer aquí para ayudar a otros usuarios.
               </p>
             </div>
@@ -170,21 +170,21 @@ export const InteractiveFAQ = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      {/* Descripción */}
+      {/* Descripción - Mobile optimized */}
       <Card className="bg-neza-blue-50 border-neza-blue-200">
-        <CardContent className="p-6 text-center">
+        <CardContent className="md:p-6 p-4 text-center">
           <div className="flex items-center justify-center gap-3 mb-3">
-            <Users className="w-6 h-6 text-neza-blue-600" />
-            <h4 className="font-semibold text-neza-blue-800">Sugerencias de la Comunidad</h4>
+            <Users className="md:w-6 md:h-6 w-5 h-5 text-neza-blue-600" />
+            <h4 className="font-semibold text-neza-blue-800 md:text-base text-sm">Sugerencias de la Comunidad</h4>
           </div>
-          <p className="text-neza-blue-700 mb-3">
+          <p className="text-neza-blue-700 mb-3 md:text-base text-sm">
             Estas son las preguntas más frecuentes de nuestros usuarios. 
             <strong> Haz clic en cualquiera para enviarla directamente al chat de AsesorIA</strong> y obtener una respuesta inmediata.
           </p>
         </CardContent>
       </Card>
 
-      {/* Grid de Sugerencias */}
+      {/* Grid de Sugerencias - Mobile optimized */}
       <div className="grid md:grid-cols-2 gap-4">
         {userSuggestions.map((suggestion) => (
           <Card 
@@ -192,29 +192,29 @@ export const InteractiveFAQ = () => {
             className="hover:shadow-md transition-all duration-200 cursor-pointer border-neza-blue-200 hover:border-neza-blue-400"
             onClick={() => handleSuggestionClick(suggestion.question)}
           >
-            <CardContent className="p-4">
+            <CardContent className="md:p-4 p-3">
               <div className="flex items-start justify-between mb-3">
-                <span className="text-xs bg-neza-blue-100 text-neza-blue-700 px-2 py-1 rounded-full">
+                <span className="md:text-xs text-[10px] bg-neza-blue-100 text-neza-blue-700 md:px-2 md:py-1 px-1.5 py-0.5 rounded-full">
                   {suggestion.category}
                 </span>
-                <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div className="flex items-center gap-1 md:text-xs text-[10px] text-gray-500">
                   <span>👍</span>
                   <span>{suggestion.likes}</span>
                 </div>
               </div>
               
-              <p className="text-gray-800 font-medium mb-2 leading-relaxed">
+              <p className="text-gray-800 font-medium mb-2 leading-relaxed md:text-sm text-xs">
                 {suggestion.question}
               </p>
               
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-500">
+                <span className="md:text-xs text-[10px] text-gray-500">
                   Por {suggestion.user}
                 </span>
                 <Button 
                   size="sm" 
                   variant="ghost"
-                  className="text-neza-blue-600 hover:text-neza-blue-700 hover:bg-neza-blue-50"
+                  className="text-neza-blue-600 hover:text-neza-blue-700 hover:bg-neza-blue-50 md:h-8 md:px-3 md:text-xs h-6 px-2 text-[10px]"
                 >
                   💬 Preguntar al Chat
                 </Button>
@@ -224,11 +224,11 @@ export const InteractiveFAQ = () => {
         ))}
       </div>
 
-      {/* Formulario para Nueva Sugerencia */}
+      {/* Formulario para Nueva Sugerencia - Mobile optimized */}
       <Card className="bg-amber-50 border-amber-200">
-        <CardHeader className="text-center pb-4">
-          <CardTitle className="text-lg text-amber-800 flex items-center justify-center gap-2">
-            <Lightbulb className="w-5 h-5" />
+        <CardHeader className="text-center md:pb-4 pb-2">
+          <CardTitle className="md:text-lg text-base text-amber-800 flex items-center justify-center gap-2">
+            <Lightbulb className="md:w-5 md:h-5 w-4 h-4" />
             ¿Tienes otra pregunta?
           </CardTitle>
         </CardHeader>
@@ -240,14 +240,14 @@ export const InteractiveFAQ = () => {
               onChange={(e) => setUserQuestion(e.target.value)}
               onKeyPress={handleKeyPress}
               maxLength={500}
-              className="flex-1"
+              className="flex-1 md:h-10 h-9 md:text-base text-sm"
             />
             <Button
               onClick={handleSubmitQuestion}
               disabled={!userQuestion.trim() || isSubmitting}
-              className="bg-amber-600 hover:bg-amber-700"
+              className="bg-amber-600 hover:bg-amber-700 md:h-10 md:w-10 h-9 w-9"
             >
-              <Send className="w-4 h-4" />
+              <Send className="md:w-4 md:h-4 w-3 h-3" />
             </Button>
           </div>
           <p className="text-xs text-amber-700 text-center">

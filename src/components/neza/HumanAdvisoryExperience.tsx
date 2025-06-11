@@ -1,1018 +1,546 @@
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Progress } from "@/components/ui/progress";
-import { ArrowRight, ArrowLeft, Home, Car, CreditCard, Heart, Target, Play, Building2, FileText, Users, Briefcase, AlertCircle, Upload, Eye, EyeOff, GraduationCap, Factory, Stethoscope, Calculator, Gavel } from "lucide-react";
-
-interface UserData {
-  goal: string;
-  amount: number;
-  workSituation: string;
-  workDetails: string;
-  hasPayslips: string;
-  monthlyIncome: number;
-  personalInfo: {
-    firstName: string;
-    lastName: string;
-    dni: string;
-    email: string;
-    phone: string;
-    birthDate: string;
-  };
-  preferredBank: string;
-  documents: {
-    dni: File | null;
-    payslips: File | null;
-    others: File | null;
-  };
-  // New fields for expanded work information
-  carrera?: string;
-  ciclo?: string;
-  hacePracticas?: string;
-  empresaPracticas?: string;
-  empresaTrabajo?: string;
-  nombreNegocio?: string;
-  rubroNegocio?: string;
-  actividadPrincipal?: string;
-  trabajoEnPlanilla?: string;
-  otroTrabajo?: string;
-}
+import { DocumentUpload } from "./DocumentUpload";
+import { ArrowLeft, ArrowRight, CheckCircle, AlertCircle, User, CreditCard, FileText, Target, Briefcase, DollarSign, Calendar, Building } from "lucide-react";
+import { userTrackingService } from "@/services/userTracking";
 
 interface HumanAdvisoryExperienceProps {
   onBack: () => void;
-  onComplete: (data: UserData) => void;
+  onComplete: (data: any) => void;
   forceFlow?: boolean;
 }
 
 export const HumanAdvisoryExperience = ({ onBack, onComplete, forceFlow = false }: HumanAdvisoryExperienceProps) => {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [showVideo, setShowVideo] = useState(false);
-  const [showTutorial, setShowTutorial] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-  const [uploadedPayslips, setUploadedPayslips] = useState<File[]>([]);
-  
-  const [data, setData] = useState<UserData>({
-    goal: "",
+  const [currentStep, setCurrentStep] = useState(1);
+  const totalSteps = 8;
+  const [formData, setFormData] = useState({
+    goal: '',
     amount: 0,
-    workSituation: "",
-    workDetails: "",
-    hasPayslips: "",
     monthlyIncome: 0,
+    workSituation: '',
+    workDetails: '',
+    hasPayslips: '',
+    preferredBank: '',
     personalInfo: {
-      firstName: "",
-      lastName: "",
-      dni: "",
-      email: "",
-      phone: "",
-      birthDate: ""
+      firstName: '',
+      lastName: '',
+      dni: '',
+      email: '',
+      phone: '',
+      birthDate: ''
     },
-    preferredBank: "",
     documents: {
-      dni: null,
-      payslips: null,
-      others: null
+      dni: null as File | null,
+      payslips: null as File | null,
+      others: null as File | null
     }
   });
 
-  // Load previous data on component mount
-  useEffect(() => {
-    const savedData = localStorage.getItem('nezaUserData');
-    if (savedData) {
-      try {
-        const parsedData = JSON.parse(savedData);
-        if (parsedData.personalInfo && 
-            (parsedData.personalInfo.dni || parsedData.personalInfo.firstName || 
-             parsedData.personalInfo.lastName || parsedData.personalInfo.email)) {
-          setData(prev => ({
-            ...prev,
-            personalInfo: {
-              ...prev.personalInfo,
-              ...parsedData.personalInfo
-            },
-            // Restore other saved data
-            goal: parsedData.goal || prev.goal,
-            amount: parsedData.amount || prev.amount,
-            workSituation: parsedData.workSituation || prev.workSituation,
-            monthlyIncome: parsedData.monthlyIncome || prev.monthlyIncome,
-            hasPayslips: parsedData.hasPayslips || prev.hasPayslips,
-            carrera: parsedData.carrera || prev.carrera,
-            ciclo: parsedData.ciclo || prev.ciclo,
-            hacePracticas: parsedData.hacePracticas || prev.hacePracticas,
-            empresaPracticas: parsedData.empresaPracticas || prev.empresaPracticas,
-            empresaTrabajo: parsedData.empresaTrabajo || prev.empresaTrabajo,
-            nombreNegocio: parsedData.nombreNegocio || prev.nombreNegocio,
-            rubroNegocio: parsedData.rubroNegocio || prev.rubroNegocio,
-            actividadPrincipal: parsedData.actividadPrincipal || prev.actividadPrincipal,
-            trabajoEnPlanilla: parsedData.trabajoEnPlanilla || prev.trabajoEnPlanilla,
-            otroTrabajo: parsedData.otroTrabajo || prev.otroTrabajo
-          }));
-        }
-      } catch (error) {
-        console.log('Error loading saved data:', error);
-      }
-    }
-  }, []);
+  const formRef = useRef<HTMLDivElement>(null);
 
-  // Save data to localStorage whenever data changes
+  // Auto-scroll to top when step changes
   useEffect(() => {
-    if (data.personalInfo.dni || data.personalInfo.firstName || data.personalInfo.email) {
-      localStorage.setItem('nezaUserData', JSON.stringify(data));
+    if (formRef.current) {
+      formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-  }, [data]);
+  }, [currentStep]);
 
-  const steps = [
-    {
-      id: "intro",
-      title: forceFlow ? "Completa tu solicitud" : "Hola, empecemos por conocerte",
-      subtitle: forceFlow ? "Para solicitar este producto, necesitamos conocer tu perfil financiero" : "Te voy a hacer unas preguntas sencillas para entender qué necesitas"
-    },
-    {
-      id: "personal",
-      title: "Datos personales",
-      subtitle: "Necesitamos verificar tu identidad"
-    },
-    {
-      id: "goal",
-      title: "¿Qué quieres lograr? ¿Cuál es tu meta?",
-      subtitle: "Selecciona el producto que necesitas"
-    },
-    {
-      id: "amount",
-      title: "¿Cuánto necesitas?",
-      subtitle: "Aproximadamente, no te preocupes si no estás seguro"
-    },
-    {
-      id: "work",
-      title: "Cuéntame sobre tu trabajo",
-      subtitle: "Necesito entender tu situación laboral"
-    },
-    {
-      id: "payslips",
-      title: "¿Tienes boletas de pago?",
-      subtitle: "Esto me ayuda a saber qué opciones mostrarte"
-    },
-    {
-      id: "income",
-      title: "¿Cuánto ganas al mes?",
-      subtitle: "Solo necesito un estimado para calcular tus opciones"
-    },
-    {
-      id: "documents",
-      title: "Subida de archivos/documentos",
-      subtitle: "Puedes subir tus documentos ahora o después"
-    }
+  const stepIcons = [
+    Target, DollarSign, CreditCard, Briefcase, 
+    User, Calendar, Building, FileText
   ];
 
-  const currentStepData = steps[currentStep];
-  const progress = ((currentStep + 1) / steps.length) * 100;
+  const progress = (currentStep / totalSteps) * 100;
 
-  // Validation functions
-  const validateName = (name: string) => {
-    const nameRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
-    return nameRegex.test(name) && name.trim().length >= 2;
-  };
-
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const validatePhone = (phone: string) => {
-    return /^\d{9}$/.test(phone);
-  };
-
-  const validateDNI = (dni: string) => {
-    return /^\d{8}$/.test(dni);
-  };
-
-  const validateCurrentStep = () => {
-    const errors: Record<string, string> = {};
-    
-    // Removed all validation for personal step - users can proceed with any data
-    
-    if (currentStep === 4) { // Work step
-      if (data.workSituation === "estudiante") {
-        if (!data.carrera) errors.carrera = "Campo obligatorio";
-        if (!data.ciclo) errors.ciclo = "Campo obligatorio";
-        if (!data.hacePracticas) errors.hacePracticas = "Campo obligatorio";
-        if (data.hacePracticas === "si" && !data.empresaPracticas) {
-          errors.empresaPracticas = "Campo obligatorio";
-        }
-      } else if (data.workSituation === "independiente") {
-        if (!data.workDetails) errors.workDetails = "Describe qué haces";
-        if (!data.empresaTrabajo) errors.empresaTrabajo = "Campo obligatorio";
-      } else if (data.workSituation === "empleado") {
-        if (!data.workDetails) errors.workDetails = "Indica dónde trabajas";
-        if (!data.empresaTrabajo) errors.empresaTrabajo = "Nombre de la empresa";
-        if (!data.trabajoEnPlanilla) errors.trabajoEnPlanilla = "Selecciona tu ocupación";
-        if (data.trabajoEnPlanilla === "Otros" && !data.otroTrabajo) {
-          errors.otroTrabajo = "Especifica tu ocupación";
-        }
-      } else if (data.workSituation === "empresario") {
-        if (!data.nombreNegocio) errors.nombreNegocio = "Nombre del negocio";
-        if (!data.rubroNegocio) errors.rubroNegocio = "Rubro del negocio";
-        if (!data.actividadPrincipal) errors.actividadPrincipal = "Actividad principal";
-      }
-    }
-
-    setValidationErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleFileUpload = (type: keyof typeof data.documents, file: File) => {
-    if (type === 'payslips') {
-      setUploadedPayslips(prev => [...prev, file]);
-    }
-    setData(prev => ({
-      ...prev,
-      documents: { ...prev.documents, [type]: file }
-    }));
-  };
-
-  const handleNext = () => {
-    if (!validateCurrentStep()) return;
-    
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(prev => prev + 1);
-    } else {
-      onComplete(data);
+  const nextStep = () => {
+    if (currentStep < totalSteps) {
+      userTrackingService.trackActivity(
+        'form_step_complete',
+        { step: currentStep, formData: getCurrentStepData() },
+        `Usuario completó paso ${currentStep} del onboarding`
+      );
+      setCurrentStep(currentStep + 1);
     }
   };
 
-  const handlePrev = () => {
-    if (currentStep > 0) {
-      setCurrentStep(prev => prev - 1);
-    } else if (forceFlow) {
-      if (confirm('¿Estás seguro de que quieres salir? Debes completar este formulario para solicitar el producto.')) {
-        onBack();
-      }
-    } else {
-      onBack();
+  const prevStep = () => {
+    if (currentStep > 1) {
+      userTrackingService.trackActivity(
+        'form_step_back',
+        { step: currentStep },
+        `Usuario regresó del paso ${currentStep} al paso ${currentStep - 1}`
+      );
+      setCurrentStep(currentStep - 1);
     }
   };
 
-  const canProceed = () => {
-    switch (steps[currentStep].id) {
-      case "intro": return true;
-      case "personal": return true; // Always allow proceeding from personal step
-      case "goal": return data.goal !== "";
-      case "amount": return data.amount > 0;
-      case "work": 
-        if (data.workSituation === "estudiante") {
-          return data.carrera && data.ciclo && data.hacePracticas && 
-                 (data.hacePracticas === "no" || data.empresaPracticas);
-        } else if (data.workSituation === "independiente") {
-          return data.workDetails && data.empresaTrabajo;
-        } else if (data.workSituation === "empleado") {
-          return data.workDetails && data.empresaTrabajo && data.trabajoEnPlanilla &&
-                 (data.trabajoEnPlanilla !== "Otros" || data.otroTrabajo);
-        } else if (data.workSituation === "empresario") {
-          return data.nombreNegocio && data.rubroNegocio && data.actividadPrincipal;
-        }
-        return data.workSituation !== "";
-      case "payslips": return data.hasPayslips !== "";
-      case "income": return data.monthlyIncome > 0;
-      case "documents": return true; // No longer mandatory
+  const getCurrentStepData = () => {
+    switch (currentStep) {
+      case 1: return { goal: formData.goal };
+      case 2: return { amount: formData.amount };
+      case 3: return { monthlyIncome: formData.monthlyIncome };
+      case 4: return { workSituation: formData.workSituation, workDetails: formData.workDetails };
+      case 5: return { personalInfo: formData.personalInfo };
+      case 6: return { hasPayslips: formData.hasPayslips };
+      case 7: return { preferredBank: formData.preferredBank };
+      case 8: return { documents: formData.documents };
+      default: return {};
+    }
+  };
+
+  const isStepValid = () => {
+    switch (currentStep) {
+      case 1: return formData.goal !== '';
+      case 2: return formData.amount > 0;
+      case 3: return formData.monthlyIncome > 0;
+      case 4: return formData.workSituation !== '' && formData.workDetails.trim() !== '';
+      case 5: return formData.personalInfo.firstName && formData.personalInfo.lastName && 
+                     formData.personalInfo.dni && formData.personalInfo.email && formData.personalInfo.phone;
+      case 6: return formData.hasPayslips !== '';
+      case 7: return formData.preferredBank !== '';
+      case 8: return true; // Documents are optional
       default: return false;
     }
   };
 
-  const productOptions = [
-    { id: "credito-personal", title: "Crédito Personal", icon: "💰", desc: "Para gastos personales" },
-    { id: "credito-vehicular", title: "Crédito Vehicular", icon: "🚗", desc: "Para comprar auto" },
-    { id: "credito-hipotecario", title: "Crédito Hipotecario", icon: "🏠", desc: "Para vivienda" },
-    { id: "tarjeta-credito", title: "Tarjeta de Crédito", icon: "💳", desc: "Línea de crédito" },
-    { id: "credito-empresarial", title: "Crédito Empresarial", icon: "🏢", desc: "Para negocios" },
-    { id: "credito-educativo", title: "Crédito Educativo", icon: "🎓", desc: "Para estudios" },
-    { id: "credito-medico", title: "Crédito Médico", icon: "🏥", desc: "Para gastos médicos" },
-    { id: "credito-viaje", title: "Crédito de Viaje", icon: "✈️", desc: "Para viajes" },
-    { id: "refinanciamiento", title: "Refinanciamiento", icon: "🔄", desc: "Consolidar deudas" },
-    { id: "credito-construccion", title: "Crédito Construcción", icon: "🏗️", desc: "Para construcción" },
-    { id: "credito-rural", title: "Crédito Rural", icon: "🌾", desc: "Para actividades rurales" }
-  ];
+  const handleComplete = () => {
+    userTrackingService.trackActivity(
+      'form_complete',
+      formData,
+      'Usuario completó todo el formulario de onboarding'
+    );
+    onComplete(formData);
+  };
 
-  const jobPositions = [
-    "Asistente",
-    "Analista", 
-    "Ejecutivo de ventas",
-    "Practicante",
-    "Contador",
-    "Supervisor",
-    "Coordinador",
-    "Jefe",
-    "Gerente",
-    "Director",
-    "Otros"
-  ];
+  const handleDocumentUpload = (type: 'dni' | 'payslips' | 'others', file: File | null) => {
+    setFormData(prev => ({
+      ...prev,
+      documents: {
+        ...prev.documents,
+        [type]: file
+      }
+    }));
+  };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
-      {/* Mensaje de Transparencia Fijo - CAMBIADO A AZUL FUERTE */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-blue-600 border-b-2 border-blue-700 py-2 px-4">
-        <div className="container mx-auto max-w-4xl">
-          <p className="text-sm text-white text-center font-medium">
-            ⚠️ Este formulario no debe contener información falsa. La precisión de los datos es fundamental para ayudarte correctamente. Tardas menos de 2 minutos en completarlo. Sé honesto, es por tu beneficio.
-          </p>
-        </div>
-      </div>
-
-      {/* Header con padding-top para el mensaje fijo */}
-      <div className="bg-white border-b border-blue-100 py-4 px-4 mt-12">
-        <div className="container mx-auto max-w-4xl">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-blue-800">NEZA</h1>
-              <p className="text-sm text-blue-600">
-                {forceFlow ? 'Formulario obligatorio para solicitud' : 'Tu aliado financiero de confianza'}
-              </p>
+  const renderStepContent = () => {
+    const StepIcon = stepIcons[currentStep - 1];
+    
+    switch (currentStep) {
+      case 1:
+        return (
+          <div className="space-y-6" ref={formRef}>
+            <div className="text-center">
+              <div className="md:w-16 md:h-16 w-12 h-12 bg-neza-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <StepIcon className="md:w-8 md:h-8 w-6 h-6 text-neza-blue-600" />
+              </div>
+              <h3 className="md:text-2xl text-xl font-bold text-neza-blue-800 mb-2">¿Qué producto financiero necesitas?</h3>
+              <p className="text-neza-silver-600 md:text-base text-sm">Selecciona el producto que mejor se adapte a tus necesidades</p>
             </div>
             
-            <div className="flex items-center gap-4">
-              {forceFlow && (
-                <div className="flex items-center gap-2 bg-orange-50 px-3 py-2 rounded-lg">
-                  <AlertCircle className="w-4 h-4 text-orange-600" />
-                  <span className="text-sm text-orange-700 font-medium">Completar es obligatorio</span>
+            <RadioGroup 
+              value={formData.goal} 
+              onValueChange={(value) => setFormData({...formData, goal: value})}
+              className="space-y-3"
+            >
+              {[
+                { value: 'prestamo-personal', label: '💰 Préstamo Personal', desc: 'Para gastos personales, viajes, compras' },
+                { value: 'tarjeta-credito', label: '💳 Tarjeta de Crédito', desc: 'Para compras y pagos flexibles' },
+                { value: 'prestamo-vehicular', label: '🚗 Préstamo Vehicular', desc: 'Para comprar auto, moto o vehículo' },
+                { value: 'prestamo-hipotecario', label: '🏠 Préstamo Hipotecario', desc: 'Para comprar casa o departamento' }
+              ].map(option => (
+                <div key={option.value} className="flex items-center space-x-3 p-4 border border-neza-blue-200 rounded-lg hover:bg-neza-blue-50 transition-colors">
+                  <RadioGroupItem value={option.value} id={option.value} />
+                  <div className="flex-1">
+                    <Label htmlFor={option.value} className="font-medium md:text-base text-sm">{option.label}</Label>
+                    <p className="md:text-sm text-xs text-neza-silver-600">{option.desc}</p>
+                  </div>
                 </div>
+              ))}
+            </RadioGroup>
+          </div>
+        );
+
+      case 2:
+        return (
+          <div className="space-y-6" ref={formRef}>
+            <div className="text-center">
+              <div className="md:w-16 md:h-16 w-12 h-12 bg-neza-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <StepIcon className="md:w-8 md:h-8 w-6 h-6 text-neza-blue-600" />
+              </div>
+              <h3 className="md:text-2xl text-xl font-bold text-neza-blue-800 mb-2">¿Cuánto dinero necesitas?</h3>
+              <p className="text-neza-silver-600 md:text-base text-sm">Ingresa el monto que necesitas para tu {formData.goal}</p>
+            </div>
+            
+            <div className="space-y-4">
+              <Label htmlFor="amount" className="md:text-base text-sm font-medium">Monto solicitado (S/)</Label>
+              <Input
+                id="amount"
+                type="number"
+                placeholder="Ejemplo: 10000"
+                value={formData.amount || ''}
+                onChange={(e) => setFormData({...formData, amount: Number(e.target.value)})}
+                className="md:text-lg text-base md:h-12 h-10"
+              />
+              {formData.amount > 0 && (
+                <p className="md:text-sm text-xs text-neza-blue-600">
+                  Monto: S/ {formData.amount.toLocaleString()}
+                </p>
               )}
-              
-              <Button
-                onClick={() => setShowTutorial(!showTutorial)}
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-1 text-xs"
+            </div>
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-6" ref={formRef}>
+            <div className="text-center">
+              <div className="md:w-16 md:h-16 w-12 h-12 bg-neza-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <StepIcon className="md:w-8 md:h-8 w-6 h-6 text-neza-blue-600" />
+              </div>
+              <h3 className="md:text-2xl text-xl font-bold text-neza-blue-800 mb-2">¿Cuáles son tus ingresos mensuales?</h3>
+              <p className="text-neza-silver-600 md:text-base text-sm">Ingresa tus ingresos promedio mensuales netos</p>
+            </div>
+            
+            <div className="space-y-4">
+              <Label htmlFor="income" className="md:text-base text-sm font-medium">Ingresos mensuales netos (S/)</Label>
+              <Input
+                id="income"
+                type="number"
+                placeholder="Ejemplo: 3000"
+                value={formData.monthlyIncome || ''}
+                onChange={(e) => setFormData({...formData, monthlyIncome: Number(e.target.value)})}
+                className="md:text-lg text-base md:h-12 h-10"
+              />
+              {formData.monthlyIncome > 0 && (
+                <p className="md:text-sm text-xs text-neza-blue-600">
+                  Ingresos: S/ {formData.monthlyIncome.toLocaleString()} mensuales
+                </p>
+              )}
+            </div>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="space-y-6" ref={formRef}>
+            <div className="text-center">
+              <div className="md:w-16 md:h-16 w-12 h-12 bg-neza-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <StepIcon className="md:w-8 md:h-8 w-6 h-6 text-neza-blue-600" />
+              </div>
+              <h3 className="md:text-2xl text-xl font-bold text-neza-blue-800 mb-2">¿Cuál es tu situación laboral?</h3>
+              <p className="text-neza-silver-600 md:text-base text-sm">Cuéntanos sobre tu trabajo actual</p>
+            </div>
+            
+            <div className="space-y-4">
+              <RadioGroup 
+                value={formData.workSituation} 
+                onValueChange={(value) => setFormData({...formData, workSituation: value})}
+                className="space-y-2"
               >
-                {showTutorial ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-                Ver tutorial
-              </Button>
+                {[
+                  { value: 'empleado', label: '👔 Empleado (dependiente)' },
+                  { value: 'independiente', label: '💼 Trabajador independiente' },
+                  { value: 'empresario', label: '🏢 Empresario/Dueño de negocio' },
+                  { value: 'estudiante', label: '🎓 Estudiante con ingresos' }
+                ].map(option => (
+                  <div key={option.value} className="flex items-center space-x-3 p-3 border border-neza-blue-200 rounded-lg hover:bg-neza-blue-50">
+                    <RadioGroupItem value={option.value} id={option.value} />
+                    <Label htmlFor={option.value} className="md:text-base text-sm">{option.label}</Label>
+                  </div>
+                ))}
+              </RadioGroup>
               
-              {!forceFlow && (
-                <Button
-                  onClick={() => setShowVideo(true)}
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-1 text-xs"
-                >
-                  <Play className="w-3 h-3" />
-                  Tutorial (1 min)
-                </Button>
+              <div className="space-y-2">
+                <Label htmlFor="workDetails" className="md:text-base text-sm font-medium">Detalles del trabajo</Label>
+                <Input
+                  id="workDetails"
+                  placeholder="Ejemplo: Trabajo en empresa X como analista, 2 años de experiencia"
+                  value={formData.workDetails}
+                  onChange={(e) => setFormData({...formData, workDetails: e.target.value})}
+                  className="md:text-base text-sm md:h-10 h-9"
+                />
+              </div>
+            </div>
+          </div>
+        );
+
+      case 5:
+        return (
+          <div className="space-y-6" ref={formRef}>
+            <div className="text-center">
+              <div className="md:w-16 md:h-16 w-12 h-12 bg-neza-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <StepIcon className="md:w-8 md:h-8 w-6 h-6 text-neza-blue-600" />
+              </div>
+              <h3 className="md:text-2xl text-xl font-bold text-neza-blue-800 mb-2">Información Personal</h3>
+              <p className="text-neza-silver-600 md:text-base text-sm">Completa tus datos personales</p>
+            </div>
+            
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName" className="md:text-base text-sm">Nombres</Label>
+                <Input
+                  id="firstName"
+                  value={formData.personalInfo.firstName}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    personalInfo: {...formData.personalInfo, firstName: e.target.value}
+                  })}
+                  className="md:text-base text-sm md:h-10 h-9"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastName" className="md:text-base text-sm">Apellidos</Label>
+                <Input
+                  id="lastName"
+                  value={formData.personalInfo.lastName}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    personalInfo: {...formData.personalInfo, lastName: e.target.value}
+                  })}
+                  className="md:text-base text-sm md:h-10 h-9"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="dni" className="md:text-base text-sm">DNI</Label>
+                <Input
+                  id="dni"
+                  value={formData.personalInfo.dni}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    personalInfo: {...formData.personalInfo, dni: e.target.value}
+                  })}
+                  className="md:text-base text-sm md:h-10 h-9"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email" className="md:text-base text-sm">Correo electrónico</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.personalInfo.email}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    personalInfo: {...formData.personalInfo, email: e.target.value}
+                  })}
+                  className="md:text-base text-sm md:h-10 h-9"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="md:text-base text-sm">Teléfono</Label>
+                <Input
+                  id="phone"
+                  value={formData.personalInfo.phone}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    personalInfo: {...formData.personalInfo, phone: e.target.value}
+                  })}
+                  className="md:text-base text-sm md:h-10 h-9"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="birthDate" className="md:text-base text-sm">Fecha de nacimiento (opcional)</Label>
+                <Input
+                  id="birthDate"
+                  type="date"
+                  value={formData.personalInfo.birthDate}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    personalInfo: {...formData.personalInfo, birthDate: e.target.value}
+                  })}
+                  className="md:text-base text-sm md:h-10 h-9"
+                />
+              </div>
+            </div>
+          </div>
+        );
+
+      case 6:
+        return (
+          <div className="space-y-6" ref={formRef}>
+            <div className="text-center">
+              <div className="md:w-16 md:h-16 w-12 h-12 bg-neza-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <StepIcon className="md:w-8 md:h-8 w-6 h-6 text-neza-blue-600" />
+              </div>
+              <h3 className="md:text-2xl text-xl font-bold text-neza-blue-800 mb-2">¿Tienes boletas de pago?</h3>
+              <p className="text-neza-silver-600 md:text-base text-sm">Esto nos ayuda a evaluar mejor tu capacidad de pago</p>
+            </div>
+            
+            <RadioGroup 
+              value={formData.hasPayslips} 
+              onValueChange={(value) => setFormData({...formData, hasPayslips: value})}
+              className="space-y-3"
+            >
+              <div className="flex items-center space-x-3 p-4 border border-neza-blue-200 rounded-lg hover:bg-neza-blue-50">
+                <RadioGroupItem value="si" id="payslips-yes" />
+                <Label htmlFor="payslips-yes" className="md:text-base text-sm">✅ Sí, tengo boletas de pago recientes</Label>
+              </div>
+              <div className="flex items-center space-x-3 p-4 border border-neza-blue-200 rounded-lg hover:bg-neza-blue-50">
+                <RadioGroupItem value="no" id="payslips-no" />
+                <Label htmlFor="payslips-no" className="md:text-base text-sm">❌ No tengo boletas de pago</Label>
+              </div>
+            </RadioGroup>
+          </div>
+        );
+
+      case 7:
+        return (
+          <div className="space-y-6" ref={formRef}>
+            <div className="text-center">
+              <div className="md:w-16 md:h-16 w-12 h-12 bg-neza-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <StepIcon className="md:w-8 md:h-8 w-6 h-6 text-neza-blue-600" />
+              </div>
+              <h3 className="md:text-2xl text-xl font-bold text-neza-blue-800 mb-2">¿Tienes algún banco de preferencia?</h3>
+              <p className="text-neza-silver-600 md:text-base text-sm">Si tienes preferencia, lo consideraremos en la subasta</p>
+            </div>
+            
+            <RadioGroup 
+              value={formData.preferredBank} 
+              onValueChange={(value) => setFormData({...formData, preferredBank: value})}
+              className="space-y-3"
+            >
+              {[
+                { value: 'ninguno', label: '🎯 Sin preferencia (mejor oferta gana)' },
+                { value: 'bcp', label: '🏦 Banco de Crédito del Perú (BCP)' },
+                { value: 'bbva', label: '🏦 BBVA' },
+                { value: 'interbank', label: '🏦 Interbank' },
+                { value: 'scotiabank', label: '🏦 Scotiabank' },
+                { value: 'otros', label: '🏦 Otro banco' }
+              ].map(option => (
+                <div key={option.value} className="flex items-center space-x-3 p-3 border border-neza-blue-200 rounded-lg hover:bg-neza-blue-50">
+                  <RadioGroupItem value={option.value} id={option.value} />
+                  <Label htmlFor={option.value} className="md:text-base text-sm">{option.label}</Label>
+                </div>
+              ))}
+            </RadioGroup>
+          </div>
+        );
+
+      case 8:
+        return (
+          <div className="space-y-6" ref={formRef}>
+            <div className="text-center">
+              <div className="md:w-16 md:h-16 w-12 h-12 bg-neza-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <StepIcon className="md:w-8 md:h-8 w-6 h-6 text-neza-blue-600" />
+              </div>
+              <h3 className="md:text-2xl text-xl font-bold text-neza-blue-800 mb-2">Documentos (Opcional)</h3>
+              <p className="text-neza-silver-600 md:text-base text-sm">Sube tus documentos para mejorar tu evaluación</p>
+            </div>
+            
+            <div className="space-y-6">
+              <DocumentUpload
+                label="📄 Copia de DNI"
+                description="Foto clara de tu DNI por ambos lados"
+                onFileUpload={(file) => handleDocumentUpload('dni', file)}
+                acceptedTypes=".jpg,.jpeg,.png,.pdf"
+              />
+              
+              {formData.hasPayslips === 'si' && (
+                <DocumentUpload
+                  label="💰 Boletas de pago"
+                  description="Últimas 3 boletas de pago"
+                  onFileUpload={(file) => handleDocumentUpload('payslips', file)}
+                  acceptedTypes=".jpg,.jpeg,.png,.pdf"
+                />
               )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Tutorial Box */}
-      {showTutorial && (
-        <div className="bg-blue-50 border-b border-blue-200 py-3 px-4">
-          <div className="container mx-auto max-w-4xl">
-            <div className="text-sm text-blue-800">
-              <strong>Paso {currentStep + 1} de {steps.length}:</strong> {currentStepData.subtitle}
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="container mx-auto px-4 py-8 max-w-3xl">
-        {/* Progress */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-blue-600 font-medium">
-              Paso {currentStep + 1} de {steps.length}
-            </span>
-            <span className="text-sm text-blue-600">{Math.round(progress)}% completado</span>
-          </div>
-          <Progress value={progress} className="h-2" />
-        </div>
-
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentStep}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Card className="border-blue-200 shadow-lg">
-              <CardHeader className="text-center pb-4">
-                <CardTitle className="text-xl text-blue-800">
-                  {currentStepData.title}
-                </CardTitle>
-                <p className="text-blue-600">{currentStepData.subtitle}</p>
-              </CardHeader>
               
-              <CardContent className="space-y-6">
-                {/* Paso 0: Introducción */}
-                {currentStep === 0 && (
-                  <div className="text-center space-y-4">
-                    <div className="text-6xl mb-4">👋</div>
-                    <p className="text-lg text-gray-700">
-                      {forceFlow ? 
-                        "Para procesar tu solicitud, necesitamos conocer tu perfil financiero. Este proceso es obligatorio y toma menos de 2 minutos." :
-                        "Soy tu asesor financiero personal. Te voy a acompañar para encontrar la mejor opción para ti entre todos los bancos disponibles."
-                      }
-                    </p>
-                    <p className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
-                      {forceFlow ? 
-                        "Al completar este formulario, las entidades financieras podrán hacer ofertas personalizadas para ti." :
-                        "Todo el proceso toma menos de 2 minutos y es completamente gratuito."
-                      }
-                    </p>
-                  </div>
-                )}
+              <DocumentUpload
+                label="📋 Otros documentos"
+                description="Cualquier documento adicional que consideres relevante"
+                onFileUpload={(file) => handleDocumentUpload('others', file)}
+                acceptedTypes=".jpg,.jpeg,.png,.pdf"
+              />
+            </div>
+          </div>
+        );
 
-                {/* Paso 1: Datos Personales - AGREGADO FECHA DE NACIMIENTO */}
-                {currentStep === 1 && (
-                  <div className="space-y-4">
-                    <div>
-                      <Label>DNI</Label>
-                      <Input
-                        placeholder="12345678"
-                        value={data.personalInfo.dni}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, '').slice(0, 8);
-                          setData(prev => ({ 
-                            ...prev, 
-                            personalInfo: { ...prev.personalInfo, dni: value }
-                          }));
-                        }}
-                        maxLength={8}
-                      />
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label>Nombres</Label>
-                        <Input
-                          placeholder="Tu nombre"
-                          value={data.personalInfo.firstName}
-                          onChange={(e) => {
-                            const value = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
-                            setData(prev => ({ 
-                              ...prev, 
-                              personalInfo: { ...prev.personalInfo, firstName: value }
-                            }));
-                          }}
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label>Apellidos</Label>
-                        <Input
-                          placeholder="Tus apellidos"
-                          value={data.personalInfo.lastName}
-                          onChange={(e) => {
-                            const value = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
-                            setData(prev => ({ 
-                              ...prev, 
-                              personalInfo: { ...prev.personalInfo, lastName: value }
-                            }));
-                          }}
-                        />
-                      </div>
-                    </div>
+      default:
+        return null;
+    }
+  };
 
-                    <div>
-                      <Label>Fecha de nacimiento</Label>
-                      <Input
-                        type="date"
-                        value={data.personalInfo.birthDate}
-                        onChange={(e) => {
-                          setData(prev => ({ 
-                            ...prev, 
-                            personalInfo: { ...prev.personalInfo, birthDate: e.target.value }
-                          }));
-                        }}
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label>Correo Electrónico</Label>
-                      <Input
-                        type="email"
-                        placeholder="tu@email.com"
-                        value={data.personalInfo.email}
-                        onChange={(e) => {
-                          setData(prev => ({ 
-                            ...prev, 
-                            personalInfo: { ...prev.personalInfo, email: e.target.value }
-                          }));
-                        }}
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label>Teléfono</Label>
-                      <Input
-                        placeholder="987654321"
-                        value={data.personalInfo.phone}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, '').slice(0, 9);
-                          setData(prev => ({ 
-                            ...prev, 
-                            personalInfo: { ...prev.personalInfo, phone: value }
-                          }));
-                        }}
-                        maxLength={9}
-                      />
-                    </div>
-                  </div>
-                )}
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-neza-blue-50 via-white to-neza-blue-50 py-8">
+      <div className="max-w-4xl mx-auto px-4">
+        {/* Header with mobile optimization */}
+        <div className="text-center mb-8">
+          <h1 className="md:text-4xl text-2xl font-bold text-neza-blue-800 mb-2">
+            Proceso de Solicitud
+          </h1>
+          <p className="text-neza-silver-600 md:text-lg text-base">
+            Paso {currentStep} de {totalSteps}
+          </p>
+        </div>
 
-                {/* Paso 2: Objetivo - Productos CON SCROLL */}
-                {currentStep === 2 && (
-                  <div className="space-y-4">
-                    <div className="max-h-80 overflow-y-auto border border-gray-200 rounded-lg p-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {productOptions.map((product) => (
-                          <Card 
-                            key={product.id}
-                            className={`cursor-pointer transition-all p-2 ${data.goal === product.id ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300'}`}
-                            onClick={() => setData(prev => ({ ...prev, goal: product.id }))}
-                          >
-                            <CardContent className="p-2 text-center">
-                              <div className="text-xl mb-1">{product.icon}</div>
-                              <h4 className="font-medium text-xs">{product.title}</h4>
-                              <p className="text-xs text-gray-600">{product.desc}</p>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-500 text-center">Desplaza hacia abajo para ver todos los productos disponibles</p>
-                  </div>
-                )}
+        {/* Warning message - Mobile optimized */}
+        {!forceFlow && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg md:p-4 p-3 mb-6">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="md:w-5 md:h-5 w-4 h-4 text-amber-600 mt-1 flex-shrink-0" />
+              <div>
+                <h4 className="font-semibold text-amber-800 md:text-base text-sm">⚠️ Importante: Información veraz</h4>
+                <p className="text-amber-700 md:text-sm text-xs mt-1 leading-relaxed">
+                  Este formulario no debe contener información falsa. La veracidad de tus datos es fundamental 
+                  para encontrar las mejores opciones financieras reales para tu perfil.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
-                {/* Paso 3: Monto */}
-                {currentStep === 3 && (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                      {[5000, 10000, 25000, 50000, 100000, 200000].map((amount) => (
-                        <Card 
-                          key={amount}
-                          className={`cursor-pointer transition-all ${data.amount === amount ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300'}`}
-                          onClick={() => setData(prev => ({ ...prev, amount }))}
-                        >
-                          <CardContent className="p-3 text-center">
-                            <p className="font-medium">S/ {amount.toLocaleString()}</p>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                    
-                    <div className="mt-4">
-                      <Label>O ingresa un monto específico:</Label>
-                      <Input
-                        type="number"
-                        placeholder="Ejemplo: 15000"
-                        value={data.amount || ""}
-                        onChange={(e) => setData(prev => ({ ...prev, amount: Number(e.target.value) }))}
-                        className="mt-2"
-                      />
-                    </div>
-                  </div>
-                )}
+        {/* Progress bar - Mobile optimized */}
+        <div className="mb-8">
+          <div className="flex justify-between md:text-sm text-xs text-neza-blue-600 mb-2">
+            <span>Progreso</span>
+            <span>{Math.round(progress)}%</span>
+          </div>
+          <Progress value={progress} className="md:h-3 h-2" />
+        </div>
 
-                {/* Paso 4: Trabajo EXPANDIDO CON CAMBIOS SOLICITADOS */}
-                {currentStep === 4 && (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {[
-                        { id: 'empleado', title: 'Trabajo en planilla', icon: Building2 },
-                        { id: 'independiente', title: 'Trabajo independiente', icon: Users },
-                        { id: 'empresario', title: 'Tengo mi negocio', icon: Briefcase },
-                        { id: 'estudiante', title: 'Soy estudiante', icon: GraduationCap }
-                      ].map((work) => (
-                        <Card 
-                          key={work.id}
-                          className={`cursor-pointer transition-all ${data.workSituation === work.id ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300'}`}
-                          onClick={() => setData(prev => ({ ...prev, workSituation: work.id }))}
-                        >
-                          <CardContent className="p-4 text-center">
-                            <work.icon className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-                            <h4 className="font-medium">{work.title}</h4>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
+        {/* Main content card - Mobile optimized */}
+        <Card className="border-neza-blue-200 mb-6">
+          <CardContent className="md:p-8 p-6">
+            {renderStepContent()}
+          </CardContent>
+        </Card>
 
-                    {/* Conditional fields based on work situation */}
-                    {data.workSituation === 'estudiante' && (
-                      <div className="space-y-4 border-t pt-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <Label>Carrera *</Label>
-                            <Input
-                              placeholder="Ingeniería, Administración, etc."
-                              value={data.carrera || ""}
-                              onChange={(e) => setData(prev => ({ ...prev, carrera: e.target.value }))}
-                              className={validationErrors.carrera ? "border-red-500" : ""}
-                            />
-                            {validationErrors.carrera && (
-                              <p className="text-red-500 text-sm mt-1">{validationErrors.carrera}</p>
-                            )}
-                          </div>
-                          <div>
-                            <Label>¿En qué ciclo estudias? *</Label>
-                            <Select onValueChange={(value) => setData(prev => ({ ...prev, ciclo: value }))}>
-                              <SelectTrigger className={validationErrors.ciclo ? "border-red-500" : ""}>
-                                <SelectValue placeholder="Selecciona el ciclo" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {Array.from({ length: 12 }, (_, i) => (
-                                  <SelectItem key={i + 1} value={`Ciclo ${i + 1}`}>
-                                    Ciclo {i + 1}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            {validationErrors.ciclo && (
-                              <p className="text-red-500 text-sm mt-1">{validationErrors.ciclo}</p>
-                            )}
-                          </div>
-                        </div>
-                        <div>
-                          <Label>¿Hace prácticas profesionales? *</Label>
-                          <Select onValueChange={(value) => setData(prev => ({ ...prev, hacePracticas: value }))}>
-                            <SelectTrigger className={validationErrors.hacePracticas ? "border-red-500" : ""}>
-                              <SelectValue placeholder="Selecciona una opción" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="si">Sí</SelectItem>
-                              <SelectItem value="no">No</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          {validationErrors.hacePracticas && (
-                            <p className="text-red-500 text-sm mt-1">{validationErrors.hacePracticas}</p>
-                          )}
-                        </div>
-                        {data.hacePracticas === 'si' && (
-                          <div>
-                            <Label>¿Dónde las realiza? *</Label>
-                            <Input
-                              placeholder="Nombre de la empresa"
-                              value={data.empresaPracticas || ""}
-                              onChange={(e) => setData(prev => ({ ...prev, empresaPracticas: e.target.value }))}
-                              className={validationErrors.empresaPracticas ? "border-red-500" : ""}
-                            />
-                            {validationErrors.empresaPracticas && (
-                              <p className="text-red-500 text-sm mt-1">{validationErrors.empresaPracticas}</p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {data.workSituation === 'independiente' && (
-                      <div className="space-y-4 border-t pt-4">
-                        <div>
-                          <Label>¿Qué hace? *</Label>
-                          <Input
-                            placeholder="Describe tu actividad independiente"
-                            value={data.workDetails}
-                            onChange={(e) => setData(prev => ({ ...prev, workDetails: e.target.value }))}
-                            className={validationErrors.workDetails ? "border-red-500" : ""}
-                          />
-                          {validationErrors.workDetails && (
-                            <p className="text-red-500 text-sm mt-1">{validationErrors.workDetails}</p>
-                          )}
-                        </div>
-                        <div>
-                          <Label>¿En qué empresa? *</Label>
-                          <Input
-                            placeholder="Nombre de la empresa o N/A"
-                            value={data.empresaTrabajo || ""}
-                            onChange={(e) => setData(prev => ({ ...prev, empresaTrabajo: e.target.value }))}
-                            className={validationErrors.empresaTrabajo ? "border-red-500" : ""}
-                          />
-                          {validationErrors.empresaTrabajo && (
-                            <p className="text-red-500 text-sm mt-1">{validationErrors.empresaTrabajo}</p>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {data.workSituation === 'empleado' && (
-                      <div className="space-y-4 border-t pt-4">
-                        <div>
-                          <Label>¿Dónde trabaja? *</Label>
-                          <Input
-                            placeholder="Describe tu puesto de trabajo"
-                            value={data.workDetails}
-                            onChange={(e) => setData(prev => ({ ...prev, workDetails: e.target.value }))}
-                            className={validationErrors.workDetails ? "border-red-500" : ""}
-                          />
-                          {validationErrors.workDetails && (
-                            <p className="text-red-500 text-sm mt-1">{validationErrors.workDetails}</p>
-                          )}
-                        </div>
-                        <div>
-                          <Label>¿En qué empresa? *</Label>
-                          <Input
-                            placeholder="Empresa donde trabajas"
-                            value={data.empresaTrabajo || ""}
-                            onChange={(e) => setData(prev => ({ ...prev, empresaTrabajo: e.target.value }))}
-                            className={validationErrors.empresaTrabajo ? "border-red-500" : ""}
-                          />
-                          {validationErrors.empresaTrabajo && (
-                            <p className="text-red-500 text-sm mt-1">{validationErrors.empresaTrabajo}</p>
-                          )}
-                        </div>
-                        <div>
-                          <Label>¿Trabajas en planilla? *</Label>
-                          <Select onValueChange={(value) => setData(prev => ({ ...prev, trabajoEnPlanilla: value }))}>
-                            <SelectTrigger className={validationErrors.trabajoEnPlanilla ? "border-red-500" : ""}>
-                              <SelectValue placeholder="Selecciona tu ocupación" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {jobPositions.map((position) => (
-                                <SelectItem key={position} value={position}>
-                                  {position}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          {validationErrors.trabajoEnPlanilla && (
-                            <p className="text-red-500 text-sm mt-1">{validationErrors.trabajoEnPlanilla}</p>
-                          )}
-                        </div>
-                        {data.trabajoEnPlanilla === "Otros" && (
-                          <div>
-                            <Label>Especifica tu ocupación *</Label>
-                            <Input
-                              placeholder="Describe tu ocupación"
-                              value={data.otroTrabajo || ""}
-                              onChange={(e) => setData(prev => ({ ...prev, otroTrabajo: e.target.value }))}
-                              className={validationErrors.otroTrabajo ? "border-red-500" : ""}
-                            />
-                            {validationErrors.otroTrabajo && (
-                              <p className="text-red-500 text-sm mt-1">{validationErrors.otroTrabajo}</p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {data.workSituation === 'empresario' && (
-                      <div className="space-y-4 border-t pt-4">
-                        <div>
-                          <Label>Nombre del negocio *</Label>
-                          <Input
-                            placeholder="Nombre de tu negocio"
-                            value={data.nombreNegocio || ""}
-                            onChange={(e) => setData(prev => ({ ...prev, nombreNegocio: e.target.value }))}
-                            className={validationErrors.nombreNegocio ? "border-red-500" : ""}
-                          />
-                          {validationErrors.nombreNegocio && (
-                            <p className="text-red-500 text-sm mt-1">{validationErrors.nombreNegocio}</p>
-                          )}
-                        </div>
-                        <div>
-                          <Label>Rubro *</Label>
-                          <Input
-                            placeholder="Comercio, servicios, manufactura, etc."
-                            value={data.rubroNegocio || ""}
-                            onChange={(e) => setData(prev => ({ ...prev, rubroNegocio: e.target.value }))}
-                            className={validationErrors.rubroNegocio ? "border-red-500" : ""}
-                          />
-                          {validationErrors.rubroNegocio && (
-                            <p className="text-red-500 text-sm mt-1">{validationErrors.rubroNegocio}</p>
-                          )}
-                        </div>
-                        <div>
-                          <Label>Actividad *</Label>
-                          <Input
-                            placeholder="Describe la actividad principal"
-                            value={data.actividadPrincipal || ""}
-                            onChange={(e) => setData(prev => ({ ...prev, actividadPrincipal: e.target.value }))}
-                            className={validationErrors.actividadPrincipal ? "border-red-500" : ""}
-                          />
-                          {validationErrors.actividadPrincipal && (
-                            <p className="text-red-500 text-sm mt-1">{validationErrors.actividadPrincipal}</p>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Paso 5: Boletas */}
-                {currentStep === 5 && (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Card 
-                        className={`cursor-pointer transition-all ${data.hasPayslips === 'si' ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300'}`}
-                        onClick={() => setData(prev => ({ ...prev, hasPayslips: 'si' }))}
-                      >
-                        <CardContent className="p-4 text-center">
-                          <FileText className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-                          <h4 className="font-medium">Sí, tengo boletas</h4>
-                          <p className="text-xs text-gray-600">Puedo mostrar mis ingresos</p>
-                        </CardContent>
-                      </Card>
-
-                      <Card 
-                        className={`cursor-pointer transition-all ${data.hasPayslips === 'no' ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300'}`}
-                        onClick={() => setData(prev => ({ ...prev, hasPayslips: 'no' }))}
-                      >
-                        <CardContent className="p-4 text-center">
-                          <Users className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-                          <h4 className="font-medium">No tengo boletas</h4>
-                          <p className="text-xs text-gray-600">Trabajo independiente</p>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </div>
-                )}
-
-                {/* Paso 6: Ingresos */}
-                {currentStep === 6 && (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                      {[1000, 1500, 2500, 4000, 6000, 10000].map((income) => (
-                        <Card 
-                          key={income}
-                          className={`cursor-pointer transition-all ${data.monthlyIncome === income ? 'border-blue-500 bg-blue-50' : 'hover:border-blue-300'}`}
-                          onClick={() => setData(prev => ({ ...prev, monthlyIncome: income }))}
-                        >
-                          <CardContent className="p-3 text-center">
-                            <p className="font-medium">S/ {income.toLocaleString()}</p>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                    
-                    <div className="mt-4">
-                      <Label>O ingresa tu ingreso exacto:</Label>
-                      <Input
-                        type="number"
-                        placeholder="Ejemplo: 3500"
-                        value={data.monthlyIncome || ""}
-                        onChange={(e) => setData(prev => ({ ...prev, monthlyIncome: Number(e.target.value) }))}
-                        className="mt-2"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Paso 7: Documentos OPCIONAL AHORA */}
-                {currentStep === 7 && (
-                  <div className="space-y-4">
-                    <div className="bg-orange-50 border border-orange-300 rounded-lg p-4 mb-4">
-                      <p className="text-orange-800 text-sm">
-                        <strong>Para acceder a un producto financiero, deberás completar esta información más adelante.</strong>
-                      </p>
-                    </div>
-
-                    <div className="bg-blue-600 border border-blue-300 rounded-lg p-4 mb-4">
-                      <p className="text-white text-sm">
-                        <strong>Importante:</strong> Subir documentos no es obligatorio para ir a la subasta, pero sí para cerrar con un banco.
-                      </p>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div>
-                        <Label className="flex items-center gap-2">
-                          <span>DNI (ambas caras - obligatorio para validar)</span>
-                        </Label>
-                        <div className="mt-2 p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
-                          <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                          <input
-                            type="file"
-                            accept="image/*,.pdf"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) handleFileUpload('dni', file);
-                            }}
-                            className="hidden"
-                            id="dni-upload"
-                          />
-                          <label htmlFor="dni-upload" className="cursor-pointer">
-                            <Button variant="outline" size="sm" asChild>
-                              <span>Subir DNI</span>
-                            </Button>
-                          </label>
-                          {data.documents.dni && (
-                            <p className="text-sm text-green-600 mt-2">✅ {data.documents.dni.name}</p>
-                          )}
-                        </div>
-                      </div>
-
-                      <div>
-                        <Label>Adjunta tus boletas de pago</Label>
-                        <div className="mt-2 p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
-                          <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                          <input
-                            type="file"
-                            accept="image/*,.pdf"
-                            multiple
-                            onChange={(e) => {
-                              const files = Array.from(e.target.files || []);
-                              files.forEach(file => {
-                                setUploadedPayslips(prev => [...prev, file]);
-                              });
-                              if (files.length > 0) {
-                                handleFileUpload('payslips', files[0]);
-                              }
-                            }}
-                            className="hidden"
-                            id="payslips-upload"
-                          />
-                          <label htmlFor="payslips-upload" className="cursor-pointer">
-                            <Button variant="outline" size="sm" asChild>
-                              <span>Subir Boletas</span>
-                            </Button>
-                          </label>
-                          {uploadedPayslips.length > 0 && (
-                            <div className="mt-2">
-                              <p className="text-sm text-green-600">✅ {uploadedPayslips.length} archivo(s) subido(s)</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div>
-                        <Label>Otros documentos</Label>
-                        <div className="mt-2 p-4 border-2 border-dashed border-gray-300 rounded-lg text-center">
-                          <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                          <input
-                            type="file"
-                            accept="image/*,.pdf"
-                            multiple
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) handleFileUpload('others', file);
-                            }}
-                            className="hidden"
-                            id="others-upload"
-                          />
-                          <label htmlFor="others-upload" className="cursor-pointer">
-                            <Button variant="outline" size="sm" asChild>
-                              <span>Subir Documentos</span>
-                            </Button>
-                          </label>
-                          {data.documents.others && (
-                            <p className="text-sm text-green-600 mt-2">✅ {data.documents.others.name}</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                      <p className="text-green-800 text-sm">
-                        <strong>Sistema de gestión:</strong> Cada usuario tiene una carpeta individual donde se almacenan datos y documentos. Si regresas por otro producto, tu información se mantiene actualizada.
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Navigation */}
-        <div className="flex justify-between items-center mt-8">
+        {/* Navigation buttons - Mobile optimized */}
+        <div className="flex justify-between items-center">
           <Button
             variant="outline"
-            onClick={handlePrev}
-            className="flex items-center gap-2"
+            onClick={currentStep === 1 ? onBack : prevStep}
+            className="border-neza-blue-300 text-neza-blue-600 hover:bg-neza-blue-50 md:px-6 px-4 md:py-2 py-2 md:text-base text-sm"
           >
-            <ArrowLeft className="w-4 h-4" />
-            {currentStep === 0 ? (forceFlow ? 'Cancelar' : 'Volver') : 'Atrás'}
+            <ArrowLeft className="md:w-4 md:h-4 w-3 h-3 mr-2" />
+            {currentStep === 1 ? 'Volver' : 'Anterior'}
           </Button>
-          
-          <Button
-            onClick={handleNext}
-            disabled={!canProceed()}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
-          >
-            {currentStep === steps.length - 1 ? 
-              (forceFlow ? 'Proceder a la subasta' : 'Ver mis opciones') : 
-              'Siguiente'
-            }
-            <ArrowRight className="w-4 h-4" />
-          </Button>
+
+          {currentStep === totalSteps ? (
+            <Button
+              onClick={handleComplete}
+              disabled={!isStepValid()}
+              className="bg-neza-blue-600 hover:bg-neza-blue-700 md:px-8 px-6 md:py-2 py-2 md:text-base text-sm"
+            >
+              <CheckCircle className="md:w-4 md:h-4 w-3 h-3 mr-2" />
+              Finalizar
+            </Button>
+          ) : (
+            <Button
+              onClick={nextStep}
+              disabled={!isStepValid()}
+              className="bg-neza-blue-600 hover:bg-neza-blue-700 md:px-6 px-4 md:py-2 py-2 md:text-base text-sm"
+            >
+              Siguiente
+              <ArrowRight className="md:w-4 md:h-4 w-3 h-3 ml-2" />
+            </Button>
+          )}
         </div>
       </div>
-
-      {/* Video Modal */}
-      {showVideo && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-bold mb-4">Tutorial NEZA</h3>
-            <div className="aspect-video bg-gray-200 rounded-lg flex items-center justify-center mb-4">
-              <p className="text-gray-600">Video tutorial aquí</p>
-            </div>
-            <Button onClick={() => setShowVideo(false)} className="w-full">
-              Cerrar
-            </Button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
