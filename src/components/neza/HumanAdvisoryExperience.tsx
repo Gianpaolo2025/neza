@@ -195,6 +195,19 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
     }
   ];
 
+  // Función para calcular la edad
+  const calculateAge = (birthDate: string): number => {
+    if (!birthDate) return 0;
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
   const validateCurrentStep = () => {
     const errors: Record<string, string> = {};
     
@@ -206,7 +219,15 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
       if (!data.personalInfo.firstName.trim()) errors.firstName = "Nombre es requerido";
       if (!data.personalInfo.lastName.trim()) errors.lastName = "Apellidos son requeridos";
       if (!data.personalInfo.dni.trim() || data.personalInfo.dni.length !== 8) errors.dni = "DNI debe tener 8 dígitos";
-      if (!data.personalInfo.birthDate) errors.birthDate = "Fecha de nacimiento es requerida";
+      if (!data.personalInfo.birthDate) {
+        errors.birthDate = "Fecha de nacimiento es requerida";
+      } else {
+        // Validación de edad mínima
+        const age = calculateAge(data.personalInfo.birthDate);
+        if (age < 18 && data.goal !== "tarjeta-debito") {
+          errors.birthDate = "Lo sentimos, para acceder a productos financieros debes ser mayor de edad. Solo puedes continuar si estás solicitando una tarjeta de débito.";
+        }
+      }
       if (!data.personalInfo.email.trim() || !data.personalInfo.email.includes('@')) errors.email = "Email válido es requerido";
       if (!data.personalInfo.phone.trim() || data.personalInfo.phone.length < 9) errors.phone = "Teléfono debe tener al menos 9 dígitos";
     }
@@ -301,16 +322,18 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
     }
   };
 
-  // Generate birth year options for faster selection
+  // Generate optimized year options (from current year - 16 to 1950)
   const generateYearOptions = () => {
     const currentYear = new Date().getFullYear();
+    const minYear = currentYear - 16; // Usuarios no menores de 16 años
     const years = [];
-    for (let year = currentYear; year >= currentYear - 100; year--) {
+    for (let year = minYear; year >= 1950; year--) {
       years.push(year);
     }
     return years;
   };
 
+  // Generate month options
   const generateMonthOptions = () => {
     return [
       { value: '01', label: 'Enero' },
@@ -328,36 +351,46 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
     ];
   };
 
+  // Generate day options based on selected month and year
   const generateDayOptions = (year: string, month: string) => {
-    if (!year || !month) return [];
+    if (!year || !month) return Array.from({ length: 31 }, (_, i) => (i + 1).toString().padStart(2, '0'));
     const daysInMonth = new Date(parseInt(year), parseInt(month), 0).getDate();
-    const days = [];
-    for (let day = 1; day <= daysInMonth; day++) {
-      days.push(day.toString().padStart(2, '0'));
-    }
-    return days;
+    return Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString().padStart(2, '0'));
   };
 
+  // Handle birth date changes with proper validation
   const handleBirthDateChange = (type: 'year' | 'month' | 'day', value: string) => {
-    const [currentYear, currentMonth, currentDay] = data.personalInfo.birthDate.split('-');
+    const currentParts = data.personalInfo.birthDate.split('-');
+    const currentYear = currentParts[0] || '';
+    const currentMonth = currentParts[1] || '';
+    const currentDay = currentParts[2] || '';
     
-    let newYear = type === 'year' ? value : currentYear || '';
-    let newMonth = type === 'month' ? value : currentMonth || '';
-    let newDay = type === 'day' ? value : currentDay || '';
+    let newYear = type === 'year' ? value : currentYear;
+    let newMonth = type === 'month' ? value : currentMonth;
+    let newDay = type === 'day' ? value : currentDay;
     
     // Validate day exists in selected month/year
-    if (newYear && newMonth && newDay) {
+    if (newYear && newMonth) {
       const daysInMonth = new Date(parseInt(newYear), parseInt(newMonth), 0).getDate();
-      if (parseInt(newDay) > daysInMonth) {
+      if (newDay && parseInt(newDay) > daysInMonth) {
         newDay = daysInMonth.toString().padStart(2, '0');
       }
     }
     
+    // Update birth date
     const newDate = newYear && newMonth && newDay ? `${newYear}-${newMonth}-${newDay}` : '';
-    setData({
-      ...data,
-      personalInfo: { ...data.personalInfo, birthDate: newDate }
-    });
+    setData(prev => ({
+      ...prev,
+      personalInfo: { 
+        ...prev.personalInfo, 
+        birthDate: newDate 
+      }
+    }));
+
+    // Clear birth date error when user starts fixing it
+    if (validationErrors.birthDate) {
+      setValidationErrors(prev => ({ ...prev, birthDate: '' }));
+    }
   };
 
   return (
@@ -424,7 +457,7 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
                     </p>
                   </div>
 
-                {/* Paso 1: Objetivo financiero - MOSTRAR 11 PRODUCTOS */}
+                {/* Paso 1: Objetivo financiero - MOSTRAR 11 PRODUCTOS INCLUYENDO TARJETA DE DÉBITO */}
                 {currentStep === 1 && (
                   <div className="space-y-6">
                     <Label className="text-lg font-medium text-slate-700">
@@ -443,6 +476,7 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
                           { id: "prestamo-vehicular", label: "Préstamo Vehicular", icon: "🚗", desc: "Para comprar tu auto" },
                           { id: "hipotecario", label: "Crédito Hipotecario", icon: "🏠", desc: "Para tu casa" },
                           { id: "tarjeta-credito", label: "Tarjeta de Crédito", icon: "💳", desc: "Para compras y pagos" },
+                          { id: "tarjeta-debito", label: "Tarjeta de Débito", icon: "🏧", desc: "Para menores y mayores de edad" },
                           { id: "prestamo-negocio", label: "Préstamo para Negocio", icon: "📊", desc: "Para tu empresa" },
                           { id: "microfinanzas", label: "Microfinanzas", icon: "🏪", desc: "Para pequeños negocios" },
                           { id: "cuenta-ahorros", label: "Cuenta de Ahorros", icon: "🏦", desc: "Para ahorrar dinero" },
@@ -478,7 +512,7 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
                   </div>
                 )}
 
-                {/* Paso 2: Datos Personales - MEJORAR SELECTOR DE FECHA */}
+                {/* Paso 2: Datos Personales - SELECTOR DE FECHA CORREGIDO */}
                 {currentStep === 2 && (
                   <div className="space-y-4">
                     <div>
@@ -558,58 +592,72 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
                         )}
                       </div>
 
-                      <div>
+                      <div className="md:col-span-2">
                         <Label className="flex items-center gap-2 text-slate-700 mb-2">
                           <Calendar className="w-4 h-4" />
                           Fecha de Nacimiento *
                         </Label>
-                        <div className="grid grid-cols-3 gap-2">
-                          <Select 
-                            value={data.personalInfo.birthDate.split('-')[2] || ''} 
-                            onValueChange={(value) => handleBirthDateChange('day', value)}
-                          >
-                            <SelectTrigger className={`border-blue-300 focus:border-blue-500 ${validationErrors.birthDate ? 'border-red-500' : ''}`}>
-                              <SelectValue placeholder="Día" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {generateDayOptions(data.personalInfo.birthDate.split('-')[0] || '', data.personalInfo.birthDate.split('-')[1] || '').map((day) => (
-                                <SelectItem key={day} value={day}>{day}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                        <div className="grid grid-cols-3 gap-3">
+                          <div>
+                            <Select 
+                              value={data.personalInfo.birthDate.split('-')[2] || ''} 
+                              onValueChange={(value) => handleBirthDateChange('day', value)}
+                            >
+                              <SelectTrigger className={`border-blue-300 focus:border-blue-500 ${validationErrors.birthDate ? 'border-red-500' : ''}`}>
+                                <SelectValue placeholder="Día" />
+                              </SelectTrigger>
+                              <SelectContent className="max-h-60 overflow-y-auto bg-white z-50">
+                                {generateDayOptions(
+                                  data.personalInfo.birthDate.split('-')[0] || '', 
+                                  data.personalInfo.birthDate.split('-')[1] || ''
+                                ).map((day) => (
+                                  <SelectItem key={day} value={day}>{day}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
                           
-                          <Select 
-                            value={data.personalInfo.birthDate.split('-')[1] || ''} 
-                            onValueChange={(value) => handleBirthDateChange('month', value)}
-                          >
-                            <SelectTrigger className={`border-blue-300 focus:border-blue-500 ${validationErrors.birthDate ? 'border-red-500' : ''}`}>
-                              <SelectValue placeholder="Mes" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {generateMonthOptions().map((month) => (
-                                <SelectItem key={month.value} value={month.value}>{month.label}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <div>
+                            <Select 
+                              value={data.personalInfo.birthDate.split('-')[1] || ''} 
+                              onValueChange={(value) => handleBirthDateChange('month', value)}
+                            >
+                              <SelectTrigger className={`border-blue-300 focus:border-blue-500 ${validationErrors.birthDate ? 'border-red-500' : ''}`}>
+                                <SelectValue placeholder="Mes" />
+                              </SelectTrigger>
+                              <SelectContent className="max-h-60 overflow-y-auto bg-white z-50">
+                                {generateMonthOptions().map((month) => (
+                                  <SelectItem key={month.value} value={month.value}>{month.label}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
                           
-                          <Select 
-                            value={data.personalInfo.birthDate.split('-')[0] || ''} 
-                            onValueChange={(value) => handleBirthDateChange('year', value)}
-                          >
-                            <SelectTrigger className={`border-blue-300 focus:border-blue-500 ${validationErrors.birthDate ? 'border-red-500' : ''}`}>
-                              <SelectValue placeholder="Año" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {generateYearOptions().map((year) => (
-                                <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <div>
+                            <Select 
+                              value={data.personalInfo.birthDate.split('-')[0] || ''} 
+                              onValueChange={(value) => handleBirthDateChange('year', value)}
+                            >
+                              <SelectTrigger className={`border-blue-300 focus:border-blue-500 ${validationErrors.birthDate ? 'border-red-500' : ''}`}>
+                                <SelectValue placeholder="Año" />
+                              </SelectTrigger>
+                              <SelectContent className="max-h-60 overflow-y-auto bg-white z-50">
+                                {generateYearOptions().map((year) => (
+                                  <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </div>
                         {validationErrors.birthDate && (
-                          <div className="flex items-center gap-2 text-red-600 text-sm mt-1">
-                            <AlertCircle className="w-4 h-4" />
-                            {validationErrors.birthDate}
+                          <div className="flex items-center gap-2 text-red-600 text-sm mt-2 p-3 bg-red-50 rounded-lg border border-red-200">
+                            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                            <span>{validationErrors.birthDate}</span>
+                          </div>
+                        )}
+                        {data.personalInfo.birthDate && (
+                          <div className="text-sm text-slate-600 mt-2">
+                            Edad: {calculateAge(data.personalInfo.birthDate)} años
                           </div>
                         )}
                       </div>
