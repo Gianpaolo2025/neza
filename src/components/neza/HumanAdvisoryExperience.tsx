@@ -507,18 +507,6 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
           />
         </div>
       </div>
-
-      {/* Botón Tutorial específico para esta sección - Esquina inferior izquierda */}
-      <div className="fixed bottom-4 left-4 z-40">
-        <Button
-          onClick={() => setShowQuestionsTutorial(true)}
-          variant="outline"
-          className="border-blue-300 text-blue-600 hover:bg-blue-50 flex items-center gap-2 shadow-lg bg-white"
-        >
-          <Target className="w-4 h-4" />
-          Ver Tutorial
-        </Button>
-      </div>
     </div>
   );
 };

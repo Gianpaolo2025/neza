@@ -53,6 +53,13 @@ export const DateSelector = ({ birthDate, onBirthDateChange, validationError, ca
   const selectedMonth = dateParts[1] || '';
   const selectedDay = dateParts[2] || '';
 
+  // Get month name for display
+  const getMonthName = (monthValue: string) => {
+    const monthOptions = generateMonthOptions();
+    const month = monthOptions.find(m => m.value === monthValue);
+    return month ? month.label : 'Mes';
+  };
+
   return (
     <div>
       <Label className="flex items-center gap-2 text-slate-700 mb-2">
@@ -66,7 +73,9 @@ export const DateSelector = ({ birthDate, onBirthDateChange, validationError, ca
             onValueChange={(value) => onBirthDateChange('day', value)}
           >
             <SelectTrigger className={`border-blue-300 focus:border-blue-500 ${validationError ? 'border-red-500' : ''}`}>
-              <SelectValue placeholder="Día" />
+              <SelectValue placeholder="Día">
+                {selectedDay ? selectedDay : "Día"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent className="max-h-60 overflow-y-auto bg-white z-[100] border border-gray-200 shadow-lg">
               {generateDayOptions(selectedYear, selectedMonth).map((day) => (
@@ -84,7 +93,9 @@ export const DateSelector = ({ birthDate, onBirthDateChange, validationError, ca
             onValueChange={(value) => onBirthDateChange('month', value)}
           >
             <SelectTrigger className={`border-blue-300 focus:border-blue-500 ${validationError ? 'border-red-500' : ''}`}>
-              <SelectValue placeholder="Mes" />
+              <SelectValue placeholder="Mes">
+                {selectedMonth ? getMonthName(selectedMonth) : "Mes"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent className="max-h-60 overflow-y-auto bg-white z-[100] border border-gray-200 shadow-lg">
               {generateMonthOptions().map((month) => (
@@ -102,7 +113,9 @@ export const DateSelector = ({ birthDate, onBirthDateChange, validationError, ca
             onValueChange={(value) => onBirthDateChange('year', value)}
           >
             <SelectTrigger className={`border-blue-300 focus:border-blue-500 ${validationError ? 'border-red-500' : ''}`}>
-              <SelectValue placeholder="Año" />
+              <SelectValue placeholder="Año">
+                {selectedYear ? selectedYear : "Año"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent className="max-h-60 overflow-y-auto bg-white z-[100] border border-gray-200 shadow-lg">
               {generateYearOptions().map((year) => (
