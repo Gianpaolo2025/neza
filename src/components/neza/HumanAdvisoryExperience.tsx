@@ -498,13 +498,6 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
               }}
             />
           )}
-
-          {/* Nuevo Tutorial para Preguntas - Sincronizado con el paso actual */}
-          <QuestionsTutorial
-            isVisible={showQuestionsTutorial}
-            onClose={() => setShowQuestionsTutorial(false)}
-            currentFormStep={currentStep}
-          />
         </div>
       </div>
     </div>

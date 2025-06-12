@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Lightbulb, Zap } from "lucide-react";
+import { ArrowLeft, ArrowRight, Zap } from "lucide-react";
 
 interface StepNavigationProps {
   currentStep: number;
@@ -42,23 +42,13 @@ export const StepNavigation = ({
           <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
       ) : (
-        <div className="flex gap-3">
-          <Button
-            variant="outline"
-            onClick={onShowTutorial}
-            className="border-green-300 text-green-700 hover:bg-green-50"
-          >
-            <Lightbulb className="w-4 h-4 mr-2" />
-            Ver Tutorial
-          </Button>
-          <Button 
-            onClick={onComplete}
-            className="bg-green-600 hover:bg-green-700"
-          >
-            <Zap className="w-4 h-4 mr-2" />
-            ¡Ver mis ofertas!
-          </Button>
-        </div>
+        <Button 
+          onClick={onComplete}
+          className="bg-green-600 hover:bg-green-700"
+        >
+          <Zap className="w-4 h-4 mr-2" />
+          ¡Ver mis ofertas!
+        </Button>
       )}
     </div>
   );
