@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,10 @@ interface AmountSelectorProps {
 
 export const AmountSelector = ({ selectedAmount, onAmountChange, currency, productType }: AmountSelectorProps) => {
   const [customAmount, setCustomAmount] = useState(selectedAmount.toString());
+
+  useEffect(() => {
+    setCustomAmount(selectedAmount.toString());
+  }, [selectedAmount]);
 
   const getPresetAmounts = () => {
     const symbol = currency === "PEN" ? "S/." : "$";
@@ -67,11 +71,21 @@ export const AmountSelector = ({ selectedAmount, onAmountChange, currency, produ
   };
 
   const handleCustomAmountChange = (value: string) => {
-    setCustomAmount(value);
-    const numericValue = parseFloat(value.replace(/,/g, ''));
+    // Remove any non-numeric characters except decimal point
+    const cleanValue = value.replace(/[^\d.]/g, '');
+    setCustomAmount(cleanValue);
+    
+    const numericValue = parseFloat(cleanValue);
     if (!isNaN(numericValue) && numericValue > 0) {
       onAmountChange(numericValue);
+    } else if (cleanValue === '' || cleanValue === '0') {
+      onAmountChange(0);
     }
+  };
+
+  const formatDisplayAmount = (amount: number) => {
+    if (amount === 0) return '';
+    return amount.toLocaleString('es-PE');
   };
 
   const getProductName = () => {
@@ -83,6 +97,32 @@ export const AmountSelector = ({ selectedAmount, onAmountChange, currency, produ
       "cuenta-ahorros": "depósito inicial"
     };
     return names[productType as keyof typeof names] || "financiamiento";
+  };
+
+  const getMinAmount = () => {
+    switch (productType) {
+      case "credito-personal": return 1000;
+      case "credito-vehicular": return 10000;
+      case "credito-hipotecario": return 50000;
+      case "tarjeta-credito": return 500;
+      default: return 500;
+    }
+  };
+
+  const getMaxAmount = () => {
+    switch (productType) {
+      case "credito-personal": return 100000;
+      case "credito-vehicular": return 500000;
+      case "credito-hipotecario": return 2000000;
+      case "tarjeta-credito": return 50000;
+      default: return 100000;
+    }
+  };
+
+  const isAmountValid = () => {
+    const minAmount = getMinAmount();
+    const maxAmount = getMaxAmount();
+    return selectedAmount >= minAmount && selectedAmount <= maxAmount;
   };
 
   return (
@@ -133,24 +173,40 @@ export const AmountSelector = ({ selectedAmount, onAmountChange, currency, produ
                 type="text"
                 value={customAmount}
                 onChange={(e) => handleCustomAmountChange(e.target.value)}
-                placeholder="Ej: 25,000"
-                className="pl-12 py-3 text-lg border-blue-300 focus:border-blue-500"
+                placeholder="Ej: 25000"
+                className={`pl-12 py-3 text-lg border-blue-300 focus:border-blue-500 ${
+                  !isAmountValid() && selectedAmount > 0 ? 'border-red-500' : ''
+                }`}
               />
             </div>
-            <p className="text-xs text-slate-500 mt-1">
-              Ingresa el monto sin comas. Ej: 25000
-            </p>
+            <div className="text-xs text-slate-500 mt-1 space-y-1">
+              <p>Ingresa el monto sin comas. Ej: 25000</p>
+              <p>
+                Monto mínimo: {currencySymbol} {getMinAmount().toLocaleString()} - 
+                Monto máximo: {currencySymbol} {getMaxAmount().toLocaleString()}
+              </p>
+            </div>
           </div>
 
           {/* Información adicional */}
           {selectedAmount > 0 && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <p className="text-sm text-blue-800">
-                <strong>Monto seleccionado:</strong> {currencySymbol} {selectedAmount.toLocaleString()}
+            <div className={`border rounded-lg p-3 ${
+              isAmountValid() 
+                ? 'bg-blue-50 border-blue-200' 
+                : 'bg-red-50 border-red-200'
+            }`}>
+              <p className={`text-sm ${isAmountValid() ? 'text-blue-800' : 'text-red-800'}`}>
+                <strong>Monto seleccionado:</strong> {currencySymbol} {formatDisplayAmount(selectedAmount)}
               </p>
-              <p className="text-xs text-blue-600 mt-1">
-                Las entidades financieras mostrarán ofertas basadas en este monto
-              </p>
+              {isAmountValid() ? (
+                <p className="text-xs text-blue-600 mt-1">
+                  Las entidades financieras mostrarán ofertas basadas en este monto
+                </p>
+              ) : (
+                <p className="text-xs text-red-600 mt-1">
+                  El monto debe estar entre {currencySymbol} {getMinAmount().toLocaleString()} y {currencySymbol} {getMaxAmount().toLocaleString()}
+                </p>
+              )}
             </div>
           )}
         </div>
