@@ -16,7 +16,7 @@ interface AuctionValidatorProps {
 export const AuctionValidator = ({ userData, onRetry, onBack, onProceedToAuction }: AuctionValidatorProps) => {
   const [validationStatus, setValidationStatus] = useState<'validating' | 'qualified' | 'not_qualified'>('validating');
   const [qualificationReasons, setQualificationReasons] = useState<string[]>([]);
-  const [autoRedirectTimer, setAutoRedirectTimer] = useState<number | null>(null);
+  const [autoRedirectTimer, setAutoRedirectTimer] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     validateUserForAuction();

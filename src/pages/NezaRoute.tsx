@@ -100,7 +100,7 @@ const NezaRoute = () => {
 
   const handleViewChange = (view: 'home' | 'catalog' | 'onboarding', source?: string) => {
     try {
-      userTrackingService.trackActivity('navigation', { 
+      userTrackingService.trackActivity('page_visit', { 
         from: currentView, 
         to: view,
         source: source || 'unknown'
