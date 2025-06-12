@@ -324,42 +324,6 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
     }
   };
 
-  // Generate optimized year options (from current year - 16 to 1950)
-  const generateYearOptions = () => {
-    const currentYear = new Date().getFullYear();
-    const minYear = currentYear - 16; // Usuarios no menores de 16 años
-    const years = [];
-    for (let year = minYear; year >= 1950; year--) {
-      years.push(year);
-    }
-    return years;
-  };
-
-  // Generate month options
-  const generateMonthOptions = () => {
-    return [
-      { value: '01', label: 'Enero' },
-      { value: '02', label: 'Febrero' },
-      { value: '03', label: 'Marzo' },
-      { value: '04', label: 'Abril' },
-      { value: '05', label: 'Mayo' },
-      { value: '06', label: 'Junio' },
-      { value: '07', label: 'Julio' },
-      { value: '08', label: 'Agosto' },
-      { value: '09', label: 'Septiembre' },
-      { value: '10', label: 'Octubre' },
-      { value: '11', label: 'Noviembre' },
-      { value: '12', label: 'Diciembre' }
-    ];
-  };
-
-  // Generate day options based on selected month and year
-  const generateDayOptions = (year: string, month: string) => {
-    if (!year || !month) return Array.from({ length: 31 }, (_, i) => (i + 1).toString().padStart(2, '0'));
-    const daysInMonth = new Date(parseInt(year), parseInt(month), 0).getDate();
-    return Array.from({ length: daysInMonth }, (_, i) => (i + 1).toString().padStart(2, '0'));
-  };
-
   // Handle birth date changes with proper validation
   const handleBirthDateChange = (type: 'year' | 'month' | 'day', value: string) => {
     const currentParts = data.personalInfo.birthDate.split('-');
@@ -535,7 +499,7 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
             />
           )}
 
-          {/* Nuevo Tutorial para Preguntas */}
+          {/* Nuevo Tutorial para Preguntas - Sincronizado con el paso actual */}
           <QuestionsTutorial
             isVisible={showQuestionsTutorial}
             onClose={() => setShowQuestionsTutorial(false)}
