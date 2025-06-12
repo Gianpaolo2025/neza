@@ -53,8 +53,6 @@ export const DateSelector = ({ birthDate, onBirthDateChange, validationError, ca
   const selectedMonth = dateParts[1] || '';
   const selectedDay = dateParts[2] || '';
 
-  console.log('DateSelector render:', { birthDate, selectedYear, selectedMonth, selectedDay });
-
   return (
     <div>
       <Label className="flex items-center gap-2 text-slate-700 mb-2">
@@ -65,10 +63,7 @@ export const DateSelector = ({ birthDate, onBirthDateChange, validationError, ca
         <div>
           <Select 
             value={selectedDay} 
-            onValueChange={(value) => {
-              console.log('Day selected:', value);
-              onBirthDateChange('day', value);
-            }}
+            onValueChange={(value) => onBirthDateChange('day', value)}
           >
             <SelectTrigger className={`border-blue-300 focus:border-blue-500 ${validationError ? 'border-red-500' : ''}`}>
               <SelectValue placeholder="Día" />
@@ -86,10 +81,7 @@ export const DateSelector = ({ birthDate, onBirthDateChange, validationError, ca
         <div>
           <Select 
             value={selectedMonth} 
-            onValueChange={(value) => {
-              console.log('Month selected:', value);
-              onBirthDateChange('month', value);
-            }}
+            onValueChange={(value) => onBirthDateChange('month', value)}
           >
             <SelectTrigger className={`border-blue-300 focus:border-blue-500 ${validationError ? 'border-red-500' : ''}`}>
               <SelectValue placeholder="Mes" />
@@ -107,10 +99,7 @@ export const DateSelector = ({ birthDate, onBirthDateChange, validationError, ca
         <div>
           <Select 
             value={selectedYear} 
-            onValueChange={(value) => {
-              console.log('Year selected:', value);
-              onBirthDateChange('year', value);
-            }}
+            onValueChange={(value) => onBirthDateChange('year', value)}
           >
             <SelectTrigger className={`border-blue-300 focus:border-blue-500 ${validationError ? 'border-red-500' : ''}`}>
               <SelectValue placeholder="Año" />
