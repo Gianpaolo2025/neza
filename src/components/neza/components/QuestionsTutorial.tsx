@@ -78,7 +78,7 @@ export const QuestionsTutorial = ({ isVisible, onClose, currentFormStep }: Quest
     if (currentStep < tutorialSteps.length - 1) {
       setCurrentStep(prev => prev + 1);
       userTrackingService.trackActivity(
-        'questions_tutorial_step_completed',
+        'tutorial_step_completed',
         { step: currentStep + 1, stepId: currentStepData.id },
         `Usuario completó paso ${currentStep + 1} del tutorial de preguntas`
       );
@@ -95,7 +95,7 @@ export const QuestionsTutorial = ({ isVisible, onClose, currentFormStep }: Quest
 
   const handleClose = () => {
     userTrackingService.trackActivity(
-      'questions_tutorial_completed',
+      'tutorial_completed',
       { totalSteps: tutorialSteps.length, completedSteps: currentStep + 1 },
       'Usuario completó o cerró el tutorial de preguntas'
     );

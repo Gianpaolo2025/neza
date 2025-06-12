@@ -1,6 +1,8 @@
+
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Target, User, DollarSign, Briefcase, FileText } from "lucide-react";
 import { InteractiveTutorial } from "./InteractiveTutorial";
 import { QuestionsTutorial } from "./components/QuestionsTutorial";
