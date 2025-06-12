@@ -1,10 +1,10 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, User, FileText, Calendar, Phone, CreditCard, Briefcase } from "lucide-react";
+import { Search, User, FileText, Calendar, Phone, CreditCard, Briefcase, Clock, Activity, ChevronDown, ChevronUp } from "lucide-react";
+import { userTrackingService } from "@/services/userTracking";
 
 interface AdminUser {
   id: string;
@@ -29,10 +29,21 @@ interface AdminUser {
   lastUpdate: string;
 }
 
+interface SessionHistory {
+  sessionId: string;
+  startTime: Date;
+  endTime?: Date;
+  duration?: number;
+  productRequested?: string;
+  dataChanges: any[];
+  activities: any[];
+}
+
 export const UserManagement = () => {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
+  const [expandedHistories, setExpandedHistories] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadUsers();
@@ -43,6 +54,83 @@ export const UserManagement = () => {
     setUsers(adminUsers);
   };
 
+  const getUserSessionHistory = (userEmail: string): SessionHistory[] => {
+    const userHistory = userTrackingService.getUserHistory(userEmail);
+    
+    // Group activities and events by session
+    const sessionMap = new Map<string, SessionHistory>();
+    
+    userHistory.sessions.forEach(session => {
+      sessionMap.set(session.sessionId, {
+        sessionId: session.sessionId,
+        startTime: new Date(session.startTime),
+        endTime: session.endTime ? new Date(session.endTime) : undefined,
+        duration: session.duration,
+        productRequested: session.currentRequest,
+        dataChanges: [],
+        activities: []
+      });
+    });
+
+    // Add activities to sessions
+    userHistory.activities.forEach(activity => {
+      const session = sessionMap.get(activity.sessionId);
+      if (session) {
+        session.activities.push(activity);
+        if (activity.activityType === 'form_submit' && activity.productType) {
+          session.productRequested = activity.productType;
+        }
+      }
+    });
+
+    // Add events (data changes) to sessions
+    userHistory.events.forEach(event => {
+      const session = sessionMap.get(event.sessionId);
+      if (session && event.eventType === 'form_update') {
+        session.dataChanges.push(event);
+      }
+    });
+
+    return Array.from(sessionMap.values()).sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
+  };
+
+  const toggleHistoryExpansion = (userId: string) => {
+    const newExpanded = new Set(expandedHistories);
+    if (newExpanded.has(userId)) {
+      newExpanded.delete(userId);
+    } else {
+      newExpanded.add(userId);
+    }
+    setExpandedHistories(newExpanded);
+  };
+
+  const formatSessionTime = (startTime: Date, endTime?: Date) => {
+    const start = startTime.toLocaleTimeString('es-ES', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: true 
+    });
+    
+    if (endTime) {
+      const end = endTime.toLocaleTimeString('es-ES', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: true 
+      });
+      return `${start} a ${end}`;
+    }
+    
+    return `${start} (activa)`;
+  };
+
+  const formatSessionDate = (date: Date) => {
+    return date.toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
+
   const filteredUsers = users.filter(user => 
     user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.dni.includes(searchTerm) ||
@@ -50,6 +138,8 @@ export const UserManagement = () => {
   );
 
   if (selectedUser) {
+    const sessionHistory = getUserSessionHistory(selectedUser.email);
+    
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -166,6 +256,102 @@ export const UserManagement = () => {
               </div>
             </div>
 
+            {/* Nueva sección de historial de conexiones */}
+            <div className="space-y-4">
+              <h3 className="font-semibold text-neza-blue-800 flex items-center gap-2">
+                <Activity className="w-5 h-5" />
+                Historial de Conexiones
+              </h3>
+              {sessionHistory.length > 0 ? (
+                <div className="space-y-3">
+                  {sessionHistory.map((session, index) => (
+                    <Card key={session.sessionId} className="border-gray-200">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-gray-400" />
+                            <span className="text-sm font-medium">
+                              {formatSessionDate(session.startTime)}
+                            </span>
+                          </div>
+                          <Badge variant="outline" className="text-xs">
+                            Sesión {index + 1}
+                          </Badge>
+                        </div>
+                        
+                        <div className="text-sm text-gray-600 mb-2">
+                          <strong>Horario:</strong> {formatSessionTime(session.startTime, session.endTime)}
+                        </div>
+                        
+                        {session.productRequested && (
+                          <div className="text-sm text-gray-600 mb-2">
+                            <strong>Producto solicitado:</strong> 
+                            <Badge className="ml-2 bg-neza-blue-100 text-neza-blue-800 text-xs">
+                              {session.productRequested}
+                            </Badge>
+                          </div>
+                        )}
+                        
+                        {session.duration && (
+                          <div className="text-sm text-gray-600 mb-2">
+                            <strong>Duración:</strong> {Math.round(session.duration / 60000)} minutos
+                          </div>
+                        )}
+                        
+                        {(session.activities.length > 0 || session.dataChanges.length > 0) && (
+                          <div className="mt-3">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleHistoryExpansion(session.sessionId)}
+                              className="text-xs h-6 px-2"
+                            >
+                              {expandedHistories.has(session.sessionId) ? (
+                                <>
+                                  <ChevronUp className="w-3 h-3 mr-1" />
+                                  Ocultar detalles
+                                </>
+                              ) : (
+                                <>
+                                  <ChevronDown className="w-3 h-3 mr-1" />
+                                  Ver detalles ({session.activities.length + session.dataChanges.length})
+                                </>
+                              )}
+                            </Button>
+                            
+                            {expandedHistories.has(session.sessionId) && (
+                              <div className="mt-2 pl-4 border-l-2 border-gray-200 space-y-2">
+                                {session.activities.map((activity, actIndex) => (
+                                  <div key={actIndex} className="text-xs text-gray-500">
+                                    <span className="font-medium">
+                                      {new Date(activity.timestamp).toLocaleTimeString('es-ES')}:
+                                    </span> {activity.description}
+                                  </div>
+                                ))}
+                                
+                                {session.dataChanges.map((change, changeIndex) => (
+                                  <div key={changeIndex} className="text-xs text-orange-600">
+                                    <span className="font-medium">
+                                      {new Date(change.timestamp).toLocaleTimeString('es-ES')}:
+                                    </span> {change.description}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-4">
+                  <Clock className="w-8 h-8 mx-auto text-gray-400 mb-2" />
+                  <p className="text-gray-600 text-sm">No hay historial de conexiones disponible</p>
+                </div>
+              )}
+            </div>
+
             {selectedUser.workDetails && (
               <div className="space-y-4">
                 <h3 className="font-semibold text-neza-blue-800">Detalles Laborales</h3>
@@ -215,68 +401,102 @@ export const UserManagement = () => {
             </div>
           ) : (
             <div className="grid gap-4">
-              {filteredUsers.map((user) => (
-                <Card 
-                  key={user.id} 
-                  className="hover:shadow-md transition-shadow cursor-pointer border-gray-200"
-                  onClick={() => setSelectedUser(user)}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className="w-10 h-10 bg-neza-blue-100 rounded-full flex items-center justify-center">
-                            <User className="w-5 h-5 text-neza-blue-600" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-neza-blue-800">{user.fullName}</h3>
-                            <p className="text-sm text-gray-600">{user.email}</p>
-                          </div>
-                        </div>
-                        
-                        <div className="grid md:grid-cols-2 gap-4 mt-4">
-                          <div className="space-y-2">
-                            <div className="flex items-center gap-2 text-sm">
-                              <CreditCard className="w-4 h-4 text-gray-400" />
-                              <span className="text-gray-600">DNI:</span>
-                              <span className="font-medium">{user.dni}</span>
+              {filteredUsers.map((user) => {
+                const sessionHistory = getUserSessionHistory(user.email);
+                const lastSession = sessionHistory[0];
+                
+                return (
+                  <Card 
+                    key={user.id} 
+                    className="hover:shadow-md transition-shadow cursor-pointer border-gray-200"
+                    onClick={() => setSelectedUser(user)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="w-10 h-10 bg-neza-blue-100 rounded-full flex items-center justify-center">
+                              <User className="w-5 h-5 text-neza-blue-600" />
                             </div>
-                            <div className="flex items-center gap-2 text-sm">
-                              <Phone className="w-4 h-4 text-gray-400" />
-                              <span className="text-gray-600">Teléfono:</span>
-                              <span className="font-medium">{user.phone}</span>
+                            <div>
+                              <h3 className="font-semibold text-neza-blue-800">{user.fullName}</h3>
+                              <p className="text-sm text-gray-600">{user.email}</p>
                             </div>
                           </div>
                           
-                          <div className="space-y-2">
-                            <div className="flex items-center gap-2 text-sm">
-                              <Briefcase className="w-4 h-4 text-gray-400" />
-                              <span className="text-gray-600">Producto:</span>
-                              <Badge className="bg-neza-blue-100 text-neza-blue-800 text-xs">
-                                {user.productType}
-                              </Badge>
+                          <div className="grid md:grid-cols-2 gap-4 mt-4">
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2 text-sm">
+                                <CreditCard className="w-4 h-4 text-gray-400" />
+                                <span className="text-gray-600">DNI:</span>
+                                <span className="font-medium">{user.dni}</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-sm">
+                                <Phone className="w-4 h-4 text-gray-400" />
+                                <span className="text-gray-600">Teléfono:</span>
+                                <span className="font-medium">{user.phone}</span>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2 text-sm">
-                              <Calendar className="w-4 h-4 text-gray-400" />
-                              <span className="text-gray-600">Registro:</span>
-                              <span className="font-medium">
-                                {new Date(user.registrationDate).toLocaleDateString('es-ES')}
-                              </span>
+                            
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2 text-sm">
+                                <Briefcase className="w-4 h-4 text-gray-400" />
+                                <span className="text-gray-600">Producto:</span>
+                                <Badge className="bg-neza-blue-100 text-neza-blue-800 text-xs">
+                                  {user.productType}
+                                </Badge>
+                              </div>
+                              <div className="flex items-center gap-2 text-sm">
+                                <Calendar className="w-4 h-4 text-gray-400" />
+                                <span className="text-gray-600">Registro:</span>
+                                <span className="font-medium">
+                                  {new Date(user.registrationDate).toLocaleDateString('es-ES')}
+                                </span>
+                              </div>
                             </div>
                           </div>
                         </div>
+                        
+                        <div className="ml-4 text-right">
+                          <Badge variant="outline" className="border-green-300 text-green-600 mb-2">
+                            {user.processStatus}
+                          </Badge>
+                          <p className="text-xs text-gray-500">{user.currentStep}</p>
+                        </div>
                       </div>
                       
-                      <div className="ml-4 text-right">
-                        <Badge variant="outline" className="border-green-300 text-green-600 mb-2">
-                          {user.processStatus}
-                        </Badge>
-                        <p className="text-xs text-gray-500">{user.currentStep}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      {/* Nueva sección de historial de conexión en tarjeta */}
+                      {lastSession && (
+                        <div className="mt-4 pt-3 border-t border-gray-100">
+                          <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                            <Activity className="w-4 h-4 text-gray-400" />
+                            <span className="font-medium">Última conexión:</span>
+                          </div>
+                          <div className="space-y-1 text-xs text-gray-500">
+                            <div>
+                              <span className="font-medium">Fecha:</span> {formatSessionDate(lastSession.startTime)}
+                            </div>
+                            <div>
+                              <span className="font-medium">Horario:</span> {formatSessionTime(lastSession.startTime, lastSession.endTime)}
+                            </div>
+                            {lastSession.productRequested && (
+                              <div className="flex items-center gap-1">
+                                <span className="font-medium">Producto:</span>
+                                <Badge className="bg-gray-100 text-gray-700 text-xs">
+                                  {lastSession.productRequested}
+                                </Badge>
+                              </div>
+                            )}
+                            <div className="text-blue-600">
+                              Total de sesiones: {sessionHistory.length}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           )}
         </CardContent>
