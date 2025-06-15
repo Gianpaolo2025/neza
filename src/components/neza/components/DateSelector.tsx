@@ -116,7 +116,9 @@ export const DateSelector = ({ birthDate, onBirthDateChange, validationError, ca
             onValueChange={(value) => handleDateChange('day', value)}
           >
             <SelectTrigger className={`border-blue-300 focus:border-blue-500 ${validationError ? 'border-red-500' : ''}`}>
-              <SelectValue placeholder="Día" />
+              <SelectValue placeholder="Día">
+                {selectedDay ? selectedDay : "Día"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent className="max-h-60 overflow-y-auto bg-white z-[100] border border-gray-200 shadow-lg">
               {generateDayOptions(selectedYear, selectedMonth).map((day) => (
@@ -134,7 +136,9 @@ export const DateSelector = ({ birthDate, onBirthDateChange, validationError, ca
             onValueChange={(value) => handleDateChange('month', value)}
           >
             <SelectTrigger className={`border-blue-300 focus:border-blue-500 ${validationError ? 'border-red-500' : ''}`}>
-              <SelectValue placeholder="Mes" />
+              <SelectValue placeholder="Mes">
+                {selectedMonth ? getMonthName(selectedMonth) : "Mes"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent className="max-h-60 overflow-y-auto bg-white z-[100] border border-gray-200 shadow-lg">
               {generateMonthOptions().map((month) => (
@@ -152,7 +156,9 @@ export const DateSelector = ({ birthDate, onBirthDateChange, validationError, ca
             onValueChange={(value) => handleDateChange('year', value)}
           >
             <SelectTrigger className={`border-blue-300 focus:border-blue-500 ${validationError ? 'border-red-500' : ''}`}>
-              <SelectValue placeholder="Año" />
+              <SelectValue placeholder="Año">
+                {selectedYear ? selectedYear : "Año"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent className="max-h-60 overflow-y-auto bg-white z-[100] border border-gray-200 shadow-lg">
               {generateYearOptions().map((year) => (
