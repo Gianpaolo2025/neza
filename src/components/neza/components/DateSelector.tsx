@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -112,14 +111,12 @@ export const DateSelector = ({ birthDate, onBirthDateChange, validationError, ca
       </Label>
       <div className="grid grid-cols-3 gap-3">
         <div>
-          <Select 
-            value={selectedDay} 
+          <Select
+            value={selectedDay}
             onValueChange={(value) => handleDateChange('day', value)}
           >
             <SelectTrigger className={`border-blue-300 focus:border-blue-500 ${validationError ? 'border-red-500' : ''}`}>
-              <SelectValue placeholder="Día">
-                {selectedDay ? selectedDay : "Día"}
-              </SelectValue>
+              <SelectValue placeholder="Día" />
             </SelectTrigger>
             <SelectContent className="max-h-60 overflow-y-auto bg-white z-[100] border border-gray-200 shadow-lg">
               {generateDayOptions(selectedYear, selectedMonth).map((day) => (
@@ -132,14 +129,12 @@ export const DateSelector = ({ birthDate, onBirthDateChange, validationError, ca
         </div>
         
         <div>
-          <Select 
-            value={selectedMonth} 
+          <Select
+            value={selectedMonth}
             onValueChange={(value) => handleDateChange('month', value)}
           >
             <SelectTrigger className={`border-blue-300 focus:border-blue-500 ${validationError ? 'border-red-500' : ''}`}>
-              <SelectValue placeholder="Mes">
-                {selectedMonth ? getMonthName(selectedMonth) : "Mes"}
-              </SelectValue>
+              <SelectValue placeholder="Mes" />
             </SelectTrigger>
             <SelectContent className="max-h-60 overflow-y-auto bg-white z-[100] border border-gray-200 shadow-lg">
               {generateMonthOptions().map((month) => (
@@ -152,14 +147,12 @@ export const DateSelector = ({ birthDate, onBirthDateChange, validationError, ca
         </div>
         
         <div>
-          <Select 
-            value={selectedYear} 
+          <Select
+            value={selectedYear}
             onValueChange={(value) => handleDateChange('year', value)}
           >
             <SelectTrigger className={`border-blue-300 focus:border-blue-500 ${validationError ? 'border-red-500' : ''}`}>
-              <SelectValue placeholder="Año">
-                {selectedYear ? selectedYear : "Año"}
-              </SelectValue>
+              <SelectValue placeholder="Año" />
             </SelectTrigger>
             <SelectContent className="max-h-60 overflow-y-auto bg-white z-[100] border border-gray-200 shadow-lg">
               {generateYearOptions().map((year) => (
