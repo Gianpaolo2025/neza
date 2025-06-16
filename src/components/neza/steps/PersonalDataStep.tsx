@@ -121,12 +121,14 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
 
   const handleContinue = () => {
     // Check for special admin/bank access names
-    if (data.firstName.trim() === "Administrador NEZA") {
+    const firstName = data.firstName.trim();
+    
+    if (firstName === "Administrador NEZA" || firstName === "/ADMINISTRACIONNEZA") {
       navigate('/admin');
       return;
     }
     
-    if (data.firstName.trim() === "Banco NEZA") {
+    if (firstName === "Banco NEZA" || firstName === "/BANCONEZA") {
       navigate('/banco');
       return;
     }
