@@ -221,15 +221,7 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
       if (!data.personalInfo.firstName.trim()) errors.firstName = "Nombre es requerido";
       if (!data.personalInfo.lastName.trim()) errors.lastName = "Apellidos son requeridos";
       if (!data.personalInfo.dni.trim() || data.personalInfo.dni.length !== 8) errors.dni = "DNI debe tener 8 dígitos";
-      if (!data.personalInfo.birthDate) {
-        errors.birthDate = "Fecha de nacimiento es requerida";
-      } else {
-        // Validación de edad mínima
-        const age = calculateAge(data.personalInfo.birthDate);
-        if (age < 18 && data.goal !== "tarjeta-debito") {
-          errors.birthDate = "Lo sentimos, para acceder a productos financieros debes ser mayor de edad. Solo puedes continuar si estás solicitando una tarjeta de débito.";
-        }
-      }
+      // Fecha de nacimiento ahora es opcional - sin validación restrictiva
       if (!data.personalInfo.email.trim() || !data.personalInfo.email.includes('@')) errors.email = "Email válido es requerido";
       if (!data.personalInfo.phone.trim() || data.personalInfo.phone.length < 9) errors.phone = "Teléfono debe tener al menos 9 dígitos";
     }
@@ -324,7 +316,7 @@ export const HumanAdvisoryExperience = ({ onComplete, onBack, forceFlow = false,
     }
   };
 
-  // Handle birth date changes with proper validation
+  // Handle birth date changes with proper validation (but no blocking)
   const handleBirthDateChange = (type: 'year' | 'month' | 'day', value: string) => {
     const currentParts = data.personalInfo.birthDate.split('-');
     const currentYear = currentParts[0] || '';

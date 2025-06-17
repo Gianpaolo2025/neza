@@ -106,6 +106,7 @@ export const PersonalInfoStep = ({
             onBirthDateChange={onBirthDateChange}
             validationError={validationErrors.birthDate}
             calculateAge={calculateAge}
+            isOptional={true}
           />
         </div>
 
