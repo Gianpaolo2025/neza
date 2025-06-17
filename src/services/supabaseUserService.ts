@@ -1,241 +1,180 @@
 
-import { supabase } from "@/integrations/supabase/client";
-import { UserData } from "@/types/user";
+import { supabase } from '@/integrations/supabase/client';
+import { Database } from '@/integrations/supabase/types';
 
-export interface AdminUser {
-  id: string;
-  full_name: string;
+type AdminUser = Database['public']['Tables']['admin_users']['Row'];
+type UserActivity = Database['public']['Tables']['user_activities']['Row'];
+type UserSession = Database['public']['Tables']['user_sessions']['Row'];
+
+export interface UserRegistrationData {
+  fullName: string;
   dni: string;
   email: string;
   phone: string;
-  birth_date?: string;
-  monthly_income?: number;
-  requested_amount?: number;
-  product_type: string;
-  employment_type?: string;
-  work_details?: string;
-  process_status: string;
-  current_step: string;
-  registration_date: string;
-  last_update: string;
+  birthDate?: string;
+  monthlyIncome?: number;
+  requestedAmount?: number;
+  productType: string;
+  employmentType?: string;
+  workDetails?: string;
+  processStatus?: string;
+  currentStep?: string;
 }
 
-export interface UserSession {
-  id: string;
-  user_id: string;
-  session_id: string;
-  start_time: string;
-  end_time?: string;
-  duration_ms?: number;
-  device_type?: string;
-  user_agent?: string;
-  entry_method?: string;
-  entry_reason?: string;
-  current_request?: string;
-}
-
-export interface UserActivity {
-  id: string;
-  user_id: string;
-  session_id: string;
-  activity_type: string;
+export interface UserActivityData {
+  userId: string;
+  activityType: string;
   description: string;
-  product_type?: string;
-  document_type?: string;
-  activity_data?: any;
-  timestamp: string;
+  productType?: string;
+  documentType?: string;
+  sessionId?: string;
+  activityData?: any;
 }
 
-export interface UploadedDocument {
-  id: string;
-  user_id: string;
-  document_type: string;
-  file_name: string;
-  file_size?: number;
-  upload_date: string;
-  file_path?: string;
+export interface UserSessionData {
+  sessionId: string;
+  userId: string;
+  deviceType?: string;
+  userAgent?: string;
+  entryMethod?: string;
+  entryReason?: string;
+  currentRequest?: string;
 }
 
-class SupabaseUserService {
-  // Migrar datos desde localStorage
-  async migrateFromLocalStorage(): Promise<{ success: boolean; message: string }> {
+export const supabaseUserService = {
+  async createUser(userData: UserRegistrationData): Promise<{ data: AdminUser | null; error: any }> {
     try {
-      const localStorageUsers = localStorage.getItem('nezaAdminUsers');
-      if (!localStorageUsers) {
-        return { success: false, message: 'No hay datos en localStorage para migrar' };
-      }
+      const { data, error } = await supabase
+        .from('admin_users')
+        .insert({
+          full_name: userData.fullName,
+          dni: userData.dni,
+          email: userData.email,
+          phone: userData.phone,
+          birth_date: userData.birthDate || null,
+          monthly_income: userData.monthlyIncome || null,
+          requested_amount: userData.requestedAmount || null,
+          product_type: userData.productType,
+          employment_type: userData.employmentType || null,
+          work_details: userData.workDetails || null,
+          process_status: userData.processStatus || 'En proceso',
+          current_step: userData.currentStep || 'personal_data',
+          registration_date: new Date().toISOString(),
+          last_update: new Date().toISOString()
+        })
+        .select()
+        .single();
 
-      const users = JSON.parse(localStorageUsers);
-      
-      // Llamar a la función de migración en Supabase
-      const { data, error } = await supabase.rpc('migrate_localStorage_data', {
-        data: users
-      });
-
-      if (error) {
-        console.error('Error en migración:', error);
-        return { success: false, message: `Error en migración: ${error.message}` };
-      }
-
-      return { success: true, message: data || 'Migración completada exitosamente' };
+      return { data, error };
     } catch (error) {
-      console.error('Error migrando datos:', error);
-      return { success: false, message: 'Error inesperado durante la migración' };
+      console.error('Error creating user:', error);
+      return { data: null, error };
     }
-  }
+  },
 
-  // Obtener todos los usuarios
-  async getAllUsers(): Promise<AdminUser[]> {
+  async getAllUsers(): Promise<{ data: AdminUser[] | null; error: any }> {
     try {
       const { data, error } = await supabase
         .from('admin_users')
         .select('*')
         .order('registration_date', { ascending: false });
 
-      if (error) {
-        console.error('Error obteniendo usuarios:', error);
-        return [];
-      }
-
-      return data || [];
+      return { data, error };
     } catch (error) {
-      console.error('Error:', error);
-      return [];
+      console.error('Error fetching users:', error);
+      return { data: null, error };
     }
-  }
+  },
 
-  // Crear nuevo usuario
-  async createUser(userData: Partial<AdminUser>): Promise<{ success: boolean; user?: AdminUser; error?: string }> {
+  async bulkCreateUsers(usersData: Partial<AdminUser>[]): Promise<{ data: AdminUser[] | null; error: any }> {
     try {
       const { data, error } = await supabase
         .from('admin_users')
-        .insert([userData])
-        .select()
-        .single();
+        .upsert(usersData)
+        .select();
 
-      if (error) {
-        return { success: false, error: error.message };
-      }
-
-      return { success: true, user: data };
+      return { data, error };
     } catch (error) {
-      return { success: false, error: 'Error inesperado creando usuario' };
+      console.error('Error bulk creating users:', error);
+      return { data: null, error };
     }
-  }
+  },
 
-  // Actualizar usuario
-  async updateUser(id: string, updates: Partial<AdminUser>): Promise<{ success: boolean; user?: AdminUser; error?: string }> {
+  async updateUser(id: string, updates: Partial<AdminUser>): Promise<{ data: AdminUser | null; error: any }> {
     try {
       const { data, error } = await supabase
         .from('admin_users')
-        .update({ ...updates, last_update: new Date().toISOString() })
+        .update({
+          ...updates,
+          last_update: new Date().toISOString()
+        })
         .eq('id', id)
         .select()
         .single();
 
-      if (error) {
-        return { success: false, error: error.message };
-      }
-
-      return { success: true, user: data };
+      return { data, error };
     } catch (error) {
-      return { success: false, error: 'Error inesperado actualizando usuario' };
+      console.error('Error updating user:', error);
+      return { data: null, error };
     }
-  }
+  },
 
-  // Eliminar usuario
-  async deleteUser(id: string): Promise<{ success: boolean; error?: string }> {
+  async deleteUser(id: string): Promise<{ error: any }> {
     try {
       const { error } = await supabase
         .from('admin_users')
         .delete()
         .eq('id', id);
 
-      if (error) {
-        return { success: false, error: error.message };
-      }
-
-      return { success: true };
+      return { error };
     } catch (error) {
-      return { success: false, error: 'Error inesperado eliminando usuario' };
+      console.error('Error deleting user:', error);
+      return { error };
     }
-  }
+  },
 
-  // Obtener usuario por email
-  async getUserByEmail(email: string): Promise<AdminUser | null> {
+  async getUserByEmail(email: string): Promise<{ data: AdminUser | null; error: any }> {
     try {
       const { data, error } = await supabase
         .from('admin_users')
         .select('*')
         .eq('email', email)
-        .single();
+        .maybeSingle();
 
-      if (error) {
-        console.error('Error obteniendo usuario por email:', error);
-        return null;
-      }
-
-      return data;
+      return { data, error };
     } catch (error) {
-      console.error('Error:', error);
-      return null;
+      console.error('Error fetching user by email:', error);
+      return { data: null, error };
     }
-  }
+  },
 
-  // Buscar usuarios
-  async searchUsers(searchTerm: string): Promise<AdminUser[]> {
-    try {
-      const { data, error } = await supabase
-        .from('admin_users')
-        .select('*')
-        .or(`full_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,dni.ilike.%${searchTerm}%`)
-        .order('registration_date', { ascending: false });
-
-      if (error) {
-        console.error('Error en búsqueda:', error);
-        return [];
-      }
-
-      return data || [];
-    } catch (error) {
-      console.error('Error:', error);
-      return [];
-    }
-  }
-
-  // Obtener estadísticas
-  async getStatistics(): Promise<{
-    totalUsers: number;
-    activeApplications: number;
-    completedApplications: number;
-    byProductType: Record<string, number>;
+  async getUserStats(): Promise<{ 
+    totalUsers: number; 
+    activeUsers: number; 
+    completedProcesses: number; 
+    byProduct: Record<string, number>;
     byStatus: Record<string, number>;
   }> {
     try {
       const { data: users, error } = await supabase
         .from('admin_users')
-        .select('product_type, process_status');
+        .select('*');
 
-      if (error) {
-        console.error('Error obteniendo estadísticas:', error);
+      if (error || !users) {
         return {
           totalUsers: 0,
-          activeApplications: 0,
-          completedApplications: 0,
-          byProductType: {},
+          activeUsers: 0,
+          completedProcesses: 0,
+          byProduct: {},
           byStatus: {}
         };
       }
 
       const totalUsers = users.length;
-      const activeApplications = users.filter(u => 
-        u.process_status === 'En proceso' || u.process_status === 'Completó formulario'
-      ).length;
-      const completedApplications = users.filter(u => 
-        u.process_status === 'Aprobado' || u.process_status === 'Completado'
-      ).length;
+      const activeUsers = users.filter(user => user.process_status === 'En proceso').length;
+      const completedProcesses = users.filter(user => user.process_status === 'Completado').length;
 
-      const byProductType = users.reduce((acc, user) => {
+      const byProduct = users.reduce((acc, user) => {
         acc[user.product_type] = (acc[user.product_type] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
@@ -247,44 +186,46 @@ class SupabaseUserService {
 
       return {
         totalUsers,
-        activeApplications,
-        completedApplications,
-        byProductType,
+        activeUsers,
+        completedProcesses,
+        byProduct,
         byStatus
       };
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error getting user stats:', error);
       return {
         totalUsers: 0,
-        activeApplications: 0,
-        completedApplications: 0,
-        byProductType: {},
+        activeUsers: 0,
+        completedProcesses: 0,
+        byProduct: {},
         byStatus: {}
       };
     }
-  }
+  },
 
-  // Registrar actividad de usuario
-  async logActivity(activity: Omit<UserActivity, 'id' | 'timestamp'>): Promise<boolean> {
+  async logUserActivity(activityData: UserActivityData): Promise<{ data: UserActivity[] | null; error: any }> {
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('user_activities')
-        .insert([activity]);
+        .insert([{
+          user_id: activityData.userId,
+          activity_type: activityData.activityType,
+          description: activityData.description,
+          product_type: activityData.productType || null,
+          document_type: activityData.documentType || null,
+          session_id: activityData.sessionId || null,
+          activity_data: activityData.activityData || null
+        }])
+        .select();
 
-      if (error) {
-        console.error('Error registrando actividad:', error);
-        return false;
-      }
-
-      return true;
+      return { data, error };
     } catch (error) {
-      console.error('Error:', error);
-      return false;
+      console.error('Error logging user activity:', error);
+      return { data: null, error };
     }
-  }
+  },
 
-  // Obtener actividades de un usuario
-  async getUserActivities(userId: string): Promise<UserActivity[]> {
+  async getUserActivities(userId: string): Promise<{ data: UserActivity[] | null; error: any }> {
     try {
       const { data, error } = await supabase
         .from('user_activities')
@@ -292,55 +233,10 @@ class SupabaseUserService {
         .eq('user_id', userId)
         .order('timestamp', { ascending: false });
 
-      if (error) {
-        console.error('Error obteniendo actividades:', error);
-        return [];
-      }
-
-      return data || [];
+      return { data, error };
     } catch (error) {
-      console.error('Error:', error);
-      return [];
+      console.error('Error fetching user activities:', error);
+      return { data: null, error };
     }
   }
-
-  // Exportar datos a CSV
-  async exportToCSV(): Promise<string> {
-    try {
-      const users = await this.getAllUsers();
-      
-      const headers = [
-        'ID', 'Nombre Completo', 'DNI', 'Email', 'Teléfono', 'Fecha Nacimiento',
-        'Ingresos Mensuales', 'Monto Solicitado', 'Tipo Producto', 'Tipo Empleo',
-        'Estado Proceso', 'Paso Actual', 'Fecha Registro', 'Última Actualización'
-      ];
-
-      const csvContent = [
-        headers.join(','),
-        ...users.map(user => [
-          user.id,
-          `"${user.full_name}"`,
-          user.dni,
-          user.email,
-          user.phone,
-          user.birth_date || '',
-          user.monthly_income || '',
-          user.requested_amount || '',
-          `"${user.product_type}"`,
-          `"${user.employment_type || ''}"`,
-          `"${user.process_status}"`,
-          `"${user.current_step}"`,
-          user.registration_date,
-          user.last_update
-        ].join(','))
-      ].join('\n');
-
-      return csvContent;
-    } catch (error) {
-      console.error('Error exportando a CSV:', error);
-      return '';
-    }
-  }
-}
-
-export const supabaseUserService = new SupabaseUserService();
+};
