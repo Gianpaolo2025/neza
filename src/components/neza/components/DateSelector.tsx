@@ -8,9 +8,10 @@ interface DateSelectorProps {
   onBirthDateChange: (type: 'year' | 'month' | 'day', value: string) => void;
   validationError?: string;
   calculateAge: (birthDate: string) => number;
+  isOptional?: boolean;
 }
 
-export const DateSelector = ({ birthDate, onBirthDateChange, validationError, calculateAge }: DateSelectorProps) => {
+export const DateSelector = ({ birthDate, onBirthDateChange, validationError, calculateAge, isOptional = false }: DateSelectorProps) => {
   // Generate optimized year options (from current year - 18 to 1950 for financial products)
   const generateYearOptions = () => {
     const currentYear = new Date().getFullYear();
@@ -107,7 +108,7 @@ export const DateSelector = ({ birthDate, onBirthDateChange, validationError, ca
     <div>
       <Label className="flex items-center gap-2 text-slate-700 mb-2">
         <Calendar className="w-4 h-4" />
-        Fecha de Nacimiento *
+        Fecha de Nacimiento {!isOptional && '*'}
       </Label>
       <div className="grid grid-cols-3 gap-3">
         <div>
