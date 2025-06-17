@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,8 +38,10 @@ export const EnhancedUserManagement = () => {
   const loadUsers = async () => {
     setLoading(true);
     try {
-      const allUsers = await supabaseUserService.getAllUsers();
-      setUsers(allUsers);
+      const result = await supabaseUserService.getAllUsers();
+      if (result.data) {
+        setUsers(result.data);
+      }
     } catch (error) {
       console.error('Error cargando usuarios:', error);
     } finally {

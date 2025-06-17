@@ -2,7 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 
-type AdminUser = Database['public']['Tables']['admin_users']['Row'];
+export type AdminUser = Database['public']['Tables']['admin_users']['Row'];
 type UserActivity = Database['public']['Tables']['user_activities']['Row'];
 type UserSession = Database['public']['Tables']['user_sessions']['Row'];
 
@@ -86,11 +86,11 @@ export const supabaseUserService = {
     }
   },
 
-  async bulkCreateUsers(usersData: Partial<AdminUser>[]): Promise<{ data: AdminUser[] | null; error: any }> {
+  async bulkCreateUsers(usersData: Database['public']['Tables']['admin_users']['Insert'][]): Promise<{ data: AdminUser[] | null; error: any }> {
     try {
       const { data, error } = await supabase
         .from('admin_users')
-        .upsert(usersData)
+        .insert(usersData)
         .select();
 
       return { data, error };
@@ -119,17 +119,17 @@ export const supabaseUserService = {
     }
   },
 
-  async deleteUser(id: string): Promise<{ error: any }> {
+  async deleteUser(id: string): Promise<{ success: boolean; error: any }> {
     try {
       const { error } = await supabase
         .from('admin_users')
         .delete()
         .eq('id', id);
 
-      return { error };
+      return { success: !error, error };
     } catch (error) {
       console.error('Error deleting user:', error);
-      return { error };
+      return { success: false, error };
     }
   },
 
@@ -148,11 +148,90 @@ export const supabaseUserService = {
     }
   },
 
-  async getUserStats(): Promise<{ 
-    totalUsers: number; 
-    activeUsers: number; 
-    completedProcesses: number; 
-    byProduct: Record<string, number>;
+  async searchUsers(searchTerm: string): Promise<AdminUser[]> {
+    try {
+      const { data, error } = await supabase
+        .from('admin_users')
+        .select('*')
+        .or(`full_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%,dni.ilike.%${searchTerm}%`)
+        .order('registration_date', { ascending: false });
+
+      if (error) {
+        console.error('Error searching users:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error searching users:', error);
+      return [];
+    }
+  },
+
+  async exportToCSV(): Promise<string | null> {
+    try {
+      const { data, error } = await supabase
+        .from('admin_users')
+        .select('*')
+        .order('registration_date', { ascending: false });
+
+      if (error || !data) {
+        console.error('Error exporting users:', error);
+        return null;
+      }
+
+      const headers = ['Nombre', 'DNI', 'Email', 'Teléfono', 'Producto', 'Estado', 'Fecha de Registro'];
+      const csvContent = [
+        headers.join(','),
+        ...data.map(user => [
+          user.full_name,
+          user.dni,
+          user.email,
+          user.phone,
+          user.product_type,
+          user.process_status,
+          new Date(user.registration_date).toLocaleDateString('es-ES')
+        ].join(','))
+      ].join('\n');
+
+      return csvContent;
+    } catch (error) {
+      console.error('Error exporting users:', error);
+      return null;
+    }
+  },
+
+  async migrateFromLocalStorage(): Promise<{ success: boolean; message: string }> {
+    try {
+      const localUsers = localStorage.getItem('nezaAdminUsers');
+      if (!localUsers) {
+        return { success: false, message: 'No se encontraron datos en localStorage' };
+      }
+
+      const users = JSON.parse(localUsers);
+      if (!Array.isArray(users) || users.length === 0) {
+        return { success: false, message: 'No hay usuarios válidos para migrar' };
+      }
+
+      const { data, error } = await supabase.rpc('migrate_localstorage_data', { data: users });
+
+      if (error) {
+        console.error('Error migrating data:', error);
+        return { success: false, message: `Error en la migración: ${error.message}` };
+      }
+
+      return { success: true, message: data || 'Migración completada exitosamente' };
+    } catch (error) {
+      console.error('Error migrating from localStorage:', error);
+      return { success: false, message: 'Error inesperado durante la migración' };
+    }
+  },
+
+  async getStatistics(): Promise<{
+    totalUsers: number;
+    activeApplications: number;
+    completedApplications: number;
+    byProductType: Record<string, number>;
     byStatus: Record<string, number>;
   }> {
     try {
@@ -163,18 +242,22 @@ export const supabaseUserService = {
       if (error || !users) {
         return {
           totalUsers: 0,
-          activeUsers: 0,
-          completedProcesses: 0,
-          byProduct: {},
+          activeApplications: 0,
+          completedApplications: 0,
+          byProductType: {},
           byStatus: {}
         };
       }
 
       const totalUsers = users.length;
-      const activeUsers = users.filter(user => user.process_status === 'En proceso').length;
-      const completedProcesses = users.filter(user => user.process_status === 'Completado').length;
+      const activeApplications = users.filter(user => 
+        user.process_status === 'En proceso' || user.process_status === 'Completó formulario'
+      ).length;
+      const completedApplications = users.filter(user => 
+        user.process_status === 'Completado' || user.process_status === 'Aprobado'
+      ).length;
 
-      const byProduct = users.reduce((acc, user) => {
+      const byProductType = users.reduce((acc, user) => {
         acc[user.product_type] = (acc[user.product_type] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
@@ -186,21 +269,37 @@ export const supabaseUserService = {
 
       return {
         totalUsers,
-        activeUsers,
-        completedProcesses,
-        byProduct,
+        activeApplications,
+        completedApplications,
+        byProductType,
         byStatus
       };
     } catch (error) {
-      console.error('Error getting user stats:', error);
+      console.error('Error getting statistics:', error);
       return {
         totalUsers: 0,
-        activeUsers: 0,
-        completedProcesses: 0,
-        byProduct: {},
+        activeApplications: 0,
+        completedApplications: 0,
+        byProductType: {},
         byStatus: {}
       };
     }
+  },
+
+  async getUserStats(): Promise<{ 
+    totalUsers: number; 
+    activeUsers: number; 
+    completedProcesses: number; 
+    byProduct: Record<string, number>;
+    byStatus: Record<string, number>;
+  }> {
+    return this.getStatistics().then(stats => ({
+      totalUsers: stats.totalUsers,
+      activeUsers: stats.activeApplications,
+      completedProcesses: stats.completedApplications,
+      byProduct: stats.byProductType,
+      byStatus: stats.byStatus
+    }));
   },
 
   async logUserActivity(activityData: UserActivityData): Promise<{ data: UserActivity[] | null; error: any }> {
