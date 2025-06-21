@@ -5,35 +5,21 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, CreditCard, FileText, TrendingUp, MessageSquare, Settings, BarChart3, LogOut, Shield, RefreshCw } from "lucide-react";
 import { UserSuggestions } from "./admin/UserSuggestions";
-import { AdminLogin } from "./admin/AdminLogin";
 import { AdvancedMetrics } from "./admin/AdvancedMetrics";
 import { UserManagement } from "./admin/UserManagement";
 import { userTrackingService } from "@/services/userTracking";
 
 export const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [adminToken, setAdminToken] = useState<string | null>(null);
   const [realTimeStats, setRealTimeStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Verificar si hay un token guardado
-    const savedToken = localStorage.getItem('nezaAdminToken');
-    if (savedToken === 'NEZA_ADMIN_2024_SECURE_TOKEN') {
-      setIsAuthenticated(true);
-      setAdminToken(savedToken);
-    }
+    loadRealTimeStats();
+    // Actualizar stats cada 30 segundos
+    const interval = setInterval(loadRealTimeStats, 30000);
+    return () => clearInterval(interval);
   }, []);
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadRealTimeStats();
-      // Actualizar stats cada 30 segundos
-      const interval = setInterval(loadRealTimeStats, 30000);
-      return () => clearInterval(interval);
-    }
-  }, [isAuthenticated]);
 
   const loadRealTimeStats = () => {
     setLoading(true);
@@ -76,21 +62,6 @@ export const AdminDashboard = () => {
     }
   };
 
-  const handleLogin = (token: string) => {
-    setIsAuthenticated(true);
-    setAdminToken(token);
-  };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setAdminToken(null);
-    localStorage.removeItem('nezaAdminToken');
-  };
-
-  if (!isAuthenticated) {
-    return <AdminLogin onLogin={handleLogin} />;
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-neza-blue-50 via-white to-neza-blue-50 flex items-center justify-center">
@@ -126,14 +97,6 @@ export const AdminDashboard = () => {
               >
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Actualizar
-              </Button>
-              <Button 
-                onClick={handleLogout} 
-                variant="outline" 
-                className="border-neza-blue-300 text-neza-blue-600 hover:bg-neza-blue-50"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Cerrar Sesión
               </Button>
             </div>
           </div>

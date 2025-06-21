@@ -9,13 +9,177 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      admin_users: {
+        Row: {
+          birth_date: string | null
+          current_step: string
+          dni: string
+          email: string
+          employment_type: string | null
+          full_name: string
+          id: string
+          last_update: string
+          monthly_income: number | null
+          phone: string
+          process_status: string
+          product_type: string
+          registration_date: string
+          requested_amount: number | null
+          work_details: string | null
+        }
+        Insert: {
+          birth_date?: string | null
+          current_step?: string
+          dni: string
+          email: string
+          employment_type?: string | null
+          full_name: string
+          id?: string
+          last_update?: string
+          monthly_income?: number | null
+          phone: string
+          process_status?: string
+          product_type: string
+          registration_date?: string
+          requested_amount?: number | null
+          work_details?: string | null
+        }
+        Update: {
+          birth_date?: string | null
+          current_step?: string
+          dni?: string
+          email?: string
+          employment_type?: string | null
+          full_name?: string
+          id?: string
+          last_update?: string
+          monthly_income?: number | null
+          phone?: string
+          process_status?: string
+          product_type?: string
+          registration_date?: string
+          requested_amount?: number | null
+          work_details?: string | null
+        }
+        Relationships: []
+      }
+      uploaded_documents: {
+        Row: {
+          document_type: string
+          file_name: string
+          file_path: string | null
+          file_size: number | null
+          id: string
+          upload_date: string
+          user_id: string
+        }
+        Insert: {
+          document_type: string
+          file_name: string
+          file_path?: string | null
+          file_size?: number | null
+          id?: string
+          upload_date?: string
+          user_id: string
+        }
+        Update: {
+          document_type?: string
+          file_name?: string
+          file_path?: string | null
+          file_size?: number | null
+          id?: string
+          upload_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_activities: {
+        Row: {
+          activity_data: Json | null
+          activity_type: string
+          description: string
+          document_type: string | null
+          id: string
+          product_type: string | null
+          session_id: string | null
+          timestamp: string
+          user_id: string
+        }
+        Insert: {
+          activity_data?: Json | null
+          activity_type: string
+          description: string
+          document_type?: string | null
+          id?: string
+          product_type?: string | null
+          session_id?: string | null
+          timestamp?: string
+          user_id: string
+        }
+        Update: {
+          activity_data?: Json | null
+          activity_type?: string
+          description?: string
+          document_type?: string | null
+          id?: string
+          product_type?: string | null
+          session_id?: string | null
+          timestamp?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_sessions: {
+        Row: {
+          current_request: string | null
+          device_type: string | null
+          duration_ms: number | null
+          end_time: string | null
+          entry_method: string | null
+          entry_reason: string | null
+          id: string
+          session_id: string
+          start_time: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          current_request?: string | null
+          device_type?: string | null
+          duration_ms?: number | null
+          end_time?: string | null
+          entry_method?: string | null
+          entry_reason?: string | null
+          id?: string
+          session_id: string
+          start_time?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          current_request?: string | null
+          device_type?: string | null
+          duration_ms?: number | null
+          end_time?: string | null
+          entry_method?: string | null
+          entry_reason?: string | null
+          id?: string
+          session_id?: string
+          start_time?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      migrate_localstorage_data: {
+        Args: { data: Json }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
