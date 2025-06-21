@@ -23,100 +23,67 @@ const NezaRoute = () => {
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    try {
-      // Generate temporary email for anonymous users
-      const tempEmail = `anonimo_${Date.now()}@neza.temp`;
-      setUserEmail(tempEmail);
-      
-      // Start tracking session automatically
-      userTrackingService.startSession(tempEmail, 'direct', 'Visita directa a página principal');
-      userTrackingService.trackActivity('page_visit', { page: 'home' }, 'Usuario visitó la página principal');
+    // Generar email temporal para usuarios anónimos
+    const tempEmail = `anonimo_${Date.now()}@neza.temp`;
+    setUserEmail(tempEmail);
+    
+    // Iniciar sesión de tracking automáticamente
+    userTrackingService.startSession(tempEmail, 'direct', 'Visita directa a página principal');
+    userTrackingService.trackActivity('page_visit', { page: 'home' }, 'Usuario visitó la página principal');
 
-      // Check if it's the first visit to show tutorial automatically
-      const hasSeenTutorial = localStorage.getItem('nezaTutorialShown');
-      if (!hasSeenTutorial) {
-        // On mobile, don't show automatically to avoid issues
-        // On desktop show automatically after 2 seconds
-        if (!isMobile) {
-          const timer = setTimeout(() => {
-            setShowTutorial(true);
-          }, 2000);
-          
-          return () => clearTimeout(timer);
-        }
+    // Verificar si es la primera visita para mostrar tutorial automáticamente
+    const hasSeenTutorial = localStorage.getItem('nezaTutorialShown');
+    if (!hasSeenTutorial) {
+      // En móviles, no mostrar automáticamente para evitar problemas
+      // En desktop sí mostrar automáticamente después de 2 segundos
+      if (!isMobile) {
+        const timer = setTimeout(() => {
+          setShowTutorial(true);
+        }, 2000);
+        
+        return () => clearTimeout(timer);
       }
-    } catch (error) {
-      console.error('Error initializing NezaRoute:', error);
     }
 
     return () => {
-      try {
-        userTrackingService.endSession();
-      } catch (error) {
-        console.error('Error ending session:', error);
-      }
+      userTrackingService.endSession();
     };
   }, [isMobile]);
 
   const handleStartTutorial = () => {
-    try {
-      userTrackingService.trackActivity('tutorial_start', { action: 'start_tutorial' }, 'Usuario inició el tutorial manualmente');
-      setShowTutorial(true);
-      localStorage.setItem('nezaTutorialShown', 'true');
-    } catch (error) {
-      console.error('Error starting tutorial:', error);
-    }
+    userTrackingService.trackActivity('tutorial_start', { action: 'start_tutorial' }, 'Usuario inició el tutorial manualmente');
+    setShowTutorial(true);
+    localStorage.setItem('nezaTutorialShown', 'true');
   };
 
   const handleProductRequest = () => {
-    try {
-      userTrackingService.trackActivity('button_click', { 
-        action: 'product_request', 
-        section: 'main_experience',
-        forced: true 
-      }, 'Usuario inició solicitud obligatoria de producto');
-      setForceOnboarding(true);
-      setCurrentView('onboarding');
-    } catch (error) {
-      console.error('Error handling product request:', error);
-      setCurrentView('onboarding');
-    }
+    userTrackingService.trackActivity('button_click', { 
+      action: 'product_request', 
+      section: 'main_experience',
+      forced: true 
+    }, 'Usuario inició solicitud obligatoria de producto');
+    setForceOnboarding(true);
+    setCurrentView('onboarding');
   };
 
   const handleCatalogProductRequest = (productId?: string) => {
-    try {
-      userTrackingService.trackActivity('button_click', { 
-        action: 'product_catalog_request',
-        productId: productId || 'unknown',
-        forced: true 
-      }, `Usuario solicitó producto ${productId || 'desconocido'} desde catálogo`);
-      setForceOnboarding(true);
-      setCurrentView('onboarding');
-    } catch (error) {
-      console.error('Error handling catalog product request:', error);
-      setCurrentView('onboarding');
-    }
-  };
-
-  const handleViewChange = (view: 'home' | 'catalog' | 'onboarding', source?: string) => {
-    try {
-      userTrackingService.trackActivity('page_visit', { 
-        from: currentView, 
-        to: view,
-        source: source || 'unknown'
-      }, `Usuario navegó de ${currentView} a ${view}`);
-      setCurrentView(view);
-    } catch (error) {
-      console.error('Error handling view change:', error);
-      setCurrentView(view);
-    }
+    userTrackingService.trackActivity('button_click', { 
+      action: 'product_catalog_request',
+      productId: productId || 'unknown',
+      forced: true 
+    }, `Usuario solicitó producto ${productId || 'desconocido'} desde catálogo`);
+    setForceOnboarding(true);
+    setCurrentView('onboarding');
   };
 
   if (currentView === 'catalog') {
     return (
       <div className="relative">
         <ProductCatalog 
-          onBack={() => handleViewChange('home', 'catalog_back')}
+          onBack={() => {
+            userTrackingService.trackActivity('button_click', { action: 'back_to_home', from: 'catalog' }, 'Usuario regresó del catálogo a la página principal');
+            setCurrentView('home');
+          }}
           onProductRequest={handleCatalogProductRequest}
         />
         
@@ -125,12 +92,12 @@ const NezaRoute = () => {
           onClose={() => setShowTutorial(false)} 
         />
         
-        {/* Chatbot in vertical mid-high position */}
+        {/* Chatbot en posición vertical media-alta */}
         <div className={`fixed ${isMobile ? 'bottom-20 right-3' : 'bottom-32 right-4'} z-50`}>
           <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
         </div>
         
-        {/* Tutorial button in bottom left corner */}
+        {/* Botón de tutorial en esquina inferior izquierda */}
         {!isChatOpen && !showTutorial && (
           <div className={`fixed ${isMobile ? 'bottom-3 left-3' : 'bottom-4 left-4'} z-40`}>
             <Button
@@ -152,19 +119,13 @@ const NezaRoute = () => {
       <div className="relative">
         <UserOnboarding 
           onBack={() => {
-            try {
-              userTrackingService.trackActivity('button_click', { 
-                action: 'back_to_home', 
-                from: 'onboarding',
-                forced: forceOnboarding 
-              }, forceOnboarding ? 'Usuario canceló solicitud obligatoria' : 'Usuario regresó del onboarding a la página principal');
-              setForceOnboarding(false);
-              setCurrentView('home');
-            } catch (error) {
-              console.error('Error handling onboarding back:', error);
-              setForceOnboarding(false);
-              setCurrentView('home');
-            }
+            userTrackingService.trackActivity('button_click', { 
+              action: 'back_to_home', 
+              from: 'onboarding',
+              forced: forceOnboarding 
+            }, forceOnboarding ? 'Usuario canceló solicitud obligatoria' : 'Usuario regresó del onboarding a la página principal');
+            setForceOnboarding(false);
+            setCurrentView('home');
           }}
           forceFlow={forceOnboarding}
         />
@@ -174,12 +135,12 @@ const NezaRoute = () => {
           onClose={() => setShowTutorial(false)} 
         />
         
-        {/* Chatbot in vertical mid-high position */}
+        {/* Chatbot en posición vertical media-alta */}
         <div className={`fixed ${isMobile ? 'bottom-20 right-3' : 'bottom-32 right-4'} z-50`}>
           <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
         </div>
         
-        {/* Tutorial button in bottom left corner */}
+        {/* Botón de tutorial en esquina inferior izquierda */}
         {!isChatOpen && !showTutorial && (
           <div className={`fixed ${isMobile ? 'bottom-3 left-3' : 'bottom-4 left-4'} z-40`}>
             <Button
@@ -199,13 +160,13 @@ const NezaRoute = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-neza-blue-50 via-white to-neza-blue-50 overflow-x-hidden relative">
       
-      {/* Interactive Tutorial - Always visible when showTutorial is true */}
+      {/* Tutorial Interactivo - Siempre visible cuando showTutorial es true */}
       <InteractiveTutorial 
         isVisible={showTutorial} 
         onClose={() => setShowTutorial(false)} 
       />
 
-      {/* Welcome Message */}
+      {/* Mensaje de Bienvenida */}
       {showWelcomeMessage && (
         <div className="bg-gradient-to-r from-neza-blue-700 to-neza-blue-600 text-white py-6 px-4 relative z-30">
           <div className="container mx-auto max-w-6xl">
@@ -230,13 +191,8 @@ const NezaRoute = () => {
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  try {
-                    userTrackingService.trackActivity('button_click', { action: 'close_welcome_message' }, 'Usuario cerró el mensaje de bienvenida');
-                    setShowWelcomeMessage(false);
-                  } catch (error) {
-                    console.error('Error closing welcome message:', error);
-                    setShowWelcomeMessage(false);
-                  }
+                  userTrackingService.trackActivity('button_click', { action: 'close_welcome_message' }, 'Usuario cerró el mensaje de bienvenida');
+                  setShowWelcomeMessage(false);
                 }}
                 className="text-white hover:bg-white/20 ml-4"
               >
@@ -247,7 +203,7 @@ const NezaRoute = () => {
         </div>
       )}
 
-      {/* Main Content */}
+      {/* Contenido Principal */}
       <div className="w-full max-w-6xl mx-auto px-4 py-8 relative z-20">
         {/* Header */}
         <div className="text-center mb-12">
@@ -263,7 +219,7 @@ const NezaRoute = () => {
           </div>
         </div>
 
-        {/* Interactive Experience - MANDATORY Request */}
+        {/* Experiencia Interactiva - Solicitud OBLIGATORIA */}
         <div 
           id="interactive-experience"
           className="max-w-4xl mx-auto mb-16"
@@ -317,9 +273,9 @@ const NezaRoute = () => {
           </Card>
         </div>
 
-        {/* Products Carousel */}
+        {/* Carrusel de Productos */}
         <div id="products-section" className="mb-16">
-          <ProductsCarousel onViewCatalog={() => handleViewChange('catalog', 'products_carousel')} />
+          <ProductsCarousel onViewCatalog={() => setCurrentView('catalog')} />
         </div>
 
         {/* Features Section */}
@@ -370,7 +326,7 @@ const NezaRoute = () => {
           </div>
         </div>
 
-        {/* User Suggestions for platform improvement */}
+        {/* Sugerencias de Usuarios para mejorar la plataforma */}
         <div id="suggestions-section" className="mb-16 max-w-4xl mx-auto">
           <h3 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-center text-neza-blue-800 mb-8`}>
             💡 Sugerencias de los Usuarios
@@ -379,7 +335,7 @@ const NezaRoute = () => {
         </div>
       </div>
 
-      {/* SBS and SMV Entities Carousel */}
+      {/* Carrusel de Entidades SBS y SMV */}
       <div id="sbs-entities" className="relative z-20">
         <SBSEntitiesCarousel />
       </div>
@@ -400,12 +356,12 @@ const NezaRoute = () => {
         </div>
       </div>
 
-      {/* Chatbot repositioned higher to not interfere with tutorial */}
+      {/* Chatbot reubicado más arriba para no interferir con el tutorial */}
       <div className={`fixed ${isMobile ? 'bottom-20 right-3' : 'bottom-32 right-4'} z-50`}>
         <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
       </div>
       
-      {/* Tutorial button - Bottom left corner */}
+      {/* Botón de tutorial - Esquina inferior izquierda */}
       {!isChatOpen && !showTutorial && (
         <div className={`fixed ${isMobile ? 'bottom-3 left-3' : 'bottom-4 left-4'} z-40`}>
           <Button

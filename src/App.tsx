@@ -10,8 +10,6 @@ import AdminRoute from "./pages/AdminRoute";
 import BankRoute from "./pages/BankRoute";
 import NotFound from "./pages/NotFound";
 import NezaRoute from "./pages/NezaRoute";
-import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
 
 const queryClient = new QueryClient();
 
@@ -24,8 +22,6 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Navigate to="/neza" replace />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
             <Route path="/admin" element={
               <ProtectedRoute>
                 <AdminRoute />

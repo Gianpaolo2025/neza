@@ -16,16 +16,9 @@ interface AuctionValidatorProps {
 export const AuctionValidator = ({ userData, onRetry, onBack, onProceedToAuction }: AuctionValidatorProps) => {
   const [validationStatus, setValidationStatus] = useState<'validating' | 'qualified' | 'not_qualified'>('validating');
   const [qualificationReasons, setQualificationReasons] = useState<string[]>([]);
-  const [autoRedirectTimer, setAutoRedirectTimer] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     validateUserForAuction();
-    
-    return () => {
-      if (autoRedirectTimer) {
-        clearTimeout(autoRedirectTimer);
-      }
-    };
   }, [userData]);
 
   const validateUserForAuction = () => {
@@ -43,124 +36,56 @@ export const AuctionValidator = ({ userData, onRetry, onBack, onProceedToAuction
       const reasons: string[] = [];
       let qualified = true;
 
-      try {
-        // Enhanced validation rules
-        if (!userData.monthlyIncome || userData.monthlyIncome < 1000) {
-          qualified = false;
-          reasons.push('Ingreso mensual mínimo requerido: S/ 1,000');
-        }
+      // Validation rules
+      if (userData.monthlyIncome < 1000) {
+        qualified = false;
+        reasons.push('Ingreso mensual mínimo requerido: S/ 1,000');
+      }
 
-        if (!userData.requestedAmount || userData.requestedAmount <= 0) {
-          qualified = false;
-          reasons.push('Debe especificar un monto válido para la solicitud');
-        }
+      if (userData.requestedAmount > userData.monthlyIncome * 10) {
+        qualified = false;
+        reasons.push('El monto solicitado excede 10 veces tu ingreso mensual');
+      }
 
-        if (userData.requestedAmount > userData.monthlyIncome * 10) {
-          qualified = false;
-          reasons.push('El monto solicitado excede 10 veces tu ingreso mensual');
-        }
+      if (userData.creditHistory === 'malo') {
+        qualified = false;
+        reasons.push('Historial crediticio requiere mejora');
+      }
 
-        if (userData.creditHistory === 'malo') {
-          qualified = false;
-          reasons.push('Historial crediticio requiere mejora');
-        }
+      if (userData.hasOtherDebts === 'altas') {
+        qualified = false;
+        reasons.push('Nivel de endeudamiento actual es muy alto');
+      }
 
-        if (userData.hasOtherDebts === 'altas') {
-          qualified = false;
-          reasons.push('Nivel de endeudamiento actual es muy alto');
-        }
+      // Age validation (if available in future)
+      // Employment validation for certain products
+      if (userData.productType === 'credito-hipotecario' && userData.employmentType === 'independiente' && userData.monthlyIncome < 3000) {
+        qualified = false;
+        reasons.push('Para crédito hipotecario como independiente se requiere ingreso mínimo de S/ 3,000');
+      }
 
-        // Product-specific validations
-        if (userData.productType === 'credito-hipotecario') {
-          if (userData.employmentType === 'independiente' && userData.monthlyIncome < 3000) {
-            qualified = false;
-            reasons.push('Para crédito hipotecario como independiente se requiere ingreso mínimo de S/ 3,000');
-          }
-          if (userData.requestedAmount < 50000) {
-            qualified = false;
-            reasons.push('Para crédito hipotecario el monto mínimo es S/ 50,000');
-          }
-        }
+      setQualificationReasons(reasons);
+      setValidationStatus(qualified ? 'qualified' : 'not_qualified');
 
-        if (userData.productType === 'credito-vehicular' && userData.requestedAmount < 10000) {
-          qualified = false;
-          reasons.push('Para crédito vehicular el monto mínimo es S/ 10,000');
-        }
+      // Track validation result
+      userTrackingService.trackActivity(
+        'auction_validation_completed',
+        { 
+          qualified, 
+          reasons: reasons.length,
+          productType: userData.productType,
+          requestedAmount: userData.requestedAmount 
+        },
+        qualified ? 'Usuario calificó para subasta' : 'Usuario no calificó para subasta'
+      );
 
-        // Age validation (if birth date is available)
-        if (userData.birthDate) {
-          const age = calculateAge(userData.birthDate);
-          if (age < 18) {
-            qualified = false;
-            reasons.push('Debe ser mayor de 18 años para solicitar productos financieros');
-          }
-          if (age > 70) {
-            qualified = false;
-            reasons.push('La edad máxima para solicitar este producto es 70 años');
-          }
-        }
-
-        setQualificationReasons(reasons);
-        setValidationStatus(qualified ? 'qualified' : 'not_qualified');
-
-        // Track validation result
-        userTrackingService.trackActivity(
-          'auction_validation_completed',
-          { 
-            qualified, 
-            reasons: reasons.length,
-            productType: userData.productType,
-            requestedAmount: userData.requestedAmount 
-          },
-          qualified ? 'Usuario calificó para subasta' : 'Usuario no calificó para subasta'
-        );
-
-        if (qualified) {
-          // Auto-proceed to auction after showing success
-          const timer = setTimeout(() => {
-            onProceedToAuction();
-          }, 3000);
-          setAutoRedirectTimer(timer);
-        }
-      } catch (error) {
-        console.error('Error during validation:', error);
-        setValidationStatus('not_qualified');
-        setQualificationReasons(['Error durante la validación. Por favor, intenta nuevamente.']);
+      if (qualified) {
+        // Auto-proceed to auction after showing success
+        setTimeout(() => {
+          onProceedToAuction();
+        }, 3000);
       }
     }, 2000);
-  };
-
-  const calculateAge = (birthDate: string): number => {
-    try {
-      const today = new Date();
-      const birth = new Date(birthDate);
-      let age = today.getFullYear() - birth.getFullYear();
-      const monthDiff = today.getMonth() - birth.getMonth();
-      
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-        age--;
-      }
-      
-      return age;
-    } catch {
-      return 0;
-    }
-  };
-
-  const handleRetry = () => {
-    if (autoRedirectTimer) {
-      clearTimeout(autoRedirectTimer);
-      setAutoRedirectTimer(null);
-    }
-    onRetry();
-  };
-
-  const handleBack = () => {
-    if (autoRedirectTimer) {
-      clearTimeout(autoRedirectTimer);
-      setAutoRedirectTimer(null);
-    }
-    onBack();
   };
 
   if (validationStatus === 'validating') {
@@ -203,7 +128,7 @@ export const AuctionValidator = ({ userData, onRetry, onBack, onProceedToAuction
           <CardContent className="text-center space-y-4">
             <p className="text-green-700">
               Tu perfil cumple con los requisitos. Las entidades financieras podrán hacer ofertas para tu solicitud de{' '}
-              <strong>{userData.productType}</strong> por <strong>S/ {userData.requestedAmount?.toLocaleString()}</strong>.
+              <strong>{userData.productType}</strong> por <strong>S/ {userData.requestedAmount.toLocaleString()}</strong>.
             </p>
             
             <div className="bg-white p-4 rounded-lg">
@@ -218,13 +143,6 @@ export const AuctionValidator = ({ userData, onRetry, onBack, onProceedToAuction
             <p className="text-sm text-green-600">
               Serás redirigido automáticamente a la subasta en unos segundos...
             </p>
-
-            <Button
-              onClick={onProceedToAuction}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              Continuar a la subasta ahora
-            </Button>
           </CardContent>
         </Card>
       </div>
@@ -273,14 +191,14 @@ export const AuctionValidator = ({ userData, onRetry, onBack, onProceedToAuction
           <div className="flex gap-3 justify-center">
             <Button
               variant="outline"
-              onClick={handleBack}
+              onClick={onBack}
               className="flex items-center gap-2"
             >
               <ArrowLeft className="w-4 h-4" />
               Volver al formulario
             </Button>
             <Button
-              onClick={handleRetry}
+              onClick={onRetry}
               className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
             >
               <RefreshCw className="w-4 h-4" />

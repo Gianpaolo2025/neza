@@ -1,103 +1,106 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, CreditCard, FileText, TrendingUp, MessageSquare, Settings, BarChart3, LogOut, Shield, RefreshCw, Link } from "lucide-react";
+import { Users, CreditCard, FileText, TrendingUp, MessageSquare, Settings, BarChart3, LogOut, Shield, RefreshCw } from "lucide-react";
 import { UserSuggestions } from "./admin/UserSuggestions";
+import { AdminLogin } from "./admin/AdminLogin";
 import { AdvancedMetrics } from "./admin/AdvancedMetrics";
 import { UserManagement } from "./admin/UserManagement";
-import { BankApiManagement } from "./admin/BankApiManagement";
 import { userTrackingService } from "@/services/userTracking";
-import { EnhancedUserManagement } from "./admin/EnhancedUserManagement";
-import { supabaseUserService } from "@/services/supabaseUserService";
 
 export const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [adminToken, setAdminToken] = useState<string | null>(null);
   const [realTimeStats, setRealTimeStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [useSupabase, setUseSupabase] = useState(false);
 
   useEffect(() => {
-    loadRealTimeStats();
-    // Actualizar stats cada 30 segundos
-    const interval = setInterval(loadRealTimeStats, 30000);
-    return () => clearInterval(interval);
-  }, [useSupabase]);
+    // Verificar si hay un token guardado
+    const savedToken = localStorage.getItem('nezaAdminToken');
+    if (savedToken === 'NEZA_ADMIN_2024_SECURE_TOKEN') {
+      setIsAuthenticated(true);
+      setAdminToken(savedToken);
+    }
+  }, []);
 
-  const loadRealTimeStats = async () => {
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadRealTimeStats();
+      // Actualizar stats cada 30 segundos
+      const interval = setInterval(loadRealTimeStats, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated]);
+
+  const loadRealTimeStats = () => {
     setLoading(true);
     try {
-      if (useSupabase) {
-        // Usar estadísticas de Supabase
-        const supabaseStats = await supabaseUserService.getStatistics();
-        
-        setRealTimeStats({
-          totalUsers: supabaseStats.totalUsers,
-          activeUsers: 0, // Se puede calcular basado en últimas sesiones
-          activeSolicitudes: supabaseStats.activeApplications,
-          completedSolicitudes: supabaseStats.completedApplications,
-          pendingSuggestions: 0, // Mantener de localStorage por ahora
-          totalSessions: 0, // Se puede implementar más tarde
-          averageSessionTime: 0, // Se puede implementar más tarde
-          conversionRate: supabaseStats.totalUsers > 0 ? 
-            (supabaseStats.completedApplications / supabaseStats.totalUsers) * 100 : 0,
-          recentActivity: [], // Se puede implementar más tarde
-          topProducts: Object.entries(supabaseStats.byProductType).map(([product, count]) => ({
-            product,
-            views: count
-          })).slice(0, 3)
-        });
-      } else {
-        // Usar el sistema anterior de localStorage
-        const metrics = userTrackingService.getAllMetrics();
-        
-        // Obtener sugerencias pendientes
-        const suggestions = JSON.parse(localStorage.getItem('nezaPlatformSuggestions') || '[]');
-        const pendingSuggestions = suggestions.filter((s: any) => s.status === 'pending').length;
-        
-        // Get admin users for accurate statistics
-        const adminUsers = JSON.parse(localStorage.getItem('nezaAdminUsers') || '[]');
-        
-        // Calcular usuarios activos (con sesiones en las últimas 24 horas)
-        const now = new Date();
-        const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-        
-        const recentUsers = Array.from(userTrackingService['profiles'].values()).filter(
-          profile => new Date(profile.lastVisit) > yesterday
-        );
+      const metrics = userTrackingService.getAllMetrics();
+      
+      // Obtener sugerencias pendientes
+      const suggestions = JSON.parse(localStorage.getItem('nezaPlatformSuggestions') || '[]');
+      const pendingSuggestions = suggestions.filter((s: any) => s.status === 'pending').length;
+      
+      // Get admin users for accurate statistics
+      const adminUsers = JSON.parse(localStorage.getItem('nezaAdminUsers') || '[]');
+      
+      // Calcular usuarios activos (con sesiones en las últimas 24 horas)
+      const now = new Date();
+      const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      
+      const recentUsers = Array.from(userTrackingService['profiles'].values()).filter(
+        profile => new Date(profile.lastVisit) > yesterday
+      );
 
-        // Calculate solicitudes from admin users (real form completions)
-        const activeSolicitudes = adminUsers.filter((user: any) => 
-          user.processStatus === 'Completó formulario' || 
-          user.processStatus === 'En proceso' ||
-          user.currentStep === 'Ofertas disponibles'
-        ).length;
-        
-        const completedSolicitudes = adminUsers.filter((user: any) => 
-          user.processStatus === 'Aprobado' || 
-          user.processStatus === 'Completado'
-        ).length;
+      // Calculate solicitudes from admin users (real form completions)
+      const activeSolicitudes = adminUsers.filter((user: any) => 
+        user.processStatus === 'Completó formulario' || 
+        user.processStatus === 'En proceso' ||
+        user.currentStep === 'Ofertas disponibles'
+      ).length;
+      
+      const completedSolicitudes = adminUsers.filter((user: any) => 
+        user.processStatus === 'Aprobado' || 
+        user.processStatus === 'Completado'
+      ).length;
 
-        setRealTimeStats({
-          totalUsers: Math.max(metrics.totalUsers, adminUsers.length), // Use the higher count
-          activeUsers: recentUsers.length,
-          activeSolicitudes,
-          completedSolicitudes,
-          pendingSuggestions,
-          totalSessions: metrics.totalSessions,
-          averageSessionTime: metrics.averageSessionTime,
-          conversionRate: metrics.conversionRate,
-          recentActivity: metrics.recentActivity.slice(0, 5),
-          topProducts: metrics.topProducts.slice(0, 3)
-        });
-      }
+      setRealTimeStats({
+        totalUsers: Math.max(metrics.totalUsers, adminUsers.length), // Use the higher count
+        activeUsers: recentUsers.length,
+        activeSolicitudes,
+        completedSolicitudes,
+        pendingSuggestions,
+        totalSessions: metrics.totalSessions,
+        averageSessionTime: metrics.averageSessionTime,
+        conversionRate: metrics.conversionRate,
+        recentActivity: metrics.recentActivity.slice(0, 5),
+        topProducts: metrics.topProducts.slice(0, 3)
+      });
     } catch (error) {
       console.error('Error loading real-time stats:', error);
     } finally {
       setLoading(false);
     }
   };
+
+  const handleLogin = (token: string) => {
+    setIsAuthenticated(true);
+    setAdminToken(token);
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setAdminToken(null);
+    localStorage.removeItem('nezaAdminToken');
+  };
+
+  if (!isAuthenticated) {
+    return <AdminLogin onLogin={handleLogin} />;
+  }
 
   if (loading) {
     return (
@@ -122,23 +125,10 @@ export const AdminDashboard = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-neza-blue-800">NEZA</h1>
-                <p className="text-neza-blue-600">
-                  Panel de Administración - {useSupabase ? 'Base de Datos' : 'Datos Reales'}
-                </p>
+                <p className="text-neza-blue-600">Panel de Administración - Datos Reales</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <Button 
-                onClick={() => setUseSupabase(!useSupabase)}
-                variant={useSupabase ? "default" : "outline"}
-                size="sm"
-                className={useSupabase ? 
-                  "bg-neza-blue-600 text-white" : 
-                  "border-neza-blue-300 text-neza-blue-600 hover:bg-neza-blue-50"
-                }
-              >
-                {useSupabase ? 'BD Activa' : 'Usar BD'}
-              </Button>
               <Button 
                 onClick={loadRealTimeStats} 
                 variant="outline" 
@@ -148,6 +138,14 @@ export const AdminDashboard = () => {
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Actualizar
               </Button>
+              <Button 
+                onClick={handleLogout} 
+                variant="outline" 
+                className="border-neza-blue-300 text-neza-blue-600 hover:bg-neza-blue-50"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Cerrar Sesión
+              </Button>
             </div>
           </div>
         </div>
@@ -155,7 +153,7 @@ export const AdminDashboard = () => {
 
       <div className="container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6 bg-white/60 backdrop-blur-sm border border-neza-blue-200">
+          <TabsList className="grid w-full grid-cols-5 bg-white/60 backdrop-blur-sm border border-neza-blue-200">
             <TabsTrigger 
               value="overview" 
               className="flex items-center gap-2 data-[state=active]:bg-neza-blue-600 data-[state=active]:text-white"
@@ -176,13 +174,6 @@ export const AdminDashboard = () => {
             >
               <Users className="w-4 h-4" />
               Gestión de Usuarios
-            </TabsTrigger>
-            <TabsTrigger 
-              value="bank-apis" 
-              className="flex items-center gap-2 data-[state=active]:bg-neza-blue-600 data-[state=active]:text-white"
-            >
-              <Link className="w-4 h-4" />
-              APIs Bancarias
             </TabsTrigger>
             <TabsTrigger 
               value="applications" 
@@ -352,11 +343,7 @@ export const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="users">
-            {useSupabase ? <EnhancedUserManagement /> : <UserManagement />}
-          </TabsContent>
-
-          <TabsContent value="bank-apis">
-            <BankApiManagement />
+            <UserManagement />
           </TabsContent>
 
           <TabsContent value="applications">

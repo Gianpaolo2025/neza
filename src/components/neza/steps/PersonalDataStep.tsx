@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { User, Mail, Phone, MapPin, Calendar, Briefcase, Trash2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 
 interface PersonalData {
   firstName: string;
@@ -36,7 +36,6 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [previousData, setPreviousData] = useState<Partial<PersonalData>>({});
   const [showPreviousData, setShowPreviousData] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const savedData = localStorage.getItem('nezaPersonalData');
@@ -120,20 +119,6 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
   };
 
   const handleContinue = () => {
-    // Check for special admin/bank access names
-    const firstName = data.firstName.trim();
-    
-    if (firstName === "Administrador NEZA" || firstName === "/ADMINISTRACIONNEZA") {
-      navigate('/admin');
-      return;
-    }
-    
-    if (firstName === "Banco NEZA" || firstName === "/BANCONEZA") {
-      navigate('/banco');
-      return;
-    }
-    
-    // Normal validation and continue flow
     if (validateForm()) {
       localStorage.setItem('nezaPersonalData', JSON.stringify(data));
       localStorage.setItem('nezaUserEmail', data.email);
