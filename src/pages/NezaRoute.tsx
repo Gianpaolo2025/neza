@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { ProductCatalog } from "@/components/neza/ProductCatalog";
 import { UserOnboarding } from "@/components/neza/UserOnboarding";
@@ -10,7 +11,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AsesorIAChat } from "@/components/AsesorIAChat";
 import { useAsesorIA } from "@/hooks/useAsesorIA";
 import { userTrackingService } from "@/services/userTracking";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { Sparkles, FileText, TrendingUp, Shield, Users, Zap, AlertTriangle, Clock, Brain, Trophy, Target, MessageCircle, X, Filter, CheckCircle, PlayCircle } from "lucide-react";
 
 const NezaRoute = () => {
@@ -20,7 +20,6 @@ const NezaRoute = () => {
   const [forceOnboarding, setForceOnboarding] = useState(false);
   const [userEmail, setUserEmail] = useState<string>('');
   const { isChatOpen, toggleChat, openChat } = useAsesorIA();
-  const isMobile = useIsMobile();
 
   useEffect(() => {
     // Generar email temporal para usuarios anónimos
@@ -34,21 +33,18 @@ const NezaRoute = () => {
     // Verificar si es la primera visita para mostrar tutorial automáticamente
     const hasSeenTutorial = localStorage.getItem('nezaTutorialShown');
     if (!hasSeenTutorial) {
-      // En móviles, no mostrar automáticamente para evitar problemas
-      // En desktop sí mostrar automáticamente después de 2 segundos
-      if (!isMobile) {
-        const timer = setTimeout(() => {
-          setShowTutorial(true);
-        }, 2000);
-        
-        return () => clearTimeout(timer);
-      }
+      // Mostrar tutorial automáticamente después de 2 segundos
+      const timer = setTimeout(() => {
+        setShowTutorial(true);
+      }, 2000);
+      
+      return () => clearTimeout(timer);
     }
 
     return () => {
       userTrackingService.endSession();
     };
-  }, [isMobile]);
+  }, []);
 
   const handleStartTutorial = () => {
     userTrackingService.trackActivity('tutorial_start', { action: 'start_tutorial' }, 'Usuario inició el tutorial manualmente');
@@ -93,20 +89,20 @@ const NezaRoute = () => {
         />
         
         {/* Chatbot en posición vertical media-alta */}
-        <div className={`fixed ${isMobile ? 'bottom-20 right-3' : 'bottom-32 right-4'} z-50`}>
+        <div className="fixed bottom-32 right-4 z-50">
           <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
         </div>
         
         {/* Botón de tutorial en esquina inferior izquierda */}
         {!isChatOpen && !showTutorial && (
-          <div className={`fixed ${isMobile ? 'bottom-3 left-3' : 'bottom-4 left-4'} z-40`}>
+          <div className="fixed bottom-4 left-4 z-40">
             <Button
               onClick={handleStartTutorial}
               variant="outline"
-              className={`border-neza-blue-300 text-neza-blue-600 hover:bg-neza-blue-50 flex items-center gap-2 shadow-lg bg-white ${isMobile ? 'text-xs px-2 py-1 h-8' : ''}`}
+              className="border-neza-blue-300 text-neza-blue-600 hover:bg-neza-blue-50 flex items-center gap-2 shadow-lg bg-white"
             >
-              <PlayCircle className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
-              {isMobile ? 'Tutorial' : 'Ver Tutorial'}
+              <PlayCircle className="w-4 h-4" />
+              Ver Tutorial
             </Button>
           </div>
         )}
@@ -136,20 +132,20 @@ const NezaRoute = () => {
         />
         
         {/* Chatbot en posición vertical media-alta */}
-        <div className={`fixed ${isMobile ? 'bottom-20 right-3' : 'bottom-32 right-4'} z-50`}>
+        <div className="fixed bottom-32 right-4 z-50">
           <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
         </div>
         
         {/* Botón de tutorial en esquina inferior izquierda */}
         {!isChatOpen && !showTutorial && (
-          <div className={`fixed ${isMobile ? 'bottom-3 left-3' : 'bottom-4 left-4'} z-40`}>
+          <div className="fixed bottom-4 left-4 z-40">
             <Button
               onClick={handleStartTutorial}
               variant="outline"
-              className={`border-neza-blue-300 text-neza-blue-600 hover:bg-neza-blue-50 flex items-center gap-2 shadow-lg bg-white ${isMobile ? 'text-xs px-2 py-1 h-8' : ''}`}
+              className="border-neza-blue-300 text-neza-blue-600 hover:bg-neza-blue-50 flex items-center gap-2 shadow-lg bg-white"
             >
-              <PlayCircle className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
-              {isMobile ? 'Tutorial' : 'Ver Tutorial'}
+              <PlayCircle className="w-4 h-4" />
+              Ver Tutorial
             </Button>
           </div>
         )}
@@ -173,16 +169,16 @@ const NezaRoute = () => {
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-3">
-                  <Shield className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'} text-neza-blue-200`} />
-                  <h3 className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold`}>🔒 La transparencia es clave para encontrar tu mejor opción</h3>
+                  <Shield className="w-6 h-6 text-neza-blue-200" />
+                  <h3 className="text-xl font-bold">🔒 La transparencia es clave para encontrar tu mejor opción</h3>
                 </div>
-                <p className={`text-neza-blue-100 mb-3 ${isMobile ? 'text-base' : 'text-lg'} leading-relaxed`}>
+                <p className="text-neza-blue-100 mb-3 text-lg leading-relaxed">
                   Sé completamente transparente con tu información. Esto nos permite encontrar las mejores opciones reales 
                   para tu perfil financiero y aumentar significativamente tus posibilidades de aprobación.
                 </p>
                 <div className="flex items-center gap-2 text-neza-blue-200">
-                  <AlertTriangle className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
-                  <span className={`font-medium ${isMobile ? 'text-sm' : ''}`}>
+                  <AlertTriangle className="w-5 h-5" />
+                  <span className="font-medium">
                     ⚠️ Importante: Información falsa o incompleta afecta tu evaluación y reduce tus oportunidades.
                   </span>
                 </div>
@@ -207,13 +203,13 @@ const NezaRoute = () => {
       <div className="w-full max-w-6xl mx-auto px-4 py-8 relative z-20">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className={`${isMobile ? 'text-3xl md:text-4xl' : 'text-4xl md:text-6xl'} font-bold text-neza-blue-800 mb-4`}>
+          <h1 className="text-4xl md:text-6xl font-bold text-neza-blue-800 mb-4">
             NEZA
           </h1>
-          <p className={`text-neza-blue-600 ${isMobile ? 'text-base md:text-lg' : 'text-lg md:text-xl'} mb-4`}>
+          <p className="text-neza-blue-600 text-lg md:text-xl mb-4">
             Sistema de Subasta Financiera Inteligente
           </p>
-          <div className={`bg-neza-blue-50 border border-neza-blue-200 rounded-lg p-4 ${isMobile ? 'text-xs' : 'text-sm'} text-neza-blue-800 max-w-2xl mx-auto mb-6`}>
+          <div className="bg-neza-blue-50 border border-neza-blue-200 rounded-lg p-4 text-sm text-neza-blue-800 max-w-2xl mx-auto mb-6">
             <strong>🏛️ Aquí los bancos compiten para darte lo mejor:</strong> Las entidades financieras luchan en tiempo real 
             para ofrecerte las mejores condiciones. Tú eliges la ganadora.
           </div>
@@ -229,44 +225,44 @@ const NezaRoute = () => {
             onClick={handleProductRequest}
           >
             <CardHeader className="text-center pb-4">
-              <div className={`${isMobile ? 'w-16 h-16' : 'w-20 h-20'} bg-gradient-to-r from-neza-blue-500 to-neza-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg animate-pulse`}>
-                <FileText className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} text-white animate-bounce`} />
+              <div className="w-20 h-20 bg-gradient-to-r from-neza-blue-500 to-neza-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg animate-pulse">
+                <FileText className="w-10 h-10 text-white animate-bounce" />
               </div>
-              <CardTitle className={`${isMobile ? 'text-xl' : 'text-3xl'} text-neza-blue-800 flex items-center justify-center gap-2 mb-4`}>
+              <CardTitle className="text-3xl text-neza-blue-800 flex items-center justify-center gap-2 mb-4">
                 ✓ Solicitar Producto Financiero
               </CardTitle>
-              <CardDescription className={`${isMobile ? 'text-base' : 'text-lg'} text-neza-silver-600 mb-6`}>
+              <CardDescription className="text-lg text-neza-silver-600 mb-6">
                 Proceso 100% digital y transparente
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="bg-neza-blue-50 rounded-lg p-4 text-center">
-                <div className={`text-neza-blue-700 font-semibold ${isMobile ? 'text-base' : 'text-lg'}`}>🎯 Evaluación en tiempo real</div>
-                <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-neza-blue-600`}>Sistema inteligente de análisis</div>
+                <div className="text-neza-blue-700 font-semibold text-lg">🎯 Evaluación en tiempo real</div>
+                <div className="text-sm text-neza-blue-600">Sistema inteligente de análisis</div>
               </div>
               
-              <div className={`grid ${isMobile ? 'grid-cols-1 gap-3' : 'md:grid-cols-2 gap-4'}`}>
+              <div className="grid md:grid-cols-2 gap-4">
                 <div className="flex items-center gap-3 bg-neza-blue-50 border border-neza-blue-200 rounded-lg p-4">
-                  <div className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} bg-neza-blue-500 rounded-full flex items-center justify-center`}>
-                    <Clock className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-white`} />
+                  <div className="w-8 h-8 bg-neza-blue-500 rounded-full flex items-center justify-center">
+                    <Clock className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <div className={`font-semibold text-neza-blue-800 ${isMobile ? 'text-sm' : ''}`}>✅ Formulario obligatorio</div>
-                    <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-neza-blue-600`}>Completa 8 preguntas</div>
+                    <div className="font-semibold text-neza-blue-800">✅ Formulario obligatorio</div>
+                    <div className="text-sm text-neza-blue-600">Completa 8 preguntas</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 bg-neza-blue-50 border border-neza-blue-200 rounded-lg p-4">
-                  <div className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} bg-neza-blue-500 rounded-full flex items-center justify-center`}>
-                    <Trophy className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-white`} />
+                  <div className="w-8 h-8 bg-neza-blue-500 rounded-full flex items-center justify-center">
+                    <Trophy className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <div className={`font-semibold text-neza-blue-800 ${isMobile ? 'text-sm' : ''}`}>✅ Subasta automática</div>
-                    <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-neza-blue-600`}>Bancos compiten por ti</div>
+                    <div className="font-semibold text-neza-blue-800">✅ Subasta automática</div>
+                    <div className="text-sm text-neza-blue-600">Bancos compiten por ti</div>
                   </div>
                 </div>
               </div>
 
-              <Button className={`w-full bg-neza-blue-600 hover:bg-neza-blue-700 ${isMobile ? 'text-lg py-6' : 'text-xl py-8'}`}>
+              <Button className="w-full bg-neza-blue-600 hover:bg-neza-blue-700 text-xl py-8">
                 Comenzar Solicitud
               </Button>
             </CardContent>
@@ -280,46 +276,46 @@ const NezaRoute = () => {
 
         {/* Features Section */}
         <div id="why-system" className="mb-16">
-          <h3 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-center text-neza-blue-800 mb-8`}>
+          <h3 className="text-2xl font-bold text-center text-neza-blue-800 mb-8">
             ¿Por qué usar nuestro Sistema de Subasta?
           </h3>
-          <div className={`grid gap-6 ${isMobile ? 'grid-cols-2' : 'md:grid-cols-4'} max-w-6xl mx-auto`}>
+          <div className="grid gap-6 md:grid-cols-4 max-w-6xl mx-auto">
             <div className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-lg border border-neza-blue-200 hover:scale-105 transition-transform duration-200">
-              <div className={`${isMobile ? 'w-12 h-12' : 'w-16 h-16'} bg-neza-blue-100 rounded-full flex items-center justify-center mx-auto mb-4`}>
-                <Shield className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} text-neza-blue-600`} />
+              <div className="w-16 h-16 bg-neza-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Shield className="w-8 h-8 text-neza-blue-600" />
               </div>
-              <h4 className={`font-semibold text-neza-blue-800 ${isMobile ? 'text-base' : 'text-lg'} mb-2`}>🔒 Transparente</h4>
-              <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-neza-silver-600`}>
+              <h4 className="font-semibold text-neza-blue-800 text-lg mb-2">🔒 Transparente</h4>
+              <p className="text-sm text-neza-silver-600">
                 Los bancos compiten abiertamente por darte su mejor propuesta
               </p>
             </div>
             
             <div className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-lg border border-neza-blue-200 hover:scale-105 transition-transform duration-200">
-              <div className={`${isMobile ? 'w-12 h-12' : 'w-16 h-16'} bg-neza-blue-100 rounded-full flex items-center justify-center mx-auto mb-4`}>
-                <Target className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} text-neza-blue-600`} />
+              <div className="w-16 h-16 bg-neza-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Target className="w-8 h-8 text-neza-blue-600" />
               </div>
-              <h4 className={`font-semibold text-neza-blue-800 ${isMobile ? 'text-base' : 'text-lg'} mb-2`}>🎯 Tú Eliges</h4>
-              <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-neza-silver-600`}>
+              <h4 className="font-semibold text-neza-blue-800 text-lg mb-2">🎯 Tú Eliges</h4>
+              <p className="text-sm text-neza-silver-600">
                 El poder está en tus manos para elegir la mejor alternativa
               </p>
             </div>
             
             <div className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-lg border border-neza-blue-200 hover:scale-105 transition-transform duration-200">
-              <div className={`${isMobile ? 'w-12 h-12' : 'w-16 h-16'} bg-neza-blue-100 rounded-full flex items-center justify-center mx-auto mb-4`}>
-                <Zap className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} text-neza-blue-600`} />
+              <div className="w-16 h-16 bg-neza-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Zap className="w-8 h-8 text-neza-blue-600" />
               </div>
-              <h4 className={`font-semibold text-neza-blue-800 ${isMobile ? 'text-base' : 'text-lg'} mb-2`}>⚡ Tiempo Real</h4>
-              <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-neza-silver-600`}>
+              <h4 className="font-semibold text-neza-blue-800 text-lg mb-2">⚡ Tiempo Real</h4>
+              <p className="text-sm text-neza-silver-600">
                 Las mejores ofertas se actualizan automáticamente cada minuto
               </p>
             </div>
 
             <div className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-lg border border-neza-blue-200 hover:scale-105 transition-transform duration-200">
-              <div className={`${isMobile ? 'w-12 h-12' : 'w-16 h-16'} bg-neza-blue-100 rounded-full flex items-center justify-center mx-auto mb-4`}>
-                <Filter className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} text-neza-blue-600`} />
+              <div className="w-16 h-16 bg-neza-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Filter className="w-8 h-8 text-neza-blue-600" />
               </div>
-              <h4 className={`font-semibold text-neza-blue-800 ${isMobile ? 'text-base' : 'text-lg'} mb-2`}>🔍 Filtros Inteligentes</h4>
-              <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-neza-silver-600`}>
+              <h4 className="font-semibold text-neza-blue-800 text-lg mb-2">🔍 Filtros Inteligentes</h4>
+              <p className="text-sm text-neza-silver-600">
                 Encuentra automáticamente tu mejor opción según tu perfil
               </p>
             </div>
@@ -328,7 +324,7 @@ const NezaRoute = () => {
 
         {/* Sugerencias de Usuarios para mejorar la plataforma */}
         <div id="suggestions-section" className="mb-16 max-w-4xl mx-auto">
-          <h3 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold text-center text-neza-blue-800 mb-8`}>
+          <h3 className="text-2xl font-bold text-center text-neza-blue-800 mb-8">
             💡 Sugerencias de los Usuarios
           </h3>
           <PlatformSuggestions />
@@ -344,33 +340,33 @@ const NezaRoute = () => {
       <div className="bg-neza-blue-800 text-white py-8 mt-12 relative z-20">
         <div className="container mx-auto px-4 text-center max-w-6xl">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <CheckCircle className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} text-neza-blue-400`} />
-            <span className={`text-neza-blue-400 font-semibold ${isMobile ? 'text-sm' : ''}`}>Evaluación en tiempo real</span>
+            <CheckCircle className="w-5 h-5 text-neza-blue-400" />
+            <span className="text-neza-blue-400 font-semibold">Evaluación en tiempo real</span>
           </div>
-          <p className={`text-neza-silver-300 ${isMobile ? 'text-xs' : 'text-sm'} max-w-2xl mx-auto`}>
+          <p className="text-neza-silver-300 text-sm max-w-2xl mx-auto">
             NEZA es un sistema de subasta financiera donde las entidades autorizadas y supervisadas por la Superintendencia de Banca, Seguros y AFP (SBS) y la Superintendencia del Mercado de Valores (SMV) del Perú compiten para ofrecerte las mejores condiciones.
           </p>
-          <p className={`text-neza-silver-400 ${isMobile ? 'text-xs' : 'text-xs'} mt-2`}>
+          <p className="text-neza-silver-400 text-xs mt-2">
             Todos nuestros aliados están supervisados por la Superintendencia de Banca, Seguros y AFP (SBS) y por la Superintendencia del Mercado de Valores (SMV).
           </p>
         </div>
       </div>
 
       {/* Chatbot reubicado más arriba para no interferir con el tutorial */}
-      <div className={`fixed ${isMobile ? 'bottom-20 right-3' : 'bottom-32 right-4'} z-50`}>
+      <div className="fixed bottom-32 right-4 z-50">
         <AsesorIAChat isVisible={isChatOpen} onToggle={toggleChat} />
       </div>
       
       {/* Botón de tutorial - Esquina inferior izquierda */}
       {!isChatOpen && !showTutorial && (
-        <div className={`fixed ${isMobile ? 'bottom-3 left-3' : 'bottom-4 left-4'} z-40`}>
+        <div className="fixed bottom-4 left-4 z-40">
           <Button
             onClick={handleStartTutorial}
             variant="outline"
-            className={`border-neza-blue-300 text-neza-blue-600 hover:bg-neza-blue-50 flex items-center gap-2 shadow-lg bg-white ${isMobile ? 'text-xs px-2 py-1 h-8' : ''}`}
+            className="border-neza-blue-300 text-neza-blue-600 hover:bg-neza-blue-50 flex items-center gap-2 shadow-lg bg-white"
           >
-            <PlayCircle className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
-            {isMobile ? 'Tutorial' : 'Ver Tutorial'}
+            <PlayCircle className="w-4 h-4" />
+            Ver Tutorial
           </Button>
         </div>
       )}

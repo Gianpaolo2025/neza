@@ -21,7 +21,6 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Navigate to="/neza" replace />} />
             <Route path="/admin" element={
               <ProtectedRoute>
                 <AdminRoute />

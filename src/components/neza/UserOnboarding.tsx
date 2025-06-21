@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { HumanAdvisoryExperience } from "./HumanAdvisoryExperience";
 import { AuctionValidator } from "./AuctionValidator";
 import { OffersDashboard } from "@/components/OffersDashboard";
@@ -14,37 +13,8 @@ interface UserOnboardingProps {
 export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProps) => {
   const [currentView, setCurrentView] = useState<'advisory' | 'validation' | 'offers'>('advisory');
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [isReturningUser, setIsReturningUser] = useState(false);
-
-  useEffect(() => {
-    // Detectar si es un usuario nuevo o que regresa
-    const savedEmail = localStorage.getItem('nezaUserEmail');
-    const savedData = localStorage.getItem('nezaPersonalData');
-    const hasSessionData = localStorage.getItem('nezaSessionData');
-    
-    // Es usuario que regresa si tiene email guardado Y datos guardados Y datos de sesión
-    const returning = !!(savedEmail && savedData && hasSessionData);
-    setIsReturningUser(returning);
-    
-    console.log('Detección de usuario:', {
-      isReturning: returning,
-      hasSavedEmail: !!savedEmail,
-      hasSavedData: !!savedData,
-      hasSessionData: !!hasSessionData
-    });
-    
-    // Si es usuario completamente nuevo, limpiar todo al inicio
-    if (!returning && (savedData || savedEmail)) {
-      console.log('Usuario nuevo detectado - Limpiando datos previos en UserOnboarding');
-      localStorage.removeItem('nezaPersonalData');
-      localStorage.removeItem('nezaHumanAdvisoryData');
-      localStorage.removeItem('nezaUserEmail');
-      localStorage.removeItem('nezaSessionData');
-    }
-  }, []);
 
   const saveUserToAdmin = (data: UserData) => {
-    // Get existing admin users array
     const adminUsers = JSON.parse(localStorage.getItem('nezaAdminUsers') || '[]');
     
     const userRecord = {
@@ -70,22 +40,15 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
       lastUpdate: new Date().toISOString()
     };
 
-    // Check if user already exists (by email)
     const existingUserIndex = adminUsers.findIndex((user: any) => user.email === data.email);
     
     if (existingUserIndex >= 0) {
-      // Update existing user
-      adminUsers[existingUserIndex] = { ...adminUsers[existingUserIndex], ...userRecord, lastUpdate: new Date().toISOString() };
-      console.log('Usuario actualizado en admin:', userRecord.email);
+      adminUsers[existingUserIndex] = { ...adminUsers[existingUserIndex], ...userRecord };
     } else {
-      // Add new user to the array
       adminUsers.push(userRecord);
-      console.log('Nuevo usuario guardado en admin:', userRecord.email);
     }
     
-    // Save updated array back to localStorage
     localStorage.setItem('nezaAdminUsers', JSON.stringify(adminUsers));
-    console.log('Total usuarios en admin:', adminUsers.length);
   };
 
   const handleComplete = (data: any) => {
@@ -114,15 +77,7 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
       documents: data.documents
     };
     
-    // Marcar usuario como confirmado y guardar datos de sesión
-    localStorage.setItem('nezaUserEmail', convertedData.email);
-    localStorage.setItem('nezaSessionData', JSON.stringify({
-      email: convertedData.email,
-      timestamp: Date.now(),
-      confirmed: true
-    }));
-    
-    // Save to admin IMMEDIATELY when step 2 is completed
+    // Save to admin
     saveUserToAdmin(convertedData);
     
     setUserData(convertedData);
@@ -138,7 +93,7 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
 
     userTrackingService.trackActivity(
       'form_submit',
-      { ...convertedData, forceFlow, isReturningUser },
+      { ...convertedData, forceFlow },
       `Onboarding completado - Solicitud de ${convertedData.productType}`,
       convertedData.productType
     );
@@ -164,8 +119,7 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
         requestedAmount: convertedData.requestedAmount,
         monthlyIncome: convertedData.monthlyIncome,
         urgencyLevel: convertedData.urgencyLevel,
-        forceFlow,
-        isReturningUser
+        forceFlow
       },
       true
     );
@@ -197,7 +151,7 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
         onBack={() => {
           userTrackingService.trackActivity(
             'button_click',
-            { action: 'back_to_questions', forceFlow, isReturningUser },
+            { action: 'back_to_questions', forceFlow },
             'Usuario regresó del dashboard de ofertas a las preguntas'
           );
           setCurrentView('advisory');
@@ -215,7 +169,7 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
         onBack={() => {
           userTrackingService.trackActivity(
             'button_click',
-            { action: 'back_to_onboarding_from_validation', forceFlow, isReturningUser },
+            { action: 'back_to_onboarding_from_validation', forceFlow },
             'Usuario regresó de validación al onboarding'
           );
           setCurrentView('advisory');
@@ -225,20 +179,19 @@ export const UserOnboarding = ({ onBack, forceFlow = false }: UserOnboardingProp
     );
   }
 
-  // Default view - advisory experience - pasar isReturningUser como prop
+  // Default view - advisory experience
   return (
     <HumanAdvisoryExperience 
       onBack={() => {
         userTrackingService.trackActivity(
           'form_abandon',
-          { step: 'advisory', reason: 'user_back_button', forceFlow, isReturningUser },
+          { step: 'advisory', reason: 'user_back_button', forceFlow },
           forceFlow ? 'Usuario abandonó el flujo obligatorio de solicitud' : 'Usuario abandonó el proceso de onboarding'
         );
         onBack();
       }}
       onComplete={handleComplete}
       forceFlow={forceFlow}
-      isReturningUser={isReturningUser}
     />
   );
 };

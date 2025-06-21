@@ -374,31 +374,19 @@ class UserTrackingService {
     const totalUsers = this.profiles.size;
     const totalSessions = this.sessions.length;
     
-    // Fix average session time calculation
-    const completedSessions = this.sessions.filter(s => s.endTime && s.duration);
+    const completedSessions = this.sessions.filter(s => s.endTime);
     const averageSessionTime = completedSessions.length > 0 
       ? completedSessions.reduce((sum, s) => sum + (s.duration || 0), 0) / completedSessions.length
       : 0;
 
-    // Get product views from admin users and tracking data combined
-    const adminUsers = JSON.parse(localStorage.getItem('nezaAdminUsers') || '[]');
-    const productCounts: Record<string, number> = {};
-    
-    // Count from admin users (real form submissions)
-    adminUsers.forEach((user: any) => {
-      if (user.productType) {
-        productCounts[user.productType] = (productCounts[user.productType] || 0) + 1;
-      }
-    });
-    
-    // Also count from tracking activities
-    this.activities
-      .filter(a => a.activityType === 'form_submit' && a.productType)
-      .forEach(a => {
-        productCounts[a.productType!] = (productCounts[a.productType!] || 0) + 1;
-      });
+    const productViews = this.activities
+      .filter(a => a.activityType === 'product_view' && a.productType)
+      .reduce((acc, a) => {
+        acc[a.productType!] = (acc[a.productType!] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
 
-    const topProducts = Object.entries(productCounts)
+    const topProducts = Object.entries(productViews)
       .map(([product, views]) => ({ product, views }))
       .sort((a, b) => b.views - a.views)
       .slice(0, 5);

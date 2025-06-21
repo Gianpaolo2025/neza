@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { User, Mail, Phone, MapPin, Calendar, Briefcase, Trash2 } from "lucide-react";
+import { User, Mail, Phone, MapPin, Calendar, Briefcase } from "lucide-react";
 
 interface PersonalData {
   firstName: string;
@@ -35,52 +35,19 @@ interface PersonalDataStepProps {
 export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUser }: PersonalDataStepProps) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [previousData, setPreviousData] = useState<Partial<PersonalData>>({});
-  const [showPreviousData, setShowPreviousData] = useState(false);
 
   useEffect(() => {
     const savedData = localStorage.getItem('nezaPersonalData');
-    
-    // Si es un usuario nuevo (no isReturningUser), limpiar automáticamente todos los datos guardados
-    if (!isReturningUser && savedData) {
-      console.log('Usuario nuevo detectado - Limpiando datos previos automáticamente');
-      localStorage.removeItem('nezaPersonalData');
-      localStorage.removeItem('nezaHumanAdvisoryData');
-      localStorage.removeItem('nezaUserEmail');
-      localStorage.removeItem('nezaSessionData');
-      return;
-    }
-    
-    // Si es un usuario que regresa, cargar y validar los datos
-    if (savedData && isReturningUser) {
+    if (savedData) {
       try {
         const parsed = JSON.parse(savedData);
-        
-        // Validar que los datos previos pertenezcan al usuario actual
-        const currentUserEmail = data.email || '';
-        const savedUserEmail = parsed.email || '';
-        
-        // Solo mostrar datos previos si el email coincide o si ambos están vacíos
-        if (currentUserEmail && savedUserEmail && currentUserEmail === savedUserEmail) {
-          setPreviousData(parsed);
-          setShowPreviousData(true);
-          console.log('Datos previos validados para usuario que regresa:', parsed);
-        } else if (!currentUserEmail && !savedUserEmail) {
-          // Si no hay emails, permitir mostrar los datos (primera vez llenando)
-          setPreviousData(parsed);
-          setShowPreviousData(true);
-          console.log('Datos previos cargados (sin validación de email):', parsed);
-        } else {
-          // Emails no coinciden - limpiar datos
-          console.log('Email no coincide - Limpiando datos previos');
-          localStorage.removeItem('nezaPersonalData');
-          localStorage.removeItem('nezaHumanAdvisoryData');
-        }
+        setPreviousData(parsed);
+        console.log('Datos previos cargados:', parsed);
       } catch (error) {
         console.error('Error parsing saved data:', error);
-        localStorage.removeItem('nezaPersonalData');
       }
     }
-  }, [isReturningUser, data.email]);
+  }, []);
 
   const occupationOptions = [
     "Empleado público",
@@ -121,7 +88,6 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
   const handleContinue = () => {
     if (validateForm()) {
       localStorage.setItem('nezaPersonalData', JSON.stringify(data));
-      localStorage.setItem('nezaUserEmail', data.email);
       onUpdate({ ...data, isValidated: true, otpVerified: true });
       onNext();
     }
@@ -132,35 +98,8 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
     onUpdate({ ...data, [field]: value });
   };
 
-  const clearAllData = () => {
-    console.log('Limpiando todos los datos manualmente');
-    localStorage.removeItem('nezaPersonalData');
-    localStorage.removeItem('nezaHumanAdvisoryData');
-    localStorage.removeItem('nezaUserEmail');
-    localStorage.removeItem('nezaSessionData');
-    setPreviousData({});
-    setShowPreviousData(false);
-    
-    // Limpiar el formulario actual
-    onUpdate({
-      firstName: '',
-      lastName: '',
-      dni: '',
-      birthDate: '',
-      email: '',
-      phone: '',
-      address: '',
-      occupation: '',
-      workYears: 0,
-      workMonths: 0,
-      preferredCurrency: '',
-      isValidated: false,
-      otpVerified: false
-    });
-  };
-
   const AutocompleteSuggestion = ({ field, value, label }: { field: keyof PersonalData; value: any; label: string }) => {
-    if (!showPreviousData || !value || value === data[field] || !value.toString().trim()) return null;
+    if (!value || value === data[field] || !value.toString().trim()) return null;
     
     return (
       <div className="mt-2">
@@ -200,20 +139,6 @@ export const PersonalDataStep = ({ data, onUpdate, onNext, onPrev, isReturningUs
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-sm text-green-800">
           <strong>✏️ Todos los campos son editables:</strong> Puedes modificar cualquier información cuando desees
         </div>
-        
-        {/* Botón para empezar de cero */}
-        {showPreviousData && (
-          <div className="mt-4">
-            <Button
-              variant="outline"
-              onClick={clearAllData}
-              className="border-red-300 text-red-700 hover:bg-red-50 flex items-center gap-2"
-            >
-              <Trash2 className="w-4 h-4" />
-              Empezar completamente de cero
-            </Button>
-          </div>
-        )}
       </motion.div>
 
       <div className="grid gap-4 md:gap-6 md:grid-cols-2">

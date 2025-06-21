@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { X, ArrowRight, ArrowLeft, Target, Sparkles } from "lucide-react";
 import { userTrackingService } from "@/services/userTracking";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 interface TutorialStep {
   id: string;
@@ -23,7 +22,6 @@ interface InteractiveTutorialProps {
 export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isHighlighting, setIsHighlighting] = useState(false);
-  const isMobile = useIsMobile();
 
   const tutorialSteps: TutorialStep[] = [
     {
@@ -140,126 +138,6 @@ export const InteractiveTutorial = ({ isVisible, onClose }: InteractiveTutorialP
 
   if (!isVisible) return null;
 
-  // Diseño móvil - Card flotante centrada
-  if (isMobile) {
-    return (
-      <>
-        {/* Overlay oscuro */}
-        <div className="fixed inset-0 bg-black/50 z-[85]" onClick={handleClose} />
-        
-        {/* Tutorial Card móvil - Centrada y compacta */}
-        <div className="fixed inset-4 z-[90] flex items-center justify-center">
-          <Card className="w-full max-w-sm bg-white shadow-xl border-2 border-blue-900 rounded-lg max-h-[70vh] overflow-auto">
-            <CardContent className="p-4">
-              {/* Header */}
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 bg-gradient-to-r from-blue-900 to-blue-800 rounded-full flex items-center justify-center">
-                    <Sparkles className="w-2.5 h-2.5 text-white" />
-                  </div>
-                  <span className="text-xs font-bold text-blue-900">
-                    Paso {currentStep + 1}/{tutorialSteps.length}
-                  </span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleClose}
-                  className="p-1 h-6 w-6 hover:bg-blue-100 text-blue-900"
-                >
-                  <X className="w-3 h-3" />
-                </Button>
-              </div>
-
-              {/* Contenido */}
-              <div className="space-y-3">
-                <div className="flex items-start gap-2">
-                  <Target className="w-4 h-4 text-blue-900 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <h4 className="text-sm font-semibold text-blue-900 mb-1">
-                      {currentStepData.title}
-                    </h4>
-                    <p className="text-xs text-gray-700 leading-relaxed">
-                      {currentStepData.description}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Indicadores de progreso */}
-                <div className="flex justify-center gap-1 py-2">
-                  {tutorialSteps.map((_, index) => (
-                    <div
-                      key={index}
-                      className={`w-2 h-2 rounded-full ${
-                        index === currentStep ? 'bg-blue-900' : 'bg-blue-300'
-                      }`}
-                    />
-                  ))}
-                </div>
-
-                {/* Controles */}
-                <div className="flex justify-between items-center pt-2">
-                  <Button
-                    variant="outline"
-                    onClick={handlePrev}
-                    disabled={currentStep === 0}
-                    className="flex items-center gap-1 border-blue-900 text-blue-900 hover:bg-blue-50 text-xs px-3 py-1.5 h-8"
-                  >
-                    <ArrowLeft className="w-3 h-3" />
-                    Anterior
-                  </Button>
-                  
-                  <Button
-                    onClick={handleNext}
-                    className="bg-blue-900 hover:bg-blue-800 flex items-center gap-1 text-white text-xs px-3 py-1.5 h-8"
-                  >
-                    {currentStep === tutorialSteps.length - 1 ? 'Finalizar' : 'Siguiente'}
-                    <ArrowRight className="w-3 h-3" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Estilos CSS para resaltado */}
-        <style>{`
-          .tutorial-highlight-strong {
-            position: relative;
-            z-index: 60;
-          }
-          
-          .tutorial-highlight-strong::before {
-            content: '';
-            position: absolute;
-            top: -8px;
-            left: -8px;
-            right: -8px;
-            bottom: -8px;
-            border: 4px solid #1e3a8a;
-            border-radius: 12px;
-            background: rgba(30, 58, 138, 0.1);
-            z-index: -1;
-            animation: tutorial-pulse 2s infinite;
-            box-shadow: 0 0 20px rgba(30, 58, 138, 0.5);
-          }
-          
-          @keyframes tutorial-pulse {
-            0%, 100% {
-              transform: scale(1);
-              opacity: 0.8;
-            }
-            50% {
-              transform: scale(1.02);
-              opacity: 1;
-            }
-          }
-        `}</style>
-      </>
-    );
-  }
-
-  // Diseño desktop - Barra superior como antes
   return (
     <>
       {/* Tutorial Card - Barra delgada fija en la parte superior */}
